@@ -2,11 +2,8 @@ import SwiftUI
 import WidgetKit
 
 /// Rund ring i Aktivitet-stil, der fyldes mod ugens mål og fortsætter rundt over 100 %.
-struct BigRingWidget: Widget {
-    let kind: String
-    let center: CenterValue
-
-    var body: some WidgetConfiguration {
+struct BigRingWidget {
+    static func make(kind: String, center: CenterValue) -> some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: HeartMinutesProvider()) { entry in
             HeartMinutesBigRingView(entry: entry, center: center)
                 .containerBackground(for: .widget) { Color.clear }
@@ -21,11 +18,8 @@ struct BigRingWidget: Widget {
 }
 
 /// Hjerte-ring: hjertets kant fyldes mod ugens mål.
-struct HeartRingWidget: Widget {
-    let kind: String
-    let center: CenterValue
-
-    var body: some WidgetConfiguration {
+struct HeartRingWidget {
+    static func make(kind: String, center: CenterValue) -> some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: HeartMinutesProvider()) { entry in
             HeartMinutesHeartRingView(entry: entry, center: center)
                 .containerBackground(for: .widget) { Color.clear }
@@ -39,13 +33,29 @@ struct HeartRingWidget: Widget {
     }
 }
 
+// De eksisterende "kind"-navne beholdes, så komplikationer på urskiven bliver siddende.
+struct BigRingPercentWidget: Widget {
+    var body: some WidgetConfiguration { BigRingWidget.make(kind: "HeartMinutesBigRingPercent", center: .percent) }
+}
+
+struct BigRingMinutesWidget: Widget {
+    var body: some WidgetConfiguration { BigRingWidget.make(kind: "HeartMinutesBigRingMinutes", center: .minutes) }
+}
+
+struct HeartRingPercentWidget: Widget {
+    var body: some WidgetConfiguration { HeartRingWidget.make(kind: "HeartMinutesHeartRing", center: .percent) }
+}
+
+struct HeartRingMinutesWidget: Widget {
+    var body: some WidgetConfiguration { HeartRingWidget.make(kind: "HeartMinutesHeartRingMinutes", center: .minutes) }
+}
+
 @main
 struct HeartMinutesWidgets: WidgetBundle {
     var body: some Widget {
-        // De eksisterende "kind"-navne beholdes, så komplikationer på urskiven bliver siddende.
-        BigRingWidget(kind: "HeartMinutesBigRingPercent", center: .percent)
-        BigRingWidget(kind: "HeartMinutesBigRingMinutes", center: .minutes)
-        HeartRingWidget(kind: "HeartMinutesHeartRing", center: .percent)
-        HeartRingWidget(kind: "HeartMinutesHeartRingMinutes", center: .minutes)
+        BigRingPercentWidget()
+        BigRingMinutesWidget()
+        HeartRingPercentWidget()
+        HeartRingMinutesWidget()
     }
 }
