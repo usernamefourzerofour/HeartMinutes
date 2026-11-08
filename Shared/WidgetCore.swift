@@ -201,6 +201,7 @@ struct TopCircle: Shape {
         let r = min(rect.width, rect.height) / 2
         p.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: r,
                  startAngle: .degrees(-90), endAngle: .degrees(270), clockwise: false)
+        p.closeSubpath()   // ingen samling (hårfin streg) ved kl. 12
         return p
     }
 }
@@ -255,31 +256,36 @@ struct ShapeProgressRing<S: Shape>: View {
             let size = min(geo.size.width, geo.size.height)
             let lw = size * thickness
             let pos = f > 1 ? min(f - 1, 0.999) : f
+            // Spids i hjertets bund, men ingen lang pil ind i kløften (miterLimit).
+            let style = { (cap: CGLineCap) in
+                StrokeStyle(lineWidth: lw, lineCap: cap, lineJoin: .miter, miterLimit: 2)
+            }
             ZStack {
                 // Sporet: samme farve, men meget mørkt (svagere på tonet urskive).
-                shape.stroke(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12),
-                             style: StrokeStyle(lineWidth: lw, lineJoin: .round))
+                shape.stroke(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12), style: style(.butt))
                 if f <= 1 {
                     // Bliver gradvist mere intens hele vejen hen til, hvor du er nået.
-                    segment(from: 0, to: f, lineWidth: lw, colors: [tone(0), tone(1)])
+                    segment(from: 0, to: f, style: style(.round), colors: [tone(0), tone(1)])
                 } else {
-                    // Over målet: én sammenhængende farveskala over hele forløbet (0 … f).
-                    // Første omgang vises kun der, hvor den nye omgang ikke ligger ovenpå (ingen
-                    // dobbelt farve ved kl. 12), og den nye omgang fortsætter, hvor første slap.
-                    let k = 1 / f   // hvor langt på skalaen første omgang når
-                    shape
-                        .trim(from: pos, to: 1)
-                        .stroke(AngularGradient(colors: [tone(0), tone(k)], center: .center,
-                                                startAngle: .degrees(-90), endAngle: .degrees(270)),
-                                style: StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .round))
-                        .widgetAccentable()
+                    // Over målet: hele formen tegnes som ÉN lukket streg (ingen samling ved kl. 12, som
+                    // gav en hvid streg på tonet urskive). Farven er én sammenhængende skala over hele
+                    // forløbet: ny omgang tone(k) → tone(1) fra kl. 12 til enden, derefter resten af
+                    // første omgang tone(k·p) → tone(k).
+                    let k = 1 / f
+                    let rect = CGRect(x: 0, y: 0, width: geo.size.width - lw, height: geo.size.height - lw)
+                    let p = angleFraction(of: pos, in: rect)
+                    let lap = AngularGradient(stops: [
+                        .init(color: tone(k), location: 0),
+                        .init(color: tone(1), location: p),
+                        .init(color: tone(k * p), location: min(p + 0.0001, 1)),
+                        .init(color: tone(k), location: 1),
+                    ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
+                    shape.stroke(lap, style: style(.butt)).widgetAccentable()
                     if renderingMode == .fullColor {
                         // Mørk kant under enden, så den nye omgang tydeligt ligger ovenpå.
                         EndDot(shape: shape, fraction: pos, radius: lw / 2 + 2).fill(.black)
+                        shape.trim(from: 0, to: pos).stroke(lap, style: style(.butt))
                     }
-                    // Lige (ikke rund) start ved kl. 12, så den ikke overlapper første omgang – på tonet
-                    // urskive blev overlappet en mørk plet. Den runde ende sættes på manuelt.
-                    segment(from: 0, to: pos, lineWidth: lw, colors: [tone(k), tone(1)], cap: .butt)
                     EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1)).widgetAccentable()
                 }
                 // Lille hvid prik ved, hvor langt du er nået.
@@ -298,14 +304,22 @@ struct ShapeProgressRing<S: Shape>: View {
         }
     }
 
-    private func segment(from: Double = 0, to t: Double, lineWidth: CGFloat, colors: [Color],
-                         cap: CGLineCap = .round) -> some View {
+    private func segment(from: Double = 0, to t: Double, style: StrokeStyle, colors: [Color]) -> some View {
         shape
             .trim(from: from, to: max(t, 0.001))
             .stroke(AngularGradient(colors: colors, center: .center,
                                     startAngle: .degrees(-90), endAngle: .degrees(-90 + 360 * max(t, 0.01))),
-                    style: StrokeStyle(lineWidth: lineWidth, lineCap: cap, lineJoin: .round))
+                    style: style)
             .widgetAccentable()
+    }
+
+    /// Vinklen (0…1 fra kl. 12, med uret) til punktet `fraction` langs formen. For et hjerte er den
+    /// ikke den samme som andelen af vejen, så farveskiftet skal lægges ved den rigtige vinkel.
+    private func angleFraction(of fraction: Double, in rect: CGRect) -> Double {
+        guard let pt = shape.path(in: rect).trimmedPath(from: 0, to: max(fraction, 0.001)).currentPoint
+        else { return fraction }
+        let deg = atan2(pt.y - rect.midY, pt.x - rect.midX) * 180 / .pi + 90
+        return (deg < 0 ? deg + 360 : deg) / 360
     }
 }
 
