@@ -1,0 +1,137 @@
+name: Puls
+options:
+  bundleIdPrefix: dk.erik
+  developmentLanguage: da
+  deploymentTarget: { iOS: "27.0", watchOS: "11.0" }
+settings:
+  base:
+    # Samme versionsnumre for iPhone-app, ur-app og komplikation (Apple kræver det).
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "36"
+targets:
+  Puls:
+    type: application
+    platform: iOS
+    sources: [Puls, Shared/ComplicationStore.swift]
+    entitlements:
+      path: Puls/Puls.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
+        com.apple.security.application-groups: [group.dk.erik.puls]
+    info:
+      path: Puls/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDevelopmentRegion: da
+        CFBundleLocalizations: [da]
+        ITSAppUsesNonExemptEncryption: false
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleDisplayName: Heart Minutes
+        NSHealthUpdateUsageDescription: "Heart Minutes gemmer ikke data i Sundhed – den læser kun dine pulsmålinger og træninger."
+        NSHealthShareUsageDescription: "Heart Minutes læser dine pulsmålinger og træninger fra Apple Watch for at vise dem i grafer."
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [dk.erik.puls.refresh]
+    dependencies:
+      - target: PulsWatch
+      - target: PulsWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  # Apple Watch-app: regner ugens Heart Minutes på uret og gemmer dem til komplikationen.
+  PulsWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - PulsWatch
+      - Shared
+      - Puls/ActiveMinutes.swift
+      - Puls/HealthManager.swift
+      - Puls/HeartZones.swift
+      - Puls/Period.swift
+    entitlements:
+      path: PulsWatch/PulsWatch.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
+        com.apple.security.application-groups: [group.dk.erik.puls]
+    info:
+      path: PulsWatch/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: da
+        CFBundleDisplayName: Heart Minutes
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: dk.erik.puls
+        NSHealthUpdateUsageDescription: "Heart Minutes gemmer ikke data i Sundhed – den læser kun dine pulsmålinger og træninger."
+        NSHealthShareUsageDescription: "Heart Minutes læser dine pulsmålinger og træninger for at vise ugens Heart Minutes på uret."
+    dependencies:
+      - target: PulsWatchWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls.watchkitapp
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  # Komplikation (WidgetKit) på urskiven.
+  PulsWatchWidget:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - PulsWatchWidget
+      - Shared
+      - Puls/Period.swift
+    entitlements:
+      path: PulsWatchWidget/PulsWatchWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.dk.erik.puls]
+    info:
+      path: PulsWatchWidget/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: da
+        CFBundleDisplayName: Heart Minutes
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls.watchkitapp.widget
+
+  # Widgets på iPhone: hjemmeskærm (med graf), låseskærm og StandBy.
+  PulsWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - PulsWidget
+      - Shared
+      - Puls/Period.swift
+    entitlements:
+      path: PulsWidget/PulsWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.dk.erik.puls]
+    info:
+      path: PulsWidget/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: da
+        CFBundleDisplayName: Heart Minutes
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls.widget
+        TARGETED_DEVICE_FAMILY: "1"
+
+  PulsTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [PulsTests]
+    dependencies: [{ target: Puls }]
+    settings:
+      base: { GENERATE_INFOPLIST_FILE: YES }
