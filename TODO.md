@@ -9,14 +9,25 @@
   - Sammenligning: https://pmc.ncbi.nlm.nih.gov/articles/PMC7523886
   - Idé: formelvalg i Indstillinger med kildelink.
 
-- [ ] **De klassiske 5 pulszoner** (Zone 1–5, typisk 50–60 / 60–70 / 70–80 / 80–90 / 90–100 %
-      af maks-puls) som alternativ til AHA's moderat/hård. Fx valg i Indstillinger:
-      "AHA (moderat/hård)" eller "5 zoner". Find en troværdig kilde til grænserne.
+- [ ] **5 pulszoner som ekstra valg** (semi-avanceret). Standard forbliver Let/Moderat/Hård.
+  - Indstillinger → Pulszoner: "Zonemodel: Moderat og hård (standard) / 5 zoner".
+  - Grænser: % af maks-puls, standard 50 / 60 / 70 / 80 / 90 % (den udbredte model hos
+    Garmin, Polar m.fl.). Find en troværdig kilde at linke til.
+  - **Hver zone har sin egen faktor**, også "Under Z1". Standard: 0 / 1 / 1 / 2 / 2 / 2
+    (giver samme resultat som moderat/hård). Trin 0,5 fra 0 til 3.
+  - Vægtene for moderat/hård under Avanceret skjules i 5-zone-tilstand.
+  - Pulsgraf: 5 farvebånd. Regnestykke: "Z2 14 min × 1 + Z3 5 min × 2 … = N min" (skjul zoner med 0 min).
+  - Widgets og ur uændrede.
+
+- [ ] **Zonegrænser i % af maks-puls i stedet for bpm** (både standard og 5 zoner).
+  - Gem procenter; vis bpm ved siden af (udregnet).
+  - "Manuelt" (bpm) erstattes af redigerbare procenter; maks-puls kan stadig sættes manuelt.
+  - Migrering: omregn eksisterende manuelle bpm-grænser til % af nuværende maks-puls.
 
 - [x] **Aktive minutter baseret på træningsringsminutter** (`HKQuantityType(.appleExerciseTime)`,
       den grønne træningsring): "Beregn ud fra: Pulszoner / Træningsring" i Indstillinger.
 
-- [ ] **Separate mål for moderat og hård aktivitet** (fx AHA: 150 min moderat *eller* 75 min hård pr. uge).
+- [ ] **Separate mål for moderat og hård aktivitet** (kun standardmodellen, ikke 5 zoner) (fx AHA: 150 min moderat *eller* 75 min hård pr. uge).
       Idéer:
   - To mål i Indstillinger (moderat og hård) i stedet for/ud over ét samlet mål med vægte.
   - **To ringe** i komplikation/widgets (fx yderring = moderat, inderring = hård, som Aktivitet-ringene).
