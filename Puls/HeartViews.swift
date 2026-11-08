@@ -478,6 +478,8 @@ struct PeriodHeader: View {
 struct OverviewView: View {
     @Environment(HealthManager.self) private var health
     @Binding var interval: DateInterval
+    /// Øges, når appen åbnes fra en widget: rul op til minutgrafen.
+    var showMinutes = 0
     @State private var focus: HeartChart.FocusRequest?
 
     var body: some View {
@@ -485,6 +487,7 @@ struct OverviewView: View {
             ScrollViewReader { proxy in
             List {
                 PeriodHeader(interval: $interval)
+                    .id("top")
 
                 if let stats = HeartStats(health.shownSamples) {
                     ActiveMinutesChart(
@@ -539,6 +542,7 @@ struct OverviewView: View {
                     NoDataView()
                 }
             }
+            .onChange(of: showMinutes) { withAnimation { proxy.scrollTo("top", anchor: .top) } }
             }
             // Ingen stor titel: perioden starter helt oppe.
             .toolbar(.hidden, for: .navigationBar)

@@ -338,10 +338,12 @@ struct HeartMinutesBigRingView: View {
 /// Hjerte-ring: samme look som den tykke ring, men formet som et hjerte.
 struct HeartMinutesHeartRingView: View {
     let entry: HeartMinutesEntry
+    var center: CenterValue = .percent
 
     var body: some View {
         let d = entry.data
-        ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction, value: "\(d.percent)",
+        ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
+                          value: center == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))",
                           thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
     }
 }

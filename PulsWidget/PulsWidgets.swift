@@ -289,6 +289,24 @@ struct HomeWidgetView: View {
     }
 }
 
+/// Låseskærm: den lille runde er de samme to ringe som på uret (ring eller hjerte);
+/// rektangulær og linje er uændrede.
+struct LockWidgetView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: ConfigEntry
+
+    var body: some View {
+        let e = HeartMinutesEntry(date: entry.date, data: entry.data)
+        let center: CenterValue = entry.display == .percent ? .percent : .minutes
+        switch (family, entry.style) {
+        case (.accessoryCircular, .ring): HeartMinutesBigRingView(entry: e, center: center)
+        case (.accessoryCircular, .heart): HeartMinutesHeartRingView(entry: e, center: center)
+        case (_, .ring): HeartMinutesRingView(entry: e, center: center, period: entry.period)
+        case (_, .heart): HeartMinutesView(entry: e, center: center, period: entry.period)
+        }
+    }
+}
+
 // MARK: - Widgets
 
 /// Hjemmeskærm (lille, mellem med graf, stor med graf) og StandBy.
@@ -298,6 +316,7 @@ struct HeartMinutesHomeWidget: Widget {
                                provider: ConfigProvider<HeartMinutesHomeConfig>()) { entry in
             HomeWidgetView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
+                .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
         .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent. Mellem og stor viser kurven.")
@@ -310,16 +329,9 @@ struct HeartMinutesLockWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: "HeartMinutesLock", intent: HeartMinutesLockConfig.self,
                                provider: ConfigProvider<HeartMinutesLockConfig>()) { entry in
-            Group {
-                let e = HeartMinutesEntry(date: entry.date, data: entry.data)
-                let center: CenterValue = entry.display == .percent ? .percent : .minutes
-                if entry.style == .ring {
-                    HeartMinutesRingView(entry: e, center: center, period: entry.period)
-                } else {
-                    HeartMinutesView(entry: e, center: center, period: entry.period)
-                }
-            }
-            .containerBackground(for: .widget) { Color.clear }
+            LockWidgetView(entry: entry)
+                .containerBackground(for: .widget) { Color.clear }
+                .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
         .description("Heart Minutes på låseskærmen – vælg periode, minutter eller procent, og hjerte eller ring.")

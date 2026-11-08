@@ -1,33 +1,76 @@
+import Charts
 import SwiftUI
 
+/// Ur-appen (åbnes også ved tryk på komplikationen): ugens minutgraf med målet.
 struct WatchContentView: View {
     @Environment(WatchModel.self) private var model
 
     var body: some View {
         let d = model.data.current()
         ScrollView {
-            VStack(spacing: 8) {
-                ZStack {
-                    HeartProgress(fraction: d.fraction, color: .pink)
-                        .frame(width: 110, height: 96)
-                    VStack(spacing: 0) {
-                        Text("\(Int(d.minutes.rounded()))").font(.title2.bold())
-                        Text("min").font(.caption2).opacity(0.8)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    ShapeProgressRing(shape: TopCircle(), fraction: d.fraction, value: "\(d.percent)",
+                                      thickness: 0.16, textSize: 0.34)
+                        .frame(width: 40, height: 40)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("\(Int(d.minutes.rounded())) min").font(.headline)
+                        Text("af \(Int(d.goal)) · \(d.percent) %")
+                            .font(.caption2).foregroundStyle(.secondary)
                     }
-                    .foregroundStyle(.white)
                 }
-                Text("\(d.percent) % af \(Int(d.goal)) min")
-                    .font(.footnote)
-                Text("Denne uge").font(.caption2).foregroundStyle(.secondary)
-                if model.isLoading {
-                    ProgressView()
-                } else {
-                    Text("Opdateret \(model.data.updated, format: .dateTime.hour().minute())")
-                        .font(.caption2).foregroundStyle(.secondary)
+                WatchMinutesChart(data: d)
+                    .frame(height: 110)
+                HStack {
+                    Text("Denne uge")
+                    Spacer()
+                    if model.isLoading {
+                        ProgressView().frame(width: 16, height: 16)
+                    } else {
+                        Text(model.data.updated, format: .dateTime.hour().minute())
+                    }
                 }
+                .font(.caption2).foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 2)
         }
         .navigationTitle("Heart Minutes")
+    }
+}
+
+/// Ugens kumulative Heart Minutes (mandag–søndag) med målet som grå stiplet linje.
+struct WatchMinutesChart: View {
+    let data: ComplicationData
+
+    var body: some View {
+        let period = SummaryPeriod.thisWeek
+        let domain = period.chartDomain(now: data.updated)
+        let points = ComplicationData.spanning(data.points ?? [], from: domain.lowerBound,
+                                              to: min(.now, domain.upperBound))
+        Chart {
+            ForEach(Array(points.enumerated()), id: \.offset) { _, p in
+                AreaMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                    .foregroundStyle(Color.pink.opacity(0.25))
+                LineMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                    .foregroundStyle(Color.pink)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+            }
+            RuleMark(y: .value("Mål", data.goal))
+                .foregroundStyle(Color.gray)
+                .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+        }
+        .chartXScale(domain: domain)
+        .chartYScale(domain: 0...max(data.goal, data.minutes, 1) * 1.08)
+        .chartXAxis {
+            AxisMarks(values: .stride(by: .day)) { _ in
+                AxisGridLine().foregroundStyle(Color.gray.opacity(0.35))
+                AxisValueLabel(format: .dateTime.weekday(.narrow), centered: true)
+            }
+        }
+        .chartYAxis {
+            AxisMarks(values: [0, data.goal]) { _ in
+                AxisValueLabel()
+            }
+        }
     }
 }
