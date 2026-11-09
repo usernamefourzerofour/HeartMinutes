@@ -167,9 +167,17 @@ struct SettingsView: View {
                     ResetRow(changed: health.watchPeriod != D.watchPeriod, info: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.") {
                         health.watchPeriod = D.watchPeriod
                     } content: {
-                        Picker("Periode på uret", selection: $health.watchPeriod) {
-                            ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
+                        // Kort etiket (sektionen hedder "Apple Watch") og menu-vælger på samme linje,
+                        // så "Seneste 7 dage" ikke får linjen til at bryde.
+                        LabeledContent("Periode") {
+                            Picker("Periode på uret", selection: $health.watchPeriod) {
+                                ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .fixedSize()
                         }
+                        .lineLimit(1)
                     }
                 } header: {
                     Text("Apple Watch")
