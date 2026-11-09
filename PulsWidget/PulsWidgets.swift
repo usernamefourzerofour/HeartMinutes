@@ -40,6 +40,17 @@ enum WidgetStyle: String, AppEnum {
     ]
 }
 
+/// Udseende på den lille hjemmeskærm-widget: tal og kurve, eller den store hjerte-ring.
+enum HomeStyle: String, AppEnum {
+    case chart, heartRing
+
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Stil")
+    static let caseDisplayRepresentations: [HomeStyle: DisplayRepresentation] = [
+        .chart: "Kurve",
+        .heartRing: "Hjerte-ring",
+    ]
+}
+
 /// Fælles for widget-indstillingerne, så samme data/visning kan bruges af begge widgets.
 protocol HeartMinutesIntent: WidgetConfigurationIntent {
     var period: SummaryPeriod { get }
@@ -57,6 +68,10 @@ struct HeartMinutesHomeConfig: HeartMinutesIntent {
 
     @Parameter(title: "Vis", default: .minutes)
     var display: WidgetDisplay
+
+    /// Kun den lille widget.
+    @Parameter(title: "Stil (lille)", default: .chart)
+    var homeStyle: HomeStyle
 
     var style: WidgetStyle { .heart }
 }
@@ -84,6 +99,7 @@ struct ConfigEntry: TimelineEntry {
     let period: SummaryPeriod
     let display: WidgetDisplay
     var style: WidgetStyle = .heart
+    var homeStyle: HomeStyle = .chart
 }
 
 struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
@@ -104,7 +120,8 @@ struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
         let stored = ComplicationStore.load(for: c.period)
             ?? ComplicationData(minutes: 0, goal: c.period.goal(weekly: 150), updated: .now)
         return ConfigEntry(date: .now, data: stored.current(for: c.period), period: c.period,
-                           display: c.display, style: c.style)
+                           display: c.display, style: c.style,
+                           homeStyle: (c as? HeartMinutesHomeConfig)?.homeStyle ?? .chart)
     }
 }
 
@@ -261,12 +278,40 @@ struct SmallHomeView: View {
     }
 }
 
+/// Lille hjemmeskærm-widget med den store hjerte-ring (samme som komplikationen på uret).
+struct SmallHeartRingView: View {
+    let entry: ConfigEntry
+
+    var body: some View {
+        let d = entry.data
+        VStack(spacing: 2) {
+            ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
+                              value: entry.display == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))",
+                              thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Text(entry.display == .percent
+                 ? "\(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
+                 : "af \(Int(d.goal.rounded())) min · \(d.percent) %")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(entry.period.title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.pink)
+                .lineLimit(1)
+        }
+    }
+}
+
 struct HomeWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: ConfigEntry
 
     var body: some View {
         switch family {
+        case .systemSmall where entry.homeStyle == .heartRing:
+            SmallHeartRingView(entry: entry)
         case .systemSmall:
             SmallHomeView(entry: entry)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -319,7 +364,7 @@ struct HeartMinutesHomeWidget: Widget {
                 .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
-        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent. Mellem og stor viser kurven.")
+        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent. Den lille kan vise kurven eller hjerte-ringen.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
