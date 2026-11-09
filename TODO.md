@@ -11,6 +11,13 @@
 - [x] **Aktive minutter baseret på træningsringsminutter** (`HKQuantityType(.appleExerciseTime)`,
       den grønne træningsring): "Beregn ud fra: Pulszoner / Træningsring" i Indstillinger.
 
+- [ ] **Mål for minutter i en bestemt zone** (fx "60 min i Z2 pr. uge" til grundtræning).
+  - Kan delvist laves i dag med faktorerne: sæt den ønskede zone til × 1 og resten til × 0.
+    Men så bliver det *hele* Heart Minutes-tallet, og man mister det almindelige mål.
+  - Idé: et ekstra, valgfrit zonemål ved siden af Heart Minutes (zone + minutter pr. uge),
+    vist som en ekstra linje/ring i appen og evt. som eget valg i widget/komplikation.
+  - Hænger sammen med punktet nedenfor (separate mål for moderat/hård).
+
 - [ ] **Separate mål for moderat og hård aktivitet** (kun standardmodellen, ikke 5 zoner) (fx AHA: 150 min moderat *eller* 75 min hård pr. uge).
       Idéer:
   - To mål i Indstillinger (moderat og hård) i stedet for/ud over ét samlet mål med vægte.
