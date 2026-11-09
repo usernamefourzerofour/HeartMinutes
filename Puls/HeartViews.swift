@@ -263,11 +263,16 @@ struct HeartChart: View {
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            if let hz = visible.samplingRateHz {
-                Text("Sampling i visning: \(hz, format: .number.precision(.significantDigits(2))) Hz · ca. 1 måling pr. \(Self.interval(1 / hz))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            // Antal målinger i perioden sammen med samplingen i visningen.
+            Group {
+                if let hz = visible.samplingRateHz {
+                    Text("\(samples.count) målinger · sampling i visning: \(hz, format: .number.precision(.significantDigits(2))) Hz · ca. 1 måling pr. \(Self.interval(1 / hz))")
+                } else {
+                    Text("\(samples.count) målinger")
+                }
             }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .onAppear { reset() }
         .onChange(of: samplesKey) { reset() }
@@ -515,9 +520,6 @@ struct OverviewView: View {
                                zones: health.zones,
                                period: interval.start...interval.end,
                                focus: focus)
-                    Text(health.seriesValueCount > 0
-                         ? "\(health.shownSamples.count) målinger (\(health.seriesValueCount) pakket ud fra serier)"
-                         : "\(health.shownSamples.count) målinger").foregroundStyle(.secondary)
 
                     if !health.periodWorkouts.isEmpty && health.includeWorkouts {
                         WorkoutScoresView(scores: ActiveMinutes.perWorkout(
