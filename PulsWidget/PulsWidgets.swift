@@ -260,28 +260,29 @@ struct SmallHomeView: View {
     var body: some View {
         let d = entry.data
         VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: .center, spacing: 6) {
+            // Stort hjerte til venstre, tal og "af målet" til højre for det.
+            HStack(alignment: .center, spacing: 8) {
                 HomeHeartIcon(entry: entry)
-                    .frame(width: 30, height: 26)
-                HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(entry.display == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                    if entry.display == .minutes {
-                        Text("min")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.secondary)
+                    .frame(width: 50, height: 44)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        Text(entry.display == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))")
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                        if entry.display == .minutes {
+                            Text("min")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    Text(entry.display == .percent
+                         ? "\(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
+                         : "af \(Int(d.goal.rounded())) min · \(d.percent) %")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             }
-            Text(entry.display == .percent
-                 ? "\(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
-                 : "af \(Int(d.goal.rounded())) min · \(d.percent) %")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
             PeriodChart(entry: entry, compact: true)
                 .padding(.vertical, 2)
             Text(entry.period.title)

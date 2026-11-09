@@ -332,6 +332,8 @@ struct HeartMinutesBigRingView: View {
         let d = entry.data
         ShapeProgressRing(shape: TopCircle(), fraction: d.fraction,
                           value: center == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))")
+            // Lidt mindre end hele feltet, så yderkanten ikke skæres af i urskivens hjørner.
+            .scaleEffect(0.95)
     }
 }
 
