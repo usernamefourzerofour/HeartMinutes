@@ -43,7 +43,7 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
     var defaultWeights: [Double] {
         switch self {
         case .two: [0, 1, 2]
-        case .five: [0, 0, 1, 2, 2, 2]
+        case .five: [0, 1, 1, 2, 2, 2]
         }
     }
 }

@@ -30,7 +30,7 @@ struct HeartZonesTests {
         #expect(z.zone(for: 110) == 1)                   // Z1
         #expect(z.zone(for: 150) == 3)                   // Z3
         #expect(z.zone(for: 195) == 5)                   // Z5
-        #expect(z.weights == [0, 0, 1, 2, 2, 2])
+        #expect(z.weights == [0, 1, 1, 2, 2, 2])
     }
 
     @Test func fixedBoundaries() {
@@ -44,7 +44,7 @@ struct HeartZonesTests {
     }
 
     @Test func fiveZoneWeightsAreUsed() {
-        // 10 min konstant i Z4 (× 2) = 20 Heart Minutes; i Z1 (× 0) = 0.
+        // 10 min konstant i Z4 (× 2) = 20 Heart Minutes; i Z0 (× 0) = 0.
         let t0 = Date(timeIntervalSince1970: 0)
         let z = HeartZones(maxHR: 200, model: .five)
         func run(_ bpm: Double) -> Double {
@@ -52,6 +52,6 @@ struct HeartZonesTests {
             return ActiveMinutes(s, config: .init(zones: z, requireActive: false)).total
         }
         #expect(abs(run(170) - 20) < 0.001)
-        #expect(run(100) == 0)
+        #expect(run(90) == 0)
     }
 }

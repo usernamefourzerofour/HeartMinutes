@@ -107,7 +107,7 @@ struct SettingsView: View {
                     } header: {
                         Text("Dine zoner")
                     } footer: {
-                        Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; de nederste zoner tæller som udgangspunkt ikke (× 0).")
+                        Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; den nederste zone tæller som udgangspunkt ikke (× 0).")
                     }
                 }
 
