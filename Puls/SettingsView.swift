@@ -42,9 +42,13 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("Heart Minutes")
-                } footer: {
-                    Text("Tryk på ⓘ for at se, hvad en indstilling gør.")
+                    // Forklaringen står øverst, lige under "Indstillinger".
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Tryk på ⓘ for at se, hvad en indstilling gør.")
+                            .font(.footnote)
+                            .textCase(nil)
+                        Text("Heart Minutes")
+                    }
                 }
 
                 // Pulszoner bruges kun, når minutterne regnes ud fra pulsen.
