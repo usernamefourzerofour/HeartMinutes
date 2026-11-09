@@ -72,7 +72,10 @@ struct SettingsView: View {
                             } content: {
                                 Stepper("Alder: \(health.age) år", value: $health.age, in: 10...100)
                             }
-                            LabeledContent("AHA-aldersgruppe", value: "\(HeartZones.ahaCategory(for: health.age).age) år")
+                            // ⓘ viser AHA's tabel; ingen ↺ (værdien følger alderen).
+                            ResetRow(changed: false, info: ahaTableInfo) {} content: {
+                                LabeledContent("AHA-aldersgruppe", value: "\(HeartZones.ahaCategory(for: health.age).age) år")
+                            }
                             LabeledContent("Maks-puls", value: "\(Int(HeartZones.maxHR(age: health.age))) bpm")
                         }
                     case .maxHR:
@@ -221,6 +224,16 @@ struct SettingsView: View {
         }
     }
 
+
+    /// AHA's tabel (Target Heart Rates Chart) som tekst til ⓘ ved AHA-aldersgruppe.
+    private var ahaTableInfo: String {
+        let rows = HeartZones.ahaTable.map { row in
+            let m = Double(row.maxHR)
+            return "\(row.age) år: maks \(row.maxHR) · moderat \(Int(m * 0.5))–\(Int(m * 0.7)) · hård \(Int(m * 0.7))–\(Int(m * 0.85)) bpm"
+        }
+        return "AHA's tabel (Target Heart Rates). Din alder slås op i den nærmeste aldersgruppe.\n\n"
+            + rows.joined(separator: "\n")
+    }
 
     private func rangeText(_ kind: ZoneKind) -> String {
         let r = health.zones.bpmRange(kind)
