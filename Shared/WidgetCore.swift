@@ -236,6 +236,9 @@ struct ShapeProgressRing<S: Shape>: View {
     var textY: CGFloat = 0.5
     var textWidth: CGFloat = 0.68
     var textSize: CGFloat = 0.36
+    /// Over denne grænse bliver hjertets kløft skåret lige af (skrå samling). Højere = spids
+    /// nedad i hullet (mere hjerte-agtigt), men den kan ramme tallet i midten.
+    var miterLimit: CGFloat = 2
 
     static var start: Color { Color(red: 0.88, green: 0.02, blue: 0.27) }
     static var end: Color { Color(red: 1.0, green: 0.36, blue: 0.62) }
@@ -259,7 +262,7 @@ struct ShapeProgressRing<S: Shape>: View {
             let pos = f > 1 ? min(f - 1, 0.999) : f
             // Spids i hjertets bund, men ingen lang pil ind i kløften (miterLimit).
             let style = { (cap: CGLineCap) in
-                StrokeStyle(lineWidth: lw, lineCap: cap, lineJoin: .miter, miterLimit: 2)
+                StrokeStyle(lineWidth: lw, lineCap: cap, lineJoin: .miter, miterLimit: miterLimit)
             }
             ZStack {
                 // Sporet: samme farve, men meget mørkt (svagere på tonet urskive).
