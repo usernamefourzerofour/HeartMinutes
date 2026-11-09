@@ -129,7 +129,7 @@ struct ActiveMinutesChart: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
-            Text("Mål: \(Int(weeklyGoal)) min pr. uge, tilpasset perioden")
+            Text("Mål: \(Int(weeklyGoal)) min pr. uge, tilpasset den valgte periode")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
