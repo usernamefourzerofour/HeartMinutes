@@ -40,15 +40,29 @@ enum WidgetStyle: String, AppEnum {
     ]
 }
 
-/// Udseende på den lille hjemmeskærm-widget: tal og kurve, eller den store hjerte-ring.
+/// Hjertet ved tallet på hjemmeskærmen: det fyldte hjerte eller hjerte-ringen fra uret.
 enum HomeStyle: String, AppEnum {
-    case chart, heartRing
+    case filled, ring
 
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Stil")
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Hjerte")
     static let caseDisplayRepresentations: [HomeStyle: DisplayRepresentation] = [
-        .chart: "Kurve",
-        .heartRing: "Hjerte-ring",
+        .filled: "Fyldt",
+        .ring: "Ring",
     ]
+}
+
+/// Hjerte-ikonet ved tallet (fyldt eller ring).
+struct HomeHeartIcon: View {
+    let entry: ConfigEntry
+
+    var body: some View {
+        if entry.homeStyle == .ring {
+            ShapeProgressRing(shape: HeartOutlineShape(), fraction: entry.data.fraction, value: "",
+                              thickness: 0.17)
+        } else {
+            HeartProgress(fraction: entry.data.fraction, color: .pink)
+        }
+    }
 }
 
 /// Fælles for widget-indstillingerne, så samme data/visning kan bruges af begge widgets.
@@ -69,8 +83,7 @@ struct HeartMinutesHomeConfig: HeartMinutesIntent {
     @Parameter(title: "Vis", default: .minutes)
     var display: WidgetDisplay
 
-    /// Kun den lille widget.
-    @Parameter(title: "Stil (lille)", default: .chart)
+    @Parameter(title: "Hjerte", default: .filled)
     var homeStyle: HomeStyle
 
     var style: WidgetStyle { .heart }
@@ -99,7 +112,7 @@ struct ConfigEntry: TimelineEntry {
     let period: SummaryPeriod
     let display: WidgetDisplay
     var style: WidgetStyle = .heart
-    var homeStyle: HomeStyle = .chart
+    var homeStyle: HomeStyle = .filled
 }
 
 struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
@@ -121,7 +134,7 @@ struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
             ?? ComplicationData(minutes: 0, goal: c.period.goal(weekly: 150), updated: .now)
         return ConfigEntry(date: .now, data: stored.current(for: c.period), period: c.period,
                            display: c.display, style: c.style,
-                           homeStyle: (c as? HeartMinutesHomeConfig)?.homeStyle ?? .chart)
+                           homeStyle: (c as? HeartMinutesHomeConfig)?.homeStyle ?? .filled)
     }
 }
 
@@ -153,9 +166,12 @@ struct PeriodChart: View {
                 .foregroundStyle(Color.gray)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                 .annotation(position: .top, alignment: .leading, spacing: 1) {
-                    Text("Mål \(Int(data.goal.rounded())) min")
-                        .font(.system(size: compact ? 8 : 9, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                    // Lille widget: målet står allerede i teksten ovenover (labelen overlappede den).
+                    if !compact {
+                        Text("Mål \(Int(data.goal.rounded())) min")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
                 }
         }
         .chartXScale(domain: domain)
@@ -208,7 +224,7 @@ struct HeartSummary: View {
         let d = entry.data
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top) {
-                HeartProgress(fraction: d.fraction, color: .pink)
+                HomeHeartIcon(entry: entry)
                     .frame(width: 58, height: 50)
                 Spacer(minLength: 0)
             }
@@ -247,7 +263,7 @@ struct SmallHomeView: View {
         let d = entry.data
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .center, spacing: 6) {
-                HeartProgress(fraction: d.fraction, color: .pink)
+                HomeHeartIcon(entry: entry)
                     .frame(width: 30, height: 26)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text(entry.display == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))")
@@ -278,40 +294,12 @@ struct SmallHomeView: View {
     }
 }
 
-/// Lille hjemmeskærm-widget med den store hjerte-ring (samme som komplikationen på uret).
-struct SmallHeartRingView: View {
-    let entry: ConfigEntry
-
-    var body: some View {
-        let d = entry.data
-        VStack(spacing: 2) {
-            ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
-                              value: entry.display == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))",
-                              thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Text(entry.display == .percent
-                 ? "\(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
-                 : "af \(Int(d.goal.rounded())) min · \(d.percent) %")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(entry.period.title)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.pink)
-                .lineLimit(1)
-        }
-    }
-}
-
 struct HomeWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: ConfigEntry
 
     var body: some View {
         switch family {
-        case .systemSmall where entry.homeStyle == .heartRing:
-            SmallHeartRingView(entry: entry)
         case .systemSmall:
             SmallHomeView(entry: entry)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -364,7 +352,7 @@ struct HeartMinutesHomeWidget: Widget {
                 .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
-        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent. Den lille kan vise kurven eller hjerte-ringen.")
+        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent. Hjertet kan være fyldt eller en ring.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
