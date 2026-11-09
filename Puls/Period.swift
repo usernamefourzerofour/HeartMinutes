@@ -65,7 +65,23 @@ enum Period {
                             duration: interval.duration)
     }
 
-    static func label(_ interval: DateInterval, calendar: Calendar = .current) -> String {
+    static func label(_ interval: DateInterval, calendar: Calendar = .current, now: Date = .now) -> String {
+        // Rullende vindue, der slutter nu: kort navn i stedet for to tidspunkter.
+        if abs(interval.end.timeIntervalSince(now)) < 5 * 60 {
+            let end = interval.end
+            func near(_ date: Date?) -> Bool { date.map { abs($0.timeIntervalSince(interval.start)) < 5 * 60 } ?? false }
+            if near(calendar.date(byAdding: .year, value: -1, to: end)) { return "Seneste år" }
+            if near(calendar.date(byAdding: .month, value: -1, to: end)) { return "Seneste måned" }
+            let days = interval.duration / 86_400
+            if abs(days - days.rounded()) < 0.01, days.rounded() >= 1 {
+                let n = Int(days.rounded())
+                return n == 1 ? "Seneste 24 timer" : "Seneste \(n) dage"
+            }
+        }
+        // Hele kalendermåneden.
+        if let month = calendar.dateInterval(of: .month, for: interval.start), month == interval {
+            return interval.start.formatted(.dateTime.month(.wide).year())
+        }
         if wholeDays(interval, calendar: calendar) == 1 {
             return interval.start.formatted(.dateTime.weekday(.wide).day().month(.wide))
         }
@@ -80,7 +96,8 @@ enum Period {
             let fmt = Date.FormatStyle.dateTime.day().month(.abbreviated)
             return "\(interval.start.formatted(fmt)) – \(last.formatted(fmt)) (\(days) dage)"
         }
-        let fmt = Date.FormatStyle.dateTime.day().month(.abbreviated).hour().minute()
+        // Kort format (fx 2.11 21.23 – 9.11 21.23), så det kan stå på én linje.
+        let fmt = Date.FormatStyle.dateTime.day().month(.defaultDigits).hour().minute()
         return "\(interval.start.formatted(fmt)) – \(interval.end.formatted(fmt))"
     }
 }

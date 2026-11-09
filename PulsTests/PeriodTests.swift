@@ -124,3 +124,26 @@ struct MotionStripTests {
         #expect(strips.last?.end == t0.addingTimeInterval(300))   // sidste: + 1 min
     }
 }
+
+/// Korte etiketter, så periodeknappen ikke bryder over to linjer.
+struct PeriodLabelTests {
+    let now = Date(timeIntervalSince1970: 1_794_250_000)
+
+    @Test func rollingSevenDays() {
+        let i = DateInterval(start: now.addingTimeInterval(-7 * 86_400), end: now)
+        #expect(Period.label(i, now: now) == "Seneste 7 dage")
+    }
+
+    @Test func rolling24Hours() {
+        let i = DateInterval(start: now.addingTimeInterval(-86_400), end: now)
+        #expect(Period.label(i, now: now) == "Seneste 24 timer")
+    }
+
+    @Test func rollingMonthAndYear() {
+        let cal = Calendar.current
+        #expect(Period.label(DateInterval(start: cal.date(byAdding: .month, value: -1, to: now)!, end: now), now: now)
+                == "Seneste måned")
+        #expect(Period.label(DateInterval(start: cal.date(byAdding: .year, value: -1, to: now)!, end: now), now: now)
+                == "Seneste år")
+    }
+}

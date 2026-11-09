@@ -452,7 +452,8 @@ struct PeriodHeader: View {
                     Image(systemName: "calendar")
                     Text(Period.label(interval))
                         .font(.headline)
-                        .multilineTextAlignment(.center)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     Image(systemName: "chevron.down")
                         .font(.caption.weight(.semibold))
                 }
