@@ -86,7 +86,7 @@ struct HeartMinutesHomeConfig: HeartMinutesIntent {
     @Parameter(title: "Vis", default: .minutes)
     var display: WidgetDisplay
 
-    @Parameter(title: "Hjerte", default: .filled)
+    @Parameter(title: "Hjerte", default: .ring)
     var homeStyle: HomeStyle
 
     var style: WidgetStyle { .heart }
@@ -115,7 +115,7 @@ struct ConfigEntry: TimelineEntry {
     let period: SummaryPeriod
     let display: WidgetDisplay
     var style: WidgetStyle = .heart
-    var homeStyle: HomeStyle = .filled
+    var homeStyle: HomeStyle = .ring
 }
 
 struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
@@ -137,7 +137,7 @@ struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
             ?? ComplicationData(minutes: 0, goal: c.period.goal(weekly: 150), updated: .now)
         return ConfigEntry(date: .now, data: stored.current(for: c.period), period: c.period,
                            display: c.display, style: c.style,
-                           homeStyle: (c as? HeartMinutesHomeConfig)?.homeStyle ?? .filled)
+                           homeStyle: (c as? HeartMinutesHomeConfig)?.homeStyle ?? .ring)
     }
 }
 
