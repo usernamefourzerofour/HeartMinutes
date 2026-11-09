@@ -7,7 +7,7 @@ settings:
   base:
     # Samme versionsnumre for iPhone-app, ur-app og komplikation (Apple kræver det).
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "46"
+    CURRENT_PROJECT_VERSION: "47"
 targets:
   Puls:
     type: application

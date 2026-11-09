@@ -28,13 +28,6 @@ struct SettingsView: View {
                             Text("Mål: \(health.weeklyGoal) min pr. uge")
                         }
                     }
-                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.") {
-                        health.watchPeriod = D.watchPeriod
-                    } content: {
-                        Picker("Periode på uret", selection: $health.watchPeriod) {
-                            ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
-                        }
-                    }
                     if health.minutesSource == .heartRate {
                         ResetRow(changed: health.activityMode != D.activityMode || health.pauseSeconds != D.pauseSeconds,
                                  info: "Hvornår din puls i løbet af dagen (uden for workouts) tæller med:\n\n" + ActiveMinutes.ActivityMode.allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n") + "\n\nMålinger under workouts tæller altid.") {
@@ -52,32 +45,6 @@ struct SettingsView: View {
                     Text("Heart Minutes")
                 } footer: {
                     Text("Tryk på ⓘ for at se, hvad en indstilling gør.")
-                }
-
-                // Målinger bestemmer, hvad der tæller i pulsberegningen – ikke relevant ved Træningsring.
-                if health.minutesSource == .heartRate {
-                    Section {
-                        ResetRow(changed: health.includeBackground != D.includeBackground, info: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.") {
-                            health.includeBackground = D.includeBackground
-                        } content: {
-                            Toggle(isOn: $health.includeBackground) {
-                                Label("Baggrundsmålinger", systemImage: "applewatch")
-                            }
-                            .tint(HeartChart.backgroundColor)
-                        }
-                        ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: "Pulsmålinger taget under en registreret træning (workout).") {
-                            health.includeWorkouts = D.includeWorkouts
-                        } content: {
-                            Toggle(isOn: $health.includeWorkouts) {
-                                Label("Workouts", systemImage: "figure.run")
-                            }
-                            .tint(HeartChart.workoutColor)
-                        }
-                    } header: {
-                        Text("Målinger")
-                    } footer: {
-                        Text("Hvilke pulsmålinger der tæller med i Heart Minutes og vises i pulsgrafen.")
-                    }
                 }
 
                 // Pulszoner bruges kun, når minutterne regnes ud fra pulsen.
@@ -168,6 +135,44 @@ struct SettingsView: View {
                         Text("Procent af maks-puls \(Int(percentBaseMaxHR.rounded())) bpm" +
                              (health.zoneMode == .manual ? " (din maks-puls fra »Maks-puls«)." : "."))
                     }
+                }
+
+                // Målinger bestemmer, hvad der tæller i pulsberegningen – ikke relevant ved Træningsring.
+                if health.minutesSource == .heartRate {
+                    Section {
+                        ResetRow(changed: health.includeBackground != D.includeBackground, info: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.") {
+                            health.includeBackground = D.includeBackground
+                        } content: {
+                            Toggle(isOn: $health.includeBackground) {
+                                Label("Baggrundsmålinger", systemImage: "applewatch")
+                            }
+                            .tint(HeartChart.backgroundColor)
+                        }
+                        ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: "Pulsmålinger taget under en registreret træning (workout).") {
+                            health.includeWorkouts = D.includeWorkouts
+                        } content: {
+                            Toggle(isOn: $health.includeWorkouts) {
+                                Label("Workouts", systemImage: "figure.run")
+                            }
+                            .tint(HeartChart.workoutColor)
+                        }
+                    } header: {
+                        Text("Målinger")
+                    } footer: {
+                        Text("Hvilke pulsmålinger der tæller med i Heart Minutes og vises i pulsgrafen.")
+                    }
+                }
+
+                Section {
+                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.") {
+                        health.watchPeriod = D.watchPeriod
+                    } content: {
+                        Picker("Periode på uret", selection: $health.watchPeriod) {
+                            ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
+                        }
+                    }
+                } header: {
+                    Text("Apple Watch")
                 }
 
                 Section {
