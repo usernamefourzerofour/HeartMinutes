@@ -203,13 +203,25 @@ struct WorkoutScoresView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Workouts").font(.headline)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Workouts").font(.headline)
+                if !scores.isEmpty {
+                    Text("Tryk på en workout for at se den i pulsgrafen.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
             ForEach(scores) { w in
                 Button { onSelect(w.interval) } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             HStack {
-                                Text(w.interval.start, format: .dateTime.weekday(.abbreviated).day().month().hour().minute())
+                                // Workout-farve og ikon, så det ses, at rækken kan trykkes på.
+                                Label {
+                                    Text(w.interval.start, format: .dateTime.weekday(.abbreviated).day().month().hour().minute())
+                                } icon: {
+                                    Image(systemName: "figure.run")
+                                }
+                                .foregroundStyle(HeartChart.workoutColor)
                                 Spacer()
                                 Text("\(w.result.total, format: .number.precision(.fractionLength(1))) min").bold()
                             }
@@ -217,8 +229,12 @@ struct WorkoutScoresView: View {
                                   + ["\(w.sampleCount) målinger"]).joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                        Image(systemName: "magnifyingglass")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.tint)
                     }
+                    .padding(10)
+                    .background(HeartChart.workoutColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
