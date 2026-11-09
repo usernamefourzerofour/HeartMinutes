@@ -1,4 +1,5 @@
 import SwiftUI
+import HealthKit
 import Charts
 
 /// Graf over de kumulative aktive minutter i perioden, med målet som vandret linje.
@@ -189,6 +190,8 @@ struct ActiveMinutesChart: View {
 struct WorkoutScoresView: View {
     let scores: [ActiveMinutes.WorkoutScore]
     let zones: HeartZones
+    /// SF Symbol for workoutens type (fx løb, cykling, styrke), efter starttidspunkt.
+    var icon: (Date) -> String = { _ in "figure.mixed.cardio" }
     var onSelect: (DateInterval) -> Void = { _ in }
 
     /// Minutter i de zoner, der tæller (fx "moderat 3,2", "Z4 1,0").
@@ -221,7 +224,7 @@ struct WorkoutScoresView: View {
                                 Label {
                                     Text(w.interval.start, format: .dateTime.weekday(.abbreviated).day().month().hour().minute())
                                 } icon: {
-                                    Image(systemName: "figure.run")
+                                    Image(systemName: icon(w.interval.start))
                                 }
                                 .foregroundStyle(HeartChart.workoutColor)
                                 Spacer()
@@ -231,9 +234,6 @@ struct WorkoutScoresView: View {
                                   + ["\(w.sampleCount) målinger"]).joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
-                        Image(systemName: "magnifyingglass")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.tint)
                     }
                     .padding(10)
                     .background(HeartChart.workoutColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
@@ -247,6 +247,56 @@ struct WorkoutScoresView: View {
             if scores.isEmpty {
                 Text("Ingen workouts i perioden").font(.caption).foregroundStyle(.secondary)
             }
+        }
+    }
+}
+
+
+
+extension HKWorkoutActivityType {
+    /// SF Symbol, der passer til workout-typen fra Sundhed.
+    var symbolName: String {
+        switch self {
+        case .running: "figure.run"
+        case .walking: "figure.walk"
+        case .hiking: "figure.hiking"
+        case .cycling: "figure.outdoor.cycle"
+        case .swimming: "figure.pool.swim"
+        case .rowing: "figure.rower"
+        case .elliptical: "figure.elliptical"
+        case .stairClimbing, .stairs: "figure.stair.stepper"
+        case .traditionalStrengthTraining: "figure.strengthtraining.traditional"
+        case .functionalStrengthTraining: "figure.strengthtraining.functional"
+        case .coreTraining: "figure.core.training"
+        case .highIntensityIntervalTraining: "figure.highintensity.intervaltraining"
+        case .crossTraining: "figure.cross.training"
+        case .mixedCardio: "figure.mixed.cardio"
+        case .yoga: "figure.yoga"
+        case .pilates: "figure.pilates"
+        case .flexibility: "figure.flexibility"
+        case .cooldown: "figure.cooldown"
+        case .dance, .socialDance, .cardioDance: "figure.dance"
+        case .soccer: "figure.soccer"
+        case .basketball: "figure.basketball"
+        case .tennis: "figure.tennis"
+        case .badminton: "figure.badminton"
+        case .tableTennis: "figure.table.tennis"
+        case .golf: "figure.golf"
+        case .downhillSkiing: "figure.skiing.downhill"
+        case .crossCountrySkiing: "figure.skiing.crosscountry"
+        case .snowboarding: "figure.snowboarding"
+        case .climbing: "figure.climbing"
+        case .boxing, .kickboxing: "figure.boxing"
+        case .martialArts: "figure.martial.arts"
+        case .handball: "figure.handball"
+        case .volleyball: "figure.volleyball"
+        case .handCycling: "figure.hand.cycling"
+        case .paddleSports: "oar.2.crossed"
+        case .surfingSports: "figure.surfing"
+        case .skatingSports: "figure.skating"
+        case .jumpRope: "figure.jumprope"
+        case .mindAndBody: "figure.mind.and.body"
+        default: "figure.mixed.cardio"
         }
     }
 }

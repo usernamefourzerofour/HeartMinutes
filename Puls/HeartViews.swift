@@ -524,7 +524,8 @@ struct OverviewView: View {
                     if !health.periodWorkouts.isEmpty && health.includeWorkouts {
                         WorkoutScoresView(scores: ActiveMinutes.perWorkout(
                             health.minuteSamples, workouts: health.periodWorkouts, config: health.minutesConfig),
-                            zones: health.zones
+                            zones: health.zones,
+                            icon: { health.workoutTypes[$0]?.symbolName ?? "figure.mixed.cardio" }
                         ) { workout in
                             focus = .init(interval: workout)
                             withAnimation { proxy.scrollTo("pulsechart", anchor: .top) }

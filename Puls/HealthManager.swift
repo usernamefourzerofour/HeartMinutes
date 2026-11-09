@@ -375,6 +375,8 @@ final class HealthManager {
     private(set) var minuteSamples: [HRSample] = []
     /// Periodens workouts.
     private(set) var periodWorkouts: [DateInterval] = []
+    /// Workout-typen (fra Sundhed) for hver workout i perioden, efter starttidspunkt.
+    private(set) var workoutTypes: [Date: HKWorkoutActivityType] = [:]
     /// Baggrundsmålinger i perioden uden aktiv/i ro-markering.
     private(set) var unmarked = HRSample.UnmarkedInfo(count: 0, backgroundCount: 0, sources: [])
 
@@ -579,7 +581,9 @@ final class HealthManager {
             predicates: [.workout(predicate)],
             sortDescriptors: [SortDescriptor(\.startDate)])
         do {
-            return try await query.result(for: store).map {
+            let workouts = try await query.result(for: store)
+            for w in workouts { workoutTypes[w.startDate] = w.workoutActivityType }
+            return workouts.map {
                 DateInterval(start: $0.startDate, end: max($0.endDate, $0.startDate))
             }
         } catch {
