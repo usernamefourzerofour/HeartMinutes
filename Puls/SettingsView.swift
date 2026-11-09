@@ -69,8 +69,6 @@ struct SettingsView: View {
                                 }
                                 .font(.footnote)
                             }
-                        } else {
-                            Text("De gængse 5 zoner (fx Garmin og Polar): Z1–Z5 fra 50, 60, 70, 80 og 90 % af maks-puls. Z0 er pulsen under 50 %.")
                         }
                     }
 
