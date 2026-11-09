@@ -178,6 +178,15 @@ struct HeartChart: View {
             // – ved stor zoom på en lang periode blev det millioner af punkter bredt, og grafen frøs.)
             .chartXScale(domain: from...to)
             .chartYScale(domain: y)
+            // Y-aksen: altid zonegrænserne; flere tal, når man er zoomet ind (lille pulsspænd).
+            .chartYAxis {
+                AxisMarks(position: .trailing, values: Self.yTicks(zones: zones, in: y)) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let bpm = value.as(Double.self) { Text("\(Int(bpm.rounded()))") }
+                    }
+                }
+            }
             .chartPlotStyle { $0.clipped() }
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 4)) { _ in
@@ -407,6 +416,23 @@ struct HeartChart: View {
     }
 
     /// Y-akse: målingerne ± 5 ved zoomOut 0, glider lineært mod 0…maks-puls ved zoomOut 1.
+    /// Tal på y-aksen: zonegrænserne inden for visningen, plus runde tal (hver 10. eller 5. bpm),
+    /// når spændet er lille nok til, at der er plads. Tal tæt på en grænse udelades.
+    static func yTicks(zones: HeartZones, in y: ClosedRange<Double>) -> [Double] {
+        let bounds = zones.thresholds.map { $0.rounded() }.filter { y.contains($0) }
+        let span = y.upperBound - y.lowerBound
+        let step: Double? = span <= 40 ? 5 : span <= 80 ? 10 : nil
+        var ticks = bounds
+        if let step {
+            var v = (y.lowerBound / step).rounded(.up) * step
+            while v <= y.upperBound {
+                if bounds.allSatisfy({ abs($0 - v) >= step * 0.6 }) { ticks.append(v) }
+                v += step
+            }
+        }
+        return ticks.sorted()
+    }
+
     static func yDomain(_ values: [Double], maxHR: Double, zoomOut: Double) -> ClosedRange<Double> {
         let low = (values.min() ?? 60) - 5
         let high = max((values.max() ?? 100) + 5, low + 20)
