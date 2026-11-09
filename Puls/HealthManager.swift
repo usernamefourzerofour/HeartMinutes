@@ -387,6 +387,8 @@ final class HealthManager {
             ? ActiveMinutes.extendingWorkouts(shownSamples, periodWorkouts) : shownSamples
     }
     var errorMessage: String?
+    /// Sidste hentning fra Sundhed fejlede eller blev afbrudt (data er ufuldstændige).
+    private(set) var loadFailed = false
 
     /// Alder bruges til maks-puls (220 − alder). Gemmes; hentes fra Sundhed første gang.
     var age: Int = UserDefaults.standard.object(forKey: "age") as? Int ?? Defaults.age {
@@ -512,6 +514,7 @@ final class HealthManager {
             return result.sorted { $0.date < $1.date }
         } catch {
             errorMessage = error.localizedDescription
+            loadFailed = true
             return []
         }
     }
@@ -537,9 +540,12 @@ final class HealthManager {
 
     /// Henter puls for perioden og markerer målinger, der ligger under en workout.
     func loadPeriod(_ interval: DateInterval) async {
+        loadFailed = false
         let samples = await heartRates(from: interval.start, to: interval.end)
         let workoutIntervals = await workoutIntervals(from: interval.start, to: interval.end)
         let exercise = await exerciseSamples(from: interval.start, to: interval.end)
+        // Afbrudt (fx når iOS stopper en baggrundsopdatering): data er ufuldstændige.
+        if Task.isCancelled { loadFailed = true }
         applePoints = ActiveMinutes.cumulativeExercise(exercise.map { (end: $0.end, minutes: $0.minutes) },
                                                        start: interval.start)
         periodWorkouts = workoutIntervals
@@ -559,7 +565,8 @@ final class HealthManager {
         let query = HKSampleQueryDescriptor(
             predicates: [.quantitySample(type: exerciseType, predicate: predicate)],
             sortDescriptors: [SortDescriptor(\.startDate)])
-        guard let samples = try? await query.result(for: store) else { return [] }
+        let samples: [HKQuantitySample]
+        do { samples = try await query.result(for: store) } catch { loadFailed = true; return [] }
         return samples.map {
             (DateInterval(start: $0.startDate, end: max($0.endDate, $0.startDate)), $0.endDate,
              $0.quantity.doubleValue(for: .minute()))
@@ -578,6 +585,7 @@ final class HealthManager {
             }
         } catch {
             errorMessage = error.localizedDescription
+            loadFailed = true
             return []
         }
     }
@@ -585,7 +593,8 @@ final class HealthManager {
 
 extension HealthManager {
     /// Ugens Heart Minutes til komplikation og widgets, regnet med de gemte indstillinger.
-    static func weekSummary(now: Date = .now) async -> ComplicationData {
+    /// `nil`, hvis Sundhed ikke kunne læses (så de gemte tal ikke overskrives med 0).
+    static func weekSummary(now: Date = .now) async -> ComplicationData? {
         await summary(for: .thisWeek, now: now)
     }
 
@@ -597,6 +606,8 @@ extension HealthManager {
               let end = intervals.values.map(\.end).max() else { return [:] }
         let health = HealthManager()
         await health.loadPeriod(DateInterval(start: start, end: end))
+        // Fejl eller afbrudt hentning: gem ingenting, hellere gamle tal end 0.
+        guard !health.loadFailed else { return [:] }
         var result: [SummaryPeriod: ComplicationData] = [:]
         for (period, interval) in intervals {
             let points: [ActiveMinutes.Point]
@@ -616,9 +627,10 @@ extension HealthManager {
     }
 
     /// Heart Minutes for en periode (uge, dag, 7 dage) til widgets.
-    static func summary(for period: SummaryPeriod, now: Date = .now) async -> ComplicationData {
+    static func summary(for period: SummaryPeriod, now: Date = .now) async -> ComplicationData? {
         let health = HealthManager()
         await health.loadPeriod(period.interval(now: now))
+        guard !health.loadFailed else { return nil }
         let apple = health.minutesSource == .appleExercise
         let points = apple ? health.applePoints
             : ActiveMinutes(health.minuteSamples, config: health.minutesConfig).points

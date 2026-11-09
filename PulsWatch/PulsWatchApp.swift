@@ -33,9 +33,13 @@ final class WatchModel {
         defer { isLoading = false }
         // Ny HealthManager hver gang, så indstillinger synkroniseret fra iPhone bliver brugt.
         if askForAccess { await HealthManager().requestAuthorization() }
-        data = await HealthManager.weekSummary()
-        ComplicationStore.save(data)
-        WidgetCenter.shared.reloadAllTimelines()
+        // Ingen data (fejl) eller et lavere tal i baggrunden: behold det gemte tal.
+        // Med appen åben (askForAccess) må tallet godt falde, fx efter ændrede indstillinger.
+        if let new = await HealthManager.weekSummary(),
+           ComplicationStore.saveIfValid(new, allowDecrease: askForAccess) {
+            data = new
+            WidgetCenter.shared.reloadAllTimelines()
+        }
         scheduleNextRefresh()
     }
 

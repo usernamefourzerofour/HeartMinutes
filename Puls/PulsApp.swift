@@ -13,7 +13,7 @@ struct PulsApp: App {
                 // Send indstillingerne til uret og opdatér widgets, når appen åbnes eller lægges væk.
                 PhoneSync.shared.sendSettings()
                 guard phase != .inactive else { return }
-                Task { await WidgetUpdater.update() }
+                Task { await WidgetUpdater.update(allowDecrease: phase == .active) }
                 if phase == .background { WidgetUpdater.schedule() }
             }
             .backgroundTask(.appRefresh(WidgetUpdater.refreshID)) {

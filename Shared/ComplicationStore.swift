@@ -138,6 +138,27 @@ enum ComplicationStore {
         defaults.set(encoded, forKey: period.storageKey)
     }
 
+    /// Gemmer kun, hvis `shouldReplace` siger ja. Returnerer, om der blev gemt.
+    @discardableResult
+    static func saveIfValid(_ data: ComplicationData, for period: SummaryPeriod = .thisWeek,
+                            allowDecrease: Bool) -> Bool {
+        guard shouldReplace(load(for: period), with: data, for: period, allowDecrease: allowDecrease)
+        else { return false }
+        save(data, for: period)
+        return true
+    }
+
+    /// Inden for samme dag/uge/måned kan minutterne kun stige. Et lavere tal i baggrunden er
+    /// derfor en ufuldstændig læsning af Sundhed og må ikke overskrive det gemte tal.
+    /// Med appen åben (`allowDecrease`) må tallet godt falde, fx efter ændrede indstillinger.
+    /// Glidende perioder ("seneste N dage") kan falde naturligt og tjekkes ikke.
+    static func shouldReplace(_ old: ComplicationData?, with new: ComplicationData, for period: SummaryPeriod,
+                              allowDecrease: Bool, now: Date = .now) -> Bool {
+        guard !allowDecrease, let old, period.rollingDays == nil,
+              old.updated >= period.interval(now: now).start else { return true }
+        return new.minutes >= old.minutes
+    }
+
     static func load(for period: SummaryPeriod = .thisWeek) -> ComplicationData? {
         guard let raw = UserDefaults(suiteName: appGroup)?.data(forKey: period.storageKey) else { return nil }
         return try? JSONDecoder().decode(ComplicationData.self, from: raw)
