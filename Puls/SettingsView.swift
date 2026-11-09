@@ -88,10 +88,7 @@ struct SettingsView: View {
                             } content: {
                                 Stepper("Alder: \(health.age) år", value: $health.age, in: 10...100)
                             }
-                            // ⓘ viser AHA's tabel; ingen ↺ (værdien følger alderen).
-                            ResetRow(changed: false, info: ahaTableInfo) {} content: {
-                                LabeledContent("Maks-puls", value: "\(Int(health.maxHR.rounded())) bpm")
-                            }
+                            LabeledContent("Maks-puls (220 − alder)", value: "\(Int(health.maxHR.rounded())) bpm")
                         case .manual:
                             ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: "Den højeste puls, dit hjerte kan nå – fx målt ved en test eller den samme som i en anden app. Standard: 220 − din alder.") {
                                 health.manualMaxHR = health.defaultMaxHR
@@ -190,16 +187,6 @@ struct SettingsView: View {
         }
     }
 
-
-    /// AHA's tabel (Target Heart Rates Chart) som tekst til ⓘ ved AHA-aldersgruppe.
-    private var ahaTableInfo: String {
-        let rows = HeartZones.ahaTable.map { row in
-            let m = Double(row.maxHR)
-            return "\(row.age) år: maks \(row.maxHR) · moderat \(Int(m * 0.5))–\(Int(m * 0.7)) · hård \(Int(m * 0.7))–\(Int(m * 0.85)) bpm"
-        }
-        return "Maks-puls = 220 − alder (\(health.age) år → \(Int(health.maxHR.rounded())) bpm). AHA's tabel (Target Heart Rates) bygger på samme formel:\n\n"
-            + rows.joined(separator: "\n")
-    }
 
     /// Én zone i "Dine zoner": navn og bpm, grænse i % (ikke den nederste) og faktor.
     @ViewBuilder private func zoneRow(_ i: Int) -> some View {
