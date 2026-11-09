@@ -620,7 +620,7 @@ struct PeriodPicker: View {
                 } footer: {
                     Text("Varighed: \(Duration.seconds(end.timeIntervalSince(start)), format: .units(allowed: [.days, .hours, .minutes], width: .wide))")
                 }
-                Section("Hurtigvalg") {
+                Section {
                     quick("I dag", Period.day())
                     quick("Denne uge", Period.thisWeek())
                     // Hele måneden, ligesom "Denne uge" er hele ugen.
@@ -633,6 +633,10 @@ struct PeriodPicker: View {
                     quick("Seneste år", DateInterval(
                         start: Calendar.current.date(byAdding: .year, value: -1, to: .now) ?? .now.addingTimeInterval(-365 * 86_400),
                         end: .now))
+                } header: {
+                    Text("Hurtigvalg")
+                } footer: {
+                    Text("I dag, denne uge og denne måned er faste perioder: målet skal nås, inden perioden er omme, og så starter du forfra.\n\n»Seneste …« er et rullende vindue, der hele tiden flytter sig med tiden. Her handler det om at holde dig over målet hele tiden – gamle minutter falder ud, efterhånden som nye kommer til.")
                 }
             }
             .navigationTitle("Vælg periode")
