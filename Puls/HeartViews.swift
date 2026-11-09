@@ -491,57 +491,56 @@ struct OverviewView: View {
         NavigationStack {
             ScrollViewReader { proxy in
             List {
-                PeriodHeader(interval: $interval)
-                    .id("top")
-
-                if let stats = HeartStats(health.shownSamples) {
-                    ActiveMinutesChart(
-                        result: ActiveMinutes(health.minuteSamples, config: health.minutesConfig),
-                        period: interval.start...interval.end,
-                        zones: health.zones,
-                        weeklyGoal: Double(health.weeklyGoal),
-                        applePoints: health.applePoints,
-                        source: health.minutesSource,
-                        showComparison: health.showComparison)
-
-                    if health.showUnmarkedHint {
+                // Tre "vinduer" (sektioner) oven på baggrunden: Heart Minutes, pulsmålinger og workouts.
+                let stats = HeartStats(health.shownSamples)
+                Section {
+                    PeriodHeader(interval: $interval)
+                        .id("top")
+                    if stats != nil || health.minutesSource == .appleExercise {
+                        ActiveMinutesChart(
+                            result: ActiveMinutes(health.minuteSamples, config: health.minutesConfig),
+                            period: interval.start...interval.end,
+                            zones: health.zones,
+                            weeklyGoal: Double(health.weeklyGoal),
+                            applePoints: health.applePoints,
+                            source: health.minutesSource,
+                            showComparison: health.showComparison)
+                    } else {
+                        NoDataView()
+                    }
+                    if stats != nil && health.showUnmarkedHint {
                         UnmarkedHint(info: health.unmarked,
                                      turnOff: { health.onlyWhenActive = false },
                                      ignore: { health.ignoreUnmarkedSources() })
                     }
+                }
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Pulsmålinger").font(.headline)
-                        StatsRow(stats: stats)
+                if let stats {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Pulsmålinger").font(.headline)
+                            StatsRow(stats: stats)
+                        }
+                        .id("pulsechart")
+                        // Med pauser markeres de udfyldte målinger, så båndet i bunden kan vise dem.
+                        HeartChart(samples: ActiveMinutes.bridgingActive(health.shownSamples, config: health.minutesConfig),
+                                   zones: health.zones,
+                                   period: interval.start...interval.end,
+                                   focus: focus)
                     }
-                    .id("pulsechart")
-                    // Med pauser markeres de udfyldte målinger, så båndet i bunden kan vise dem.
-                    HeartChart(samples: ActiveMinutes.bridgingActive(health.shownSamples, config: health.minutesConfig),
-                               zones: health.zones,
-                               period: interval.start...interval.end,
-                               focus: focus)
 
                     if !health.periodWorkouts.isEmpty && health.includeWorkouts {
-                        WorkoutScoresView(scores: ActiveMinutes.perWorkout(
-                            health.minuteSamples, workouts: health.periodWorkouts, config: health.minutesConfig),
-                            zones: health.zones,
-                            icon: { health.workoutTypes[$0]?.symbolName ?? "figure.mixed.cardio" }
-                        ) { workout in
-                            focus = .init(interval: workout)
-                            withAnimation { proxy.scrollTo("pulsechart", anchor: .top) }
+                        Section {
+                            WorkoutScoresView(scores: ActiveMinutes.perWorkout(
+                                health.minuteSamples, workouts: health.periodWorkouts, config: health.minutesConfig),
+                                zones: health.zones,
+                                icon: { health.workoutTypes[$0]?.symbolName ?? "figure.mixed.cardio" }
+                            ) { workout in
+                                focus = .init(interval: workout)
+                                withAnimation { proxy.scrollTo("pulsechart", anchor: .top) }
+                            }
                         }
                     }
-                } else if health.minutesSource == .appleExercise {
-                    ActiveMinutesChart(
-                        result: ActiveMinutes(health.minuteSamples, config: health.minutesConfig),
-                        period: interval.start...interval.end,
-                        zones: health.zones,
-                        weeklyGoal: Double(health.weeklyGoal),
-                        applePoints: health.applePoints,
-                        source: health.minutesSource,
-                        showComparison: health.showComparison)
-                } else {
-                    NoDataView()
                 }
             }
             .onChange(of: showMinutes) { withAnimation { proxy.scrollTo("top", anchor: .top) } }
