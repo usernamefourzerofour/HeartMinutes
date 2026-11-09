@@ -42,13 +42,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    // Forklaringen står øverst, lige under "Indstillinger".
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("Tryk på ⓘ for at se, hvad en indstilling gør. \(Image(systemName: "arrow.counterclockwise")) vises, når en indstilling er ændret – tryk på den for at sætte indstillingen tilbage til standard.")
-                            .font(.footnote)
-                            .textCase(nil)
-                        Text("Heart Minutes")
-                    }
+                    Text("Heart Minutes")
                 }
 
                 // Pulszoner bruges kun, når minutterne regnes ud fra pulsen.
@@ -70,8 +64,13 @@ struct SettingsView: View {
                             Text(health.zoneMode == .manual
                                  ? "Angiv selv, ved hvilken puls hver zone starter."
                                  : "Moderat (moderate-intensity) ≈ 50–70 %, hård (vigorous) fra 70 % af maks-puls (AHA).")
-                            Link("Kilde: American Heart Association – Target Heart Rates",
-                                 destination: AHA.targetHeartRatesURL)
+                            // Kun når grænserne kommer fra AHA (ikke ved manuelle grænser).
+                            if health.zoneMode != .manual {
+                                Link("Kilde: American Heart Association – Target Heart Rates",
+                                     destination: AHA.targetHeartRatesURL)
+                                    .font(.footnote)
+                                    .multilineTextAlignment(.leading)
+                            }
                         }
                     }
 
@@ -208,7 +207,7 @@ struct SettingsView: View {
                 Section {
                     Button("Nulstil alle indstillinger", role: .destructive) { confirmResetAll = true }
                 } footer: {
-                    Text("Enkelte indstillinger nulstilles med ↺ ud for dem (vises kun, når de er ændret).")
+                    Text("Tryk på ⓘ for at se, hvad en indstilling gør. \(Image(systemName: "arrow.counterclockwise")) vises, når en indstilling er ændret – tryk på den for at sætte indstillingen tilbage til standard.")
                 }
             }
             .navigationTitle("Indstillinger")
