@@ -113,6 +113,17 @@ struct HeartChart: View {
                 .padding(8)
                 .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
             }
+            // Zoom-knappen står lige over grafens øverste højre hjørne.
+            HStack {
+                Spacer()
+                if visibleLength != nil && abs(length - fitLength) > 1 {
+                    Button("Nulstil zoom") { reset() }
+                        .buttonStyle(.borderless)
+                } else {
+                    Text("Knib for at zoome").foregroundStyle(.secondary)
+                }
+            }
+            .font(.caption)
             Chart {
                 ForEach(zones.indices, id: \.self) { i in
                     let range = zones.bpmRange(i)
@@ -236,17 +247,6 @@ struct HeartChart: View {
                     if samples.contains(where: \.bridgedActive) {
                         legendBar(Self.bridgedColor, "Udfyldt")
                     }
-                }
-            }
-            .font(.caption)
-
-            HStack {
-                Spacer()
-                if visibleLength != nil && abs(length - fitLength) > 1 {
-                    Button("Nulstil zoom") { reset() }
-                        .buttonStyle(.borderless)
-                } else {
-                    Text("Knib for at zoome").foregroundStyle(.secondary)
                 }
             }
             .font(.caption)
