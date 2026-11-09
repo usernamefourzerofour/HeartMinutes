@@ -22,5 +22,9 @@ final class WatchSync: NSObject, WCSessionDelegate, @unchecked Sendable {
 
     private func apply(_ settings: [String: Any]) {
         for (key, value) in settings { UserDefaults.standard.set(value, forKey: key) }
+        // Komplikationen kan kun læse App Group – perioden lægges også dér.
+        if let raw = settings["watchPeriod"] as? String, let period = SummaryPeriod(rawValue: raw) {
+            ComplicationStore.watchPeriod = period
+        }
     }
 }

@@ -159,6 +159,16 @@ enum ComplicationStore {
         return new.minutes >= old.minutes
     }
 
+    /// Perioden, som uret (komplikationer og ur-app) viser. Vælges i iPhone-appen og synkroniseres;
+    /// ligger i App Group, så komplikationen også kan læse den.
+    static var watchPeriod: SummaryPeriod {
+        get {
+            UserDefaults(suiteName: appGroup)?.string(forKey: "watchPeriod")
+                .flatMap(SummaryPeriod.init(rawValue:)) ?? .thisWeek
+        }
+        set { UserDefaults(suiteName: appGroup)?.set(newValue.rawValue, forKey: "watchPeriod") }
+    }
+
     static func load(for period: SummaryPeriod = .thisWeek) -> ComplicationData? {
         guard let raw = UserDefaults(suiteName: appGroup)?.data(forKey: period.storageKey) else { return nil }
         return try? JSONDecoder().decode(ComplicationData.self, from: raw)

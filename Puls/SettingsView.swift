@@ -28,6 +28,13 @@ struct SettingsView: View {
                             Text("Mål: \(health.weeklyGoal) min pr. uge")
                         }
                     }
+                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.") {
+                        health.watchPeriod = D.watchPeriod
+                    } content: {
+                        Picker("Periode på uret", selection: $health.watchPeriod) {
+                            ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
+                        }
+                    }
                     if health.minutesSource == .heartRate {
                         ResetRow(changed: health.activityMode != D.activityMode || health.pauseSeconds != D.pauseSeconds,
                                  info: "Hvornår din puls i løbet af dagen (uden for workouts) tæller med:\n\n" + ActiveMinutes.ActivityMode.allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n") + "\n\nMålinger under workouts tæller altid.") {

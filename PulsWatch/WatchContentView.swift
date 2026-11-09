@@ -6,7 +6,7 @@ struct WatchContentView: View {
     @Environment(WatchModel.self) private var model
 
     var body: some View {
-        let d = model.data.current()
+        let d = model.data.current(for: model.period)
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
@@ -21,10 +21,10 @@ struct WatchContentView: View {
                             .font(.caption2).foregroundStyle(.secondary)
                     }
                 }
-                WatchMinutesChart(data: d)
+                WatchMinutesChart(data: d, period: model.period)
                     .frame(height: 90)
                 HStack {
-                    Text("Denne uge")
+                    Text(model.period.title)
                     Spacer()
                     if model.isLoading {
                         ProgressView().frame(width: 16, height: 16)
@@ -42,12 +42,12 @@ struct WatchContentView: View {
     }
 }
 
-/// Ugens kumulative Heart Minutes (mandag–søndag) med målet som grå stiplet linje.
+/// Kumulative Heart Minutes over urets periode med målet som grå stiplet linje.
 struct WatchMinutesChart: View {
     let data: ComplicationData
+    let period: SummaryPeriod
 
     var body: some View {
-        let period = SummaryPeriod.thisWeek
         let domain = period.chartDomain(now: data.updated)
         let points = ComplicationData.spanning(data.points ?? [], from: domain.lowerBound,
                                               to: min(.now, domain.upperBound))
@@ -66,9 +66,12 @@ struct WatchMinutesChart: View {
         .chartXScale(domain: domain)
         .chartYScale(domain: 0...max(data.goal, data.minutes, 1) * 1.08)
         .chartXAxis {
-            AxisMarks(values: .stride(by: .day)) { _ in
+            let daily = period != .today && period.goalDays() <= 7
+            AxisMarks(values: Self.ticks(for: period, in: domain)) { value in
                 AxisGridLine().foregroundStyle(Color.gray.opacity(0.35))
-                AxisValueLabel(format: .dateTime.weekday(.narrow), centered: true)
+                AxisValueLabel(centered: daily) {
+                    if let date = value.as(Date.self) { Text(Self.label(date, period: period)) }
+                }
             }
         }
         .chartYAxis {
@@ -76,5 +79,26 @@ struct WatchMinutesChart: View {
                 AxisValueLabel()
             }
         }
+    }
+
+    /// Streger på x-aksen: hver 6. time (I dag), hver dag (op til en uge) eller hver uge.
+    static func ticks(for period: SummaryPeriod, in domain: ClosedRange<Date>) -> [Date] {
+        let cal = Calendar.current
+        let (unit, step): (Calendar.Component, Int) =
+            period == .today ? (.hour, 6) : period.goalDays() <= 7 ? (.day, 1) : (.day, 7)
+        var dates: [Date] = []
+        var d = cal.startOfDay(for: domain.lowerBound)
+        while d <= domain.upperBound {
+            if d >= domain.lowerBound { dates.append(d) }
+            guard let next = cal.date(byAdding: unit, value: step, to: d) else { break }
+            d = next
+        }
+        return dates
+    }
+
+    static func label(_ date: Date, period: SummaryPeriod) -> String {
+        if period == .today { return date.formatted(.dateTime.hour()) }
+        if period.goalDays() <= 7 { return date.formatted(.dateTime.weekday(.narrow)) }
+        return date.formatted(.dateTime.day().month(.defaultDigits))
     }
 }

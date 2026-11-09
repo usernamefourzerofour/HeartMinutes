@@ -10,7 +10,7 @@ final class PhoneSync: NSObject, WCSessionDelegate, @unchecked Sendable {
         "includeBackground", "includeWorkouts", "moderateWeight", "vigorousWeight", "weeklyGoal",
         "onlyWhenActive", "age", "zoneMode", "manualMaxHR", "manualModerate", "manualVigorous",
         "maxGapSeconds", "workoutGaps", "interpolation", "minutesSource", "activitySource",
-        "activeBridgeSeconds",
+        "activeBridgeSeconds", "watchPeriod",
     ]
 
     func start() {

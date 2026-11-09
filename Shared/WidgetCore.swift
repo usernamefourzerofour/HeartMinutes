@@ -23,7 +23,9 @@ struct HeartMinutesProvider: TimelineProvider {
     }
 
     private func entry() -> HeartMinutesEntry {
-        let data = (ComplicationStore.load() ?? ComplicationData(minutes: 0, goal: 150, updated: .now)).current()
+        let period = ComplicationStore.watchPeriod
+        let data = (ComplicationStore.load(for: period)
+            ?? ComplicationData(minutes: 0, goal: period.goal(weekly: 150), updated: .now)).current(for: period)
         return HeartMinutesEntry(date: .now, data: data)
     }
 }

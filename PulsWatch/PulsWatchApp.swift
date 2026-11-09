@@ -24,7 +24,9 @@ final class WatchModel {
     static let shared = WatchModel()
     nonisolated static let refreshID = "heartminutes"
 
-    private(set) var data = ComplicationStore.load() ?? ComplicationData(minutes: 0, goal: 150, updated: .distantPast)
+    private(set) var period = ComplicationStore.watchPeriod
+    private(set) var data = ComplicationStore.load(for: ComplicationStore.watchPeriod)
+        ?? ComplicationData(minutes: 0, goal: 150, updated: .distantPast)
     private(set) var isLoading = false
     private let sync = WatchSync()
 
@@ -35,11 +37,14 @@ final class WatchModel {
         if askForAccess { await HealthManager().requestAuthorization() }
         // Ingen data (fejl) eller et lavere tal i baggrunden: behold det gemte tal.
         // Med appen åben (askForAccess) må tallet godt falde, fx efter ændrede indstillinger.
-        if let new = await HealthManager.weekSummary(),
-           ComplicationStore.saveIfValid(new, allowDecrease: askForAccess) {
-            data = new
-            WidgetCenter.shared.reloadAllTimelines()
+        // Perioden vælges i iPhone-appen (fx I dag, Denne uge, Seneste 7 dage).
+        let period = ComplicationStore.watchPeriod
+        if let new = await HealthManager.summary(for: period) {
+            ComplicationStore.saveIfValid(new, for: period, allowDecrease: askForAccess)
         }
+        self.period = period
+        if let stored = ComplicationStore.load(for: period) { data = stored }
+        WidgetCenter.shared.reloadAllTimelines()
         scheduleNextRefresh()
     }
 

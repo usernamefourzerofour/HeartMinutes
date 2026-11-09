@@ -221,6 +221,7 @@ final class HealthManager {
         static let activeBridgeSeconds = 300
         /// Længste pause, der udfyldes med »Aktiv, træningsring og korte pauser«.
         static let pauseSeconds = 300
+        static let watchPeriod = SummaryPeriod.thisWeek
         static let pauseLimit = 600
         static let activityMode = ActiveMinutes.ActivityMode.withPauses
         static let weeklyGoal = 150
@@ -240,6 +241,12 @@ final class HealthManager {
     }
     var vigorousWeight: Double = UserDefaults.standard.object(forKey: "vigorousWeight") as? Double ?? Defaults.vigorousWeight {
         didSet { UserDefaults.standard.set(vigorousWeight, forKey: "vigorousWeight") }
+    }
+
+    /// Perioden, som komplikationer og ur-app viser (synkroniseres til uret).
+    var watchPeriod: SummaryPeriod = UserDefaults.standard.string(forKey: "watchPeriod")
+        .flatMap(SummaryPeriod.init(rawValue:)) ?? Defaults.watchPeriod {
+        didSet { UserDefaults.standard.set(watchPeriod.rawValue, forKey: "watchPeriod") }
     }
 
     /// Mål for aktive minutter pr. uge (AHA: 150). Skaleres til den valgte periode.
@@ -452,6 +459,7 @@ final class HealthManager {
         activitySource = Defaults.activitySource
         activeBridgeSeconds = Defaults.activeBridgeSeconds
         pauseSeconds = Defaults.pauseSeconds
+        watchPeriod = Defaults.watchPeriod
     }
 
     var zones: HeartZones {
