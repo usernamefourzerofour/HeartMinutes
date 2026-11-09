@@ -621,9 +621,10 @@ struct PeriodPicker: View {
                     Text("Varighed: \(Duration.seconds(end.timeIntervalSince(start)), format: .units(allowed: [.days, .hours, .minutes], width: .wide))")
                 }
                 Section("Hurtigvalg") {
-                    quick("Denne uge", Period.thisWeek())
                     quick("I dag", Period.day())
-                    quick("I går", Period.shifted(Period.day(), by: -1))
+                    quick("Denne uge", Period.thisWeek())
+                    // Hele måneden, ligesom "Denne uge" er hele ugen.
+                    quick("Denne måned", Calendar.current.dateInterval(of: .month, for: .now) ?? Period.thisWeek())
                     quick("Seneste 24 timer", DateInterval(start: .now.addingTimeInterval(-86_400), end: .now))
                     quick("Seneste 7 dage", DateInterval(start: .now.addingTimeInterval(-7 * 86_400), end: .now))
                     quick("Seneste måned", DateInterval(
