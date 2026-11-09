@@ -65,9 +65,14 @@ struct SettingsView: View {
                     } header: {
                         Text("Pulszoner")
                     } footer: {
-                        Text(health.zoneMode == .manual
-                             ? "Angiv selv, ved hvilken puls hver zone starter."
-                             : "Moderat (moderate-intensity) ≈ 50–70 %, hård (vigorous) fra 70 % af maks-puls (AHA).")
+                        // Kilden står i forklaringen som et lille link i stedet for sin egen sektion.
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(health.zoneMode == .manual
+                                 ? "Angiv selv, ved hvilken puls hver zone starter."
+                                 : "Moderat (moderate-intensity) ≈ 50–70 %, hård (vigorous) fra 70 % af maks-puls (AHA).")
+                            Link("Kilde: American Heart Association – Target Heart Rates",
+                                 destination: AHA.targetHeartRatesURL)
+                        }
                     }
 
                     switch health.zoneMode {
@@ -199,18 +204,6 @@ struct SettingsView: View {
                          : "Sammenligning med pulszoner.")
                 }
 
-                // AHA-kilden hører til pulsberegningen.
-                if health.minutesSource == .heartRate {
-                    Section {
-                        Link(destination: AHA.targetHeartRatesURL) {
-                            Label("American Heart Association – Target Heart Rates", systemImage: "link")
-                        }
-                    } header: {
-                        Text("Kilde")
-                    } footer: {
-                        Text("“Target heart rate during moderate-intensity activities is about 50-70% of maximum heart rate. During vigorous physical activity, it’s about 70-85% of maximum.”")
-                    }
-                }
 
                 Section {
                     Button("Nulstil alle indstillinger", role: .destructive) { confirmResetAll = true }
