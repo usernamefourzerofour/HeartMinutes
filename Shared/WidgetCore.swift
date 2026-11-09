@@ -226,6 +226,7 @@ struct EndDot<S: Shape>: Shape {
 /// hvid prik ved nuværende position og kun tallet i midten.
 struct ShapeProgressRing<S: Shape>: View {
     @Environment(\.widgetRenderingMode) private var renderingMode
+    @Environment(\.colorScheme) private var colorScheme
     let shape: S
     let fraction: Double
     let value: String
@@ -282,11 +283,17 @@ struct ShapeProgressRing<S: Shape>: View {
                     ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
                     shape.stroke(lap, style: style(.butt)).widgetAccentable()
                     if renderingMode == .fullColor {
-                        // Mørk kant under enden, så den nye omgang tydeligt ligger ovenpå.
-                        EndDot(shape: shape, fraction: pos, radius: lw / 2 + 2).fill(.black)
+                        // Mørk kant under enden, så den nye omgang tydeligt ligger ovenpå. På lys baggrund
+                        // (hjemmeskærm) blev den en synlig sort ring – der bruges en skygge i stedet.
+                        if colorScheme == .dark {
+                            EndDot(shape: shape, fraction: pos, radius: lw / 2 + 2).fill(.black)
+                        }
                         shape.trim(from: 0, to: pos).stroke(lap, style: style(.butt))
                     }
-                    EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1)).widgetAccentable()
+                    EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1))
+                        .shadow(color: renderingMode == .fullColor && colorScheme != .dark
+                                ? .black.opacity(0.35) : .clear, radius: lw * 0.15)
+                        .widgetAccentable()
                 }
                 // Lille hvid prik ved, hvor langt du er nået.
                 EndDot(shape: shape, fraction: pos, radius: lw * 0.19).fill(.white)

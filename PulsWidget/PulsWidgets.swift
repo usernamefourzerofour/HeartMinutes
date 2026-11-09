@@ -57,8 +57,9 @@ struct HomeHeartIcon: View {
 
     var body: some View {
         if entry.homeStyle == .ring {
+            // Samme tykkelse som komplikationen – tykkere fyldte kløften øverst helt ud.
             ShapeProgressRing(shape: HeartOutlineShape(), fraction: entry.data.fraction, value: "",
-                              thickness: 0.17)
+                              thickness: 0.13)
         } else {
             HeartProgress(fraction: entry.data.fraction, color: .pink)
         }
