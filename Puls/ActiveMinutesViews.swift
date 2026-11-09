@@ -201,8 +201,10 @@ struct WorkoutScoresView: View {
         }
     }
 
+    // Group (ikke VStack): i en List bliver overskriften og hver workout sin egen række.
+    // Én høj række med alle workouts fik forkert højde og blev tegnet ind over rækken ovenover.
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Group {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Workouts").font(.headline)
                 if !scores.isEmpty {
@@ -239,6 +241,8 @@ struct WorkoutScoresView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("Zoom pulsgrafen ind på denne workout")
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
             if scores.isEmpty {
                 Text("Ingen workouts i perioden").font(.caption).foregroundStyle(.secondary)
