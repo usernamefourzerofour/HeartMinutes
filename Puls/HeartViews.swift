@@ -6,7 +6,13 @@ extension HeartZones {
     /// Farve pr. zone. Zoner, der ikke tæller (× 0), er grå.
     func color(_ i: Int) -> Color {
         if weights[i] == 0 { return .gray }
-        let palette: [Color] = model == .two ? [.gray, .green, .orange] : [.gray, .blue, .green, .yellow, .orange, .red]
+        // Mere matte udgaver af de gængse zonefarver: blå, olivengrøn, sennepsgul, orange, mørkerød.
+        let blue = Color(red: 0.42, green: 0.65, blue: 0.95)
+        let green = Color(red: 0.47, green: 0.62, blue: 0.24)
+        let yellow = Color(red: 0.84, green: 0.71, blue: 0.24)
+        let orange = Color(red: 0.92, green: 0.53, blue: 0.22)
+        let red = Color(red: 0.66, green: 0.17, blue: 0.17)
+        let palette: [Color] = model == .two ? [.gray, green, orange] : [.gray, blue, green, yellow, orange, red]
         return palette[min(i, palette.count - 1)]
     }
 }
