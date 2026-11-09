@@ -44,7 +44,7 @@ struct SettingsView: View {
                 } header: {
                     // Forklaringen står øverst, lige under "Indstillinger".
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Tryk på ⓘ for at se, hvad en indstilling gør.")
+                        Text("Tryk på ⓘ for at se, hvad en indstilling gør. \(Image(systemName: "arrow.counterclockwise")) vises, når en indstilling er ændret – tryk på den for at sætte indstillingen tilbage til standard.")
                             .font(.footnote)
                             .textCase(nil)
                         Text("Heart Minutes")
