@@ -62,10 +62,12 @@ struct SettingsView: View {
                         if health.zoneModel == .two {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Følger anbefalingerne fra American Heart Association (AHA): moderat 50–70 %, hård fra 70 % af maks-puls.")
-                                Link("Kilde: American Heart Association – Target Heart Rates",
-                                     destination: AHA.targetHeartRatesURL)
-                                    .font(.footnote)
-                                    .multilineTextAlignment(.leading)
+                                Link(destination: AHA.targetHeartRatesURL) {
+                                    Text("Kilde: American Heart Association – Target Heart Rates")
+                                        .multilineTextAlignment(.leading)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .font(.footnote)
                             }
                         } else {
                             Text("De gængse 5 zoner (fx Garmin og Polar): Z1–Z5 fra 50, 60, 70, 80 og 90 % af maks-puls. Z0 er pulsen under 50 %.")
@@ -73,7 +75,7 @@ struct SettingsView: View {
                     }
 
                     Section {
-                        ResetRow(changed: health.maxHRSource != D.maxHRSource, info: "Alder: maks-puls = 220 − alder – den mest udbredte formel, som AHA's tabel også bygger på.\nIndtast: din egen maks-puls, fx målt ved en test.") {
+                        ResetRow(changed: health.maxHRSource != D.maxHRSource, info: "Alder: maks-puls = 220 − alder.\nIndtast: din egen maks-puls, fx målt ved en test.") {
                             health.maxHRSource = D.maxHRSource
                         } content: {
                             Picker("Maks-puls ud fra", selection: $health.maxHRSource) {
