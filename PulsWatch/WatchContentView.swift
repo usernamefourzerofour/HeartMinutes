@@ -10,9 +10,10 @@ struct WatchContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
-                    ShapeProgressRing(shape: TopCircle(), fraction: d.fraction, value: "\(d.percent)",
-                                      thickness: 0.16, textSize: 0.34)
-                        .frame(width: 40, height: 40)
+                    // Hjerte-ringen (som komplikationen); tallene står ved siden af.
+                    ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction, value: "",
+                                      thickness: 0.13, miterLimit: 4)
+                        .frame(width: 44, height: 40)
                     VStack(alignment: .leading, spacing: 0) {
                         Text("\(Int(d.minutes.rounded())) min").font(.headline)
                         Text("af \(Int(d.goal)) · \(d.percent) %")
@@ -20,7 +21,7 @@ struct WatchContentView: View {
                     }
                 }
                 WatchMinutesChart(data: d)
-                    .frame(height: 110)
+                    .frame(height: 90)
                 HStack {
                     Text("Denne uge")
                     Spacer()
@@ -32,7 +33,9 @@ struct WatchContentView: View {
                 }
                 .font(.caption2).foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 2)
+            // Luft til skærmens runde hjørner, så teksten nederst ikke skæres af.
+            .padding(.horizontal, 10)
+            .padding(.bottom, 14)
         }
         .navigationTitle("Heart Minutes")
     }
