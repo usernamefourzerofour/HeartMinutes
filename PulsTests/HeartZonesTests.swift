@@ -55,3 +55,18 @@ struct HeartZonesTests {
         #expect(run(90) == 0)
     }
 }
+
+struct YAxisTickTests {
+    @Test func zoneBoundsAlwaysShown() {
+        let z = HeartZones(maxHR: 200)   // grænser 100 og 140
+        #expect(HeartChart.yTicks(zones: z, in: 40...200) == [100, 140])
+    }
+
+    @Test func moreTicksWhenZoomedIn() {
+        let z = HeartZones(maxHR: 200)
+        // Spænd 30: hver 5. bpm, men ikke tæt på grænsen 100.
+        #expect(HeartChart.yTicks(zones: z, in: 85...115) == [85, 90, 95, 100, 105, 110, 115])
+        // Spænd 60: hver 10. bpm.
+        #expect(HeartChart.yTicks(zones: z, in: 60...120) == [60, 70, 80, 90, 100, 110, 120])
+    }
+}
