@@ -6,7 +6,7 @@ extension HeartZones {
     /// Farve pr. zone. Zoner, der ikke tæller (× 0), er grå.
     func color(_ i: Int) -> Color {
         if weights[i] == 0 { return .gray }
-        let palette: [Color] = model == .two ? [.gray, .green, .orange] : [.gray, .blue, .green, .orange, .red]
+        let palette: [Color] = model == .two ? [.gray, .green, .orange] : [.gray, .cyan, .blue, .green, .orange, .red]
         return palette[min(i, palette.count - 1)]
     }
 }

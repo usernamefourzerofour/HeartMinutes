@@ -48,7 +48,7 @@ struct SettingsView: View {
                 // Pulszoner bruges kun, når minutterne regnes ud fra pulsen.
                 if health.minutesSource == .heartRate {
                     Section {
-                        ResetRow(changed: health.zoneModel != D.zoneModel, info: "2 zoner: moderat fra 50 % og hård fra 70 % af maks-puls – American Heart Association (AHA)'s anbefaling. Moderat tæller × 1 og hård × 2, så 150 min moderat eller 75 min hård om ugen er nok.\n\n5 zoner: de gængse zoner fra fx Garmin og Polar (Z2 fra 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z1 omfatter også pulsen under 50 %.\n\nGrænser og faktorer kan ændres under »Dine zoner«.") {
+                        ResetRow(changed: health.zoneModel != D.zoneModel, info: "2 zoner: moderat fra 50 % og hård fra 70 % af maks-puls – American Heart Association (AHA)'s anbefaling. Moderat tæller × 1 og hård × 2, så 150 min moderat eller 75 min hård om ugen er nok.\n\n5 zoner: de gængse zoner fra fx Garmin og Polar (Z1 fra 50 %, Z2 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z0 er pulsen under 50 %.\n\nGrænser og faktorer kan ændres under »Dine zoner«.") {
                             health.zoneModel = D.zoneModel
                         } content: {
                             Picker("Antal zoner", selection: $health.zoneModel) {
@@ -68,7 +68,7 @@ struct SettingsView: View {
                                     .multilineTextAlignment(.leading)
                             }
                         } else {
-                            Text("De gængse 5 zoner (fx Garmin og Polar): 60, 70, 80 og 90 % af maks-puls.")
+                            Text("De gængse 5 zoner (fx Garmin og Polar): Z1–Z5 fra 50, 60, 70, 80 og 90 % af maks-puls. Z0 er pulsen under 50 %.")
                         }
                     }
 
@@ -110,7 +110,7 @@ struct SettingsView: View {
                     } header: {
                         Text("Dine zoner")
                     } footer: {
-                        Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; den nederste zone tæller som udgangspunkt ikke (× 0).")
+                        Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; de nederste zoner tæller som udgangspunkt ikke (× 0).")
                     }
                 }
 

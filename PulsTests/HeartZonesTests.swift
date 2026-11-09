@@ -24,12 +24,13 @@ struct HeartZonesTests {
 
     @Test func fiveZonesAreTheCommonOnes() {
         let z = HeartZones(maxHR: 200, model: .five)
-        #expect(z.count == 5)
-        #expect(z.thresholds == [120, 140, 160, 180])   // 60/70/80/90 %
-        #expect(z.zone(for: 90) == 0)                    // Z1 omfatter også under 50 %
-        #expect(z.zone(for: 150) == 2)
-        #expect(z.zone(for: 195) == 4)
-        #expect(z.weights == [0, 1, 2, 2, 2])
+        #expect(z.count == 6)                            // Z0 + Z1–Z5
+        #expect(z.thresholds == [100, 120, 140, 160, 180])   // 50/60/70/80/90 %
+        #expect(z.zone(for: 90) == 0)                    // Z0: under 50 %
+        #expect(z.zone(for: 110) == 1)                   // Z1
+        #expect(z.zone(for: 150) == 3)                   // Z3
+        #expect(z.zone(for: 195) == 5)                   // Z5
+        #expect(z.weights == [0, 0, 1, 2, 2, 2])
     }
 
     @Test func fixedBoundaries() {

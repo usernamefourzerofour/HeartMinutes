@@ -4,7 +4,7 @@
 - [x] **Maks-puls = 220 − alder** pr. år (mest udbredt; AHA's tabel bygger på den). Senere evt. Tanaka
       (`208 − 0,7 × alder`) som valg under Avanceret.
 
-- [x] **2 eller 5 zoner** (build 50): 2 zoner (AHA) er standard, 5 zoner 60/70/80/90 %. Grænser i % og
+- [x] **2 eller 5 zoner** (build 50): 2 zoner (AHA) er standard, 5 zoner (Z0 under 50 %, Z1–Z5 fra 50/60/70/80/90 %). Grænser i % og
       faktor pr. zone redigeres under "Dine zoner"; nederste zone × 0 som udgangspunkt.
       Maks-puls ud fra alder eller indtastet. "Manuelt" (bpm) og vægte under Avanceret er fjernet.
 

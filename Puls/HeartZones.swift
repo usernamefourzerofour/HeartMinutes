@@ -26,16 +26,16 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
     var names: [String] {
         switch self {
         case .two: ["Let", "Moderat", "Hård"]
-        case .five: ["Z1", "Z2", "Z3", "Z4", "Z5"]
+        case .five: ["Z0", "Z1", "Z2", "Z3", "Z4", "Z5"]
         }
     }
 
     /// Nedre grænse for hver zone som andel af maks-puls (første er altid 0).
-    /// To zoner: AHA (moderat 50 %, hård 70 %). Fem zoner: 60/70/80/90 % (Z1 omfatter også under 50 %).
+    /// To zoner: AHA (moderat 50 %, hård 70 %). Fem zoner: Z1–Z5 fra 50/60/70/80/90 %; Z0 er under 50 %.
     var defaultPercents: [Double] {
         switch self {
         case .two: [0, 0.50, 0.70]
-        case .five: [0, 0.60, 0.70, 0.80, 0.90]
+        case .five: [0, 0.50, 0.60, 0.70, 0.80, 0.90]
         }
     }
 
@@ -43,7 +43,7 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
     var defaultWeights: [Double] {
         switch self {
         case .two: [0, 1, 2]
-        case .five: [0, 1, 2, 2, 2]
+        case .five: [0, 0, 1, 2, 2, 2]
         }
     }
 }
