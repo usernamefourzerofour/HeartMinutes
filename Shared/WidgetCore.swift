@@ -206,6 +206,25 @@ struct TopCircle: Shape {
     }
 }
 
+/// Hele formen som én udfyldt streg, med en rund samling i startpunktet (hjertets kløft).
+/// Uden den blev kløften skåret lige af, når hele hjertet tegnes (over målet). Med den ser kløften
+/// ud som under målet, hvor stregens runde start ligger der. Én samlet figur (union), så der ikke
+/// opstår en mørkere plet på tonet urskive, hvor to lag overlapper.
+struct RoundStartStroke<S: Shape>: Shape {
+    let shape: S
+    let lineWidth: CGFloat
+    let miterLimit: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let full = shape.path(in: rect)
+        let stroked = full.strokedPath(StrokeStyle(lineWidth: lineWidth, lineCap: .butt,
+                                                   lineJoin: .miter, miterLimit: miterLimit))
+        guard let start = full.trimmedPath(from: 0, to: 0.0001).currentPoint else { return stroked }
+        let r = lineWidth / 2
+        return stroked.union(Path(ellipseIn: CGRect(x: start.x - r, y: start.y - r, width: 2 * r, height: 2 * r)))
+    }
+}
+
 /// En prik (cirkel) på formens kant ved `fraction` af vejen rundt.
 struct EndDot<S: Shape>: Shape {
     let shape: S
@@ -266,7 +285,8 @@ struct ShapeProgressRing<S: Shape>: View {
             }
             ZStack {
                 // Sporet: samme farve, men meget mørkt (svagere på tonet urskive).
-                shape.stroke(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12), style: style(.butt))
+                RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
+                    .fill(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12))
                 if f <= 1 {
                     // Bliver gradvist mere intens hele vejen hen til, hvor du er nået.
                     segment(from: 0, to: f, style: style(.round), colors: [tone(0), tone(1)])
@@ -284,7 +304,8 @@ struct ShapeProgressRing<S: Shape>: View {
                         .init(color: tone(k * p), location: min(p + 0.0001, 1)),
                         .init(color: tone(k), location: 1),
                     ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
-                    shape.stroke(lap, style: style(.butt)).widgetAccentable()
+                    RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
+                        .fill(lap).widgetAccentable()
                     if renderingMode == .fullColor {
                         // Mørk kant under enden, så den nye omgang tydeligt ligger ovenpå. På lys baggrund
                         // (hjemmeskærm) blev den en synlig sort ring – der bruges en skygge i stedet.
