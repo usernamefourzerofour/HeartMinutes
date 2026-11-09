@@ -95,12 +95,6 @@ struct HeartZones: Equatable, Sendable {
     /// Maks-puls ud fra alder: 220 − alder (det AHA's tabel bygger på; den mest udbredte formel).
     static func maxHR(age: Int) -> Double { Double(220 - age) }
 
-    /// AHA's tabel (Target Heart Rates Chart): aldersgruppe → maks-puls (bpm). Kun til forklaring.
-    static let ahaTable: [(age: Int, maxHR: Int)] = [
-        (20, 200), (30, 190), (35, 185), (40, 180), (45, 175),
-        (50, 170), (55, 165), (60, 160), (65, 155), (70, 150),
-    ]
-
     var count: Int { percents.count }
     var indices: Range<Int> { 0..<count }
     func name(_ i: Int) -> String { model.names[i] }
