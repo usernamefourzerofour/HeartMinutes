@@ -199,7 +199,7 @@ struct SettingsView: View {
         ResetRow(changed: changed) {
             setZone(i, percent: model.defaultPercents[i], weight: model.defaultWeights[i])
         } content: {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(z.color(i).opacity(0.5))
@@ -221,6 +221,9 @@ struct SettingsView: View {
                         value: Binding(get: { z.weights[i] }, set: { setZone(i, weight: $0) }),
                         in: 0...5, step: 0.5)
             }
+            // Mindre knapper og mere luft, så de to knap-par ikke ligger ind over hinanden.
+            .controlSize(.small)
+            .padding(.vertical, 4)
         }
     }
 
