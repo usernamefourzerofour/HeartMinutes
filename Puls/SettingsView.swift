@@ -59,18 +59,8 @@ struct SettingsView: View {
                     } header: {
                         Text("Pulszoner")
                     } footer: {
-                        // Kilden står i forklaringen som et lille link i stedet for sin egen sektion.
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(health.zoneMode == .manual
-                                 ? "Angiv selv, ved hvilken puls hver zone starter."
-                                 : "Moderat (moderate-intensity) ≈ 50–70 %, hård (vigorous) fra 70 % af maks-puls (AHA).")
-                            // Kun når grænserne kommer fra AHA (ikke ved manuelle grænser).
-                            if health.zoneMode != .manual {
-                                Link("Kilde: American Heart Association – Target Heart Rates",
-                                     destination: AHA.targetHeartRatesURL)
-                                    .font(.footnote)
-                                    .multilineTextAlignment(.leading)
-                            }
+                        if health.zoneMode == .manual {
+                            Text("Angiv selv, ved hvilken puls hver zone starter.")
                         }
                     }
 
@@ -140,8 +130,18 @@ struct SettingsView: View {
                     } header: {
                         Text("Dine zoner")
                     } footer: {
-                        Text("Procent af maks-puls \(Int(percentBaseMaxHR.rounded())) bpm" +
-                             (health.zoneMode == .manual ? " (din maks-puls fra »Maks-puls«)." : "."))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Procent af maks-puls \(Int(percentBaseMaxHR.rounded())) bpm" +
+                                 (health.zoneMode == .manual ? " (din maks-puls fra »Maks-puls«)." : "."))
+                            // AHA-forklaring og kilde kun, når grænserne kommer fra AHA (ikke manuelle).
+                            if health.zoneMode != .manual {
+                                Text("Moderat (moderate-intensity) ≈ 50–70 %, hård (vigorous) fra 70 % af maks-puls (AHA).")
+                                Link("Kilde: American Heart Association – Target Heart Rates",
+                                     destination: AHA.targetHeartRatesURL)
+                                    .font(.footnote)
+                                    .multilineTextAlignment(.leading)
+                            }
+                        }
                     }
                 }
 
