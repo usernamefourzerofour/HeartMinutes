@@ -165,13 +165,11 @@ struct PeriodChart: View {
             RuleMark(y: .value("Mål", data.goal))
                 .foregroundStyle(Color.gray)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
-                .annotation(position: .top, alignment: .leading, spacing: 1) {
-                    // Lille widget: målet står allerede i teksten ovenover (labelen overlappede den).
-                    if !compact {
-                        Text("Mål \(Int(data.goal.rounded())) min")
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
+                // Lille widget: under stregen, så den ikke rammer teksten ovenover.
+                .annotation(position: compact ? .bottom : .top, alignment: .leading, spacing: 1) {
+                    Text("Mål \(Int(data.goal.rounded())) min")
+                        .font(.system(size: compact ? 8 : 9, weight: .semibold))
+                        .foregroundStyle(.secondary)
                 }
         }
         .chartXScale(domain: domain)
