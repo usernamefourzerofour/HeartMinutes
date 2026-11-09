@@ -10,10 +10,11 @@ struct WatchContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
-                    // Hjerte-ringen (som komplikationen); tallene står ved siden af.
+                    // Præcis som hjerte-komplikationen (kvadratisk felt, samme tykkelse), bare uden tal –
+                    // tallene står ved siden af.
                     ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction, value: "",
-                                      thickness: 0.13, miterLimit: 4)
-                        .frame(width: 44, height: 40)
+                                      thickness: 0.13)
+                        .frame(width: 44, height: 44)
                     VStack(alignment: .leading, spacing: 0) {
                         Text("\(Int(d.minutes.rounded())) min").font(.headline)
                         Text("af \(Int(d.goal)) · \(d.percent) %")

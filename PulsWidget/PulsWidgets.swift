@@ -57,10 +57,11 @@ struct HomeHeartIcon: View {
 
     var body: some View {
         if entry.homeStyle == .ring {
-            // Samme tykkelse som komplikationen, og spids kløft i hullet (intet tal i midten her) –
-            // ellers blev kløften skåret lige af, og hjertet så ud til at mangle et stykke.
+            // Præcis som hjerte-komplikationen på uret (samme tykkelse og kløft), bare uden tal.
+            // Kvadratisk felt, så proportionerne bliver de samme som komplikationens.
             ShapeProgressRing(shape: HeartOutlineShape(), fraction: entry.data.fraction, value: "",
-                              thickness: 0.13, miterLimit: 4)
+                              thickness: 0.13)
+                .aspectRatio(1, contentMode: .fit)
         } else {
             HeartProgress(fraction: entry.data.fraction, color: .pink)
         }
@@ -225,7 +226,7 @@ struct HeartSummary: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top) {
                 HomeHeartIcon(entry: entry)
-                    .frame(width: 58, height: 50)
+                    .frame(width: 58, height: 58)
                 Spacer(minLength: 0)
             }
             Spacer(minLength: 0)
@@ -265,7 +266,7 @@ struct SmallHomeView: View {
             // Stort hjerte til venstre, tal og "af målet" til højre for det.
             HStack(alignment: .center, spacing: 8) {
                 HomeHeartIcon(entry: entry)
-                    .frame(width: 50, height: 44)
+                    .frame(width: 50, height: 50)
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(entry.display == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))")
