@@ -10,100 +10,119 @@ enum AHA {
         URL(string: "https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates")!
 }
 
-enum ZoneKind: Int, CaseIterable, Identifiable {
-    case light, moderate, vigorous
+/// Zonemodel: AHA's to zoner (moderat/hård) eller de gængse fem zoner (Garmin/Polar m.fl.).
+enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
+    case two, five
+    var id: String { rawValue }
 
-    var id: Int { rawValue }
-
-    /// Zonerne der vises i graf, forklaring og indstillinger.
-    static let shown: [ZoneKind] = allCases
-
-    var name: String {
+    var title: String {
         switch self {
-        case .light: "Let"
-        case .moderate: "Moderat"
-        case .vigorous: "Hård"
+        case .two: "2 zoner"
+        case .five: "5 zoner"
         }
     }
 
-    /// Nedre grænse som andel af maks-puls.
-    var lowerFraction: Double {
+    /// Navne på zonerne, nederst først. Den nederste tæller som udgangspunkt ikke (× 0).
+    var names: [String] {
         switch self {
-        case .light: 0
-        case .moderate: 0.50
-        case .vigorous: 0.70
+        case .two: ["Let", "Moderat", "Hård"]
+        case .five: ["Z1", "Z2", "Z3", "Z4", "Z5"]
+        }
+    }
+
+    /// Nedre grænse for hver zone som andel af maks-puls (første er altid 0).
+    /// To zoner: AHA (moderat 50 %, hård 70 %). Fem zoner: 60/70/80/90 % (Z1 omfatter også under 50 %).
+    var defaultPercents: [Double] {
+        switch self {
+        case .two: [0, 0.50, 0.70]
+        case .five: [0, 0.60, 0.70, 0.80, 0.90]
+        }
+    }
+
+    /// Hvor meget ét minut i hver zone tæller. AHA: moderat × 1, hård × 2.
+    var defaultWeights: [Double] {
+        switch self {
+        case .two: [0, 1, 2]
+        case .five: [0, 1, 2, 2, 2]
         }
     }
 }
 
-/// Hvordan zonegrænserne bestemmes.
-enum ZoneMode: String, CaseIterable, Identifiable {
-    case age, maxHR, manual
+/// Hvordan maks-pulsen findes.
+enum MaxHRSource: String, CaseIterable, Identifiable, Sendable {
+    case age, manual
     var id: String { rawValue }
     var title: String {
         switch self {
         case .age: "Alder"
-        case .maxHR: "Maks-puls"
-        case .manual: "Manuelt"
+        case .manual: "Indtast"
         }
     }
 }
 
-/// Nedre grænser (bpm) for zonerne moderat og hård. Hård fortsætter opad uden loft.
-struct HeartZones: Equatable {
-    let moderate: Double
-    let vigorous: Double
-    /// Maks-puls (bruges som top, når man zoomer helt ud).
+/// Pulszonerne: nedre grænser i procent af maks-puls og en faktor pr. zone. Den øverste zone har intet loft.
+struct HeartZones: Equatable, Sendable {
     let maxHR: Double
+    let model: ZoneModel
+    /// Nedre grænse pr. zone som andel af maks-puls (første er 0).
+    let percents: [Double]
+    /// Faktor pr. zone.
+    let weights: [Double]
 
-    init(moderate: Double, vigorous: Double, maxHR: Double? = nil) {
-        self.moderate = moderate
-        self.vigorous = vigorous
-        self.maxHR = maxHR ?? vigorous / ZoneKind.vigorous.lowerFraction
+    init(maxHR: Double, model: ZoneModel = .two, percents: [Double]? = nil, weights: [Double]? = nil) {
+        self.maxHR = maxHR
+        self.model = model
+        let p = percents ?? model.defaultPercents
+        let w = weights ?? model.defaultWeights
+        let n = model.names.count
+        self.percents = p.count == n ? p : model.defaultPercents
+        self.weights = w.count == n ? w : model.defaultWeights
     }
 
     init(age: Int) { self.init(maxHR: Self.maxHR(age: age)) }
 
-    init(maxHR: Double) {
-        self.init(moderate: maxHR * ZoneKind.moderate.lowerFraction,
-                  vigorous: maxHR * ZoneKind.vigorous.lowerFraction,
-                  maxHR: maxHR)
+    /// To zoner med faste grænser i bpm (bruges i testene).
+    init(moderate: Double, vigorous: Double, maxHR: Double? = nil) {
+        let m = maxHR ?? vigorous / 0.70
+        self.init(maxHR: m, model: .two, percents: [0, moderate / m, vigorous / m])
     }
 
-    /// AHA's tabel (Target Heart Rates Chart): aldersgruppe → maks-puls (bpm).
-    /// "In the age category closest to yours, read across to find your target heart rates."
+    /// Samme zoner med andre faktorer.
+    func withWeights(_ weights: [Double]) -> HeartZones {
+        HeartZones(maxHR: maxHR, model: model, percents: percents, weights: weights)
+    }
+
+    /// Maks-puls ud fra alder: 220 − alder (det AHA's tabel bygger på; den mest udbredte formel).
+    static func maxHR(age: Int) -> Double { Double(220 - age) }
+
+    /// AHA's tabel (Target Heart Rates Chart): aldersgruppe → maks-puls (bpm). Kun til forklaring.
     static let ahaTable: [(age: Int, maxHR: Int)] = [
         (20, 200), (30, 190), (35, 185), (40, 180), (45, 175),
         (50, 170), (55, 165), (60, 160), (65, 155), (70, 150),
     ]
 
-    /// Aldersgruppen i AHA-tabellen tættest på `age` (ved lige afstand: den yngste).
-    static func ahaCategory(for age: Int) -> (age: Int, maxHR: Int) {
-        ahaTable.min { abs($0.age - age) < abs($1.age - age) }!
+    var count: Int { percents.count }
+    var indices: Range<Int> { 0..<count }
+    func name(_ i: Int) -> String { model.names[i] }
+
+    func lowerBound(_ i: Int) -> Double { i == 0 ? 0 : percents[i] * maxHR }
+
+    /// Den øverste zone har intet loft (.infinity).
+    func bpmRange(_ i: Int) -> ClosedRange<Double> {
+        let lo = lowerBound(i)
+        let hi = i + 1 < count ? lowerBound(i + 1) : .infinity
+        return lo...max(lo, hi)
     }
 
-    // TODO: Find en mere præcis formel for maks-puls pr. år (fx Tanaka 208 − 0,7 × alder
-    // eller Nes/HUNT 211 − 0,64 × alder). Se TODO.md.
-    static func maxHR(age: Int) -> Double { Double(ahaCategory(for: age).maxHR) }
-
-    func lowerBound(_ kind: ZoneKind) -> Double {
-        switch kind {
-        case .light: 0
-        case .moderate: moderate
-        case .vigorous: vigorous
-        }
+    /// Zonen (indeks) for en puls.
+    func zone(for bpm: Double) -> Int {
+        indices.last { bpm >= lowerBound($0) } ?? 0
     }
 
-    /// Hård har intet loft (.infinity).
-    func bpmRange(_ kind: ZoneKind) -> ClosedRange<Double> {
-        switch kind {
-        case .light: 0...moderate
-        case .moderate: moderate...max(vigorous, moderate)
-        case .vigorous: vigorous...Double.infinity
-        }
-    }
+    /// Grænserne mellem zonerne (bpm).
+    var thresholds: [Double] { (1..<count).map(lowerBound) }
 
-    func zone(for bpm: Double) -> ZoneKind {
-        ZoneKind.allCases.last { bpm >= lowerBound($0) } ?? .light
-    }
+    /// To zoner: hvor moderat og hård starter.
+    var moderate: Double { lowerBound(1) }
+    var vigorous: Double { lowerBound(min(2, count - 1)) }
 }

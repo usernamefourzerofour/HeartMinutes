@@ -48,103 +48,69 @@ struct SettingsView: View {
                 // Pulszoner bruges kun, når minutterne regnes ud fra pulsen.
                 if health.minutesSource == .heartRate {
                     Section {
-                        ResetRow(changed: health.zoneMode != D.zoneMode, info: "Alder: maks-puls slås op i AHA's tabel for din alder.\nMaks-puls: du angiver selv din maks-puls.\nManuelt: du angiver selv grænserne i bpm.\n\nMed alder og maks-puls starter moderat zone ved 50 % og hård ved 70 % af maks-puls (AHA).") {
-                            health.zoneMode = D.zoneMode
+                        ResetRow(changed: health.zoneModel != D.zoneModel, info: "2 zoner: moderat fra 50 % og hård fra 70 % af maks-puls – American Heart Association (AHA)'s anbefaling. Moderat tæller × 1 og hård × 2, så 150 min moderat eller 75 min hård om ugen er nok.\n\n5 zoner: de gængse zoner fra fx Garmin og Polar (Z2 fra 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z1 omfatter også pulsen under 50 %.\n\nGrænser og faktorer kan ændres under »Dine zoner«.") {
+                            health.zoneModel = D.zoneModel
                         } content: {
-                            Picker("Grænser baseret på", selection: $health.zoneMode) {
-                                ForEach(ZoneMode.allCases) { Text($0.title).tag($0) }
+                            Picker("Antal zoner", selection: $health.zoneModel) {
+                                ForEach(ZoneModel.allCases) { Text($0.title).tag($0) }
                             }
                             .pickerStyle(.segmented)
                         }
                     } header: {
                         Text("Pulszoner")
                     } footer: {
-                        if health.zoneMode == .manual {
-                            Text("Angiv selv, ved hvilken puls hver zone starter.")
+                        if health.zoneModel == .two {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Følger anbefalingerne fra American Heart Association (AHA): moderat 50–70 %, hård fra 70 % af maks-puls.")
+                                Link("Kilde: American Heart Association – Target Heart Rates",
+                                     destination: AHA.targetHeartRatesURL)
+                                    .font(.footnote)
+                                    .multilineTextAlignment(.leading)
+                            }
+                        } else {
+                            Text("De gængse 5 zoner (fx Garmin og Polar): 60, 70, 80 og 90 % af maks-puls.")
                         }
                     }
 
-                    switch health.zoneMode {
-                    case .age:
-                        Section("Alder") {
-                            ResetRow(changed: health.age != health.defaultAge, info: "Bruges til at slå din maks-puls op i AHA's tabel. Standard: alderen fra din fødselsdato i Sundhed.") {
+                    Section {
+                        ResetRow(changed: health.maxHRSource != D.maxHRSource, info: "Alder: maks-puls = 220 − alder – den mest udbredte formel, som AHA's tabel også bygger på.\nIndtast: din egen maks-puls, fx målt ved en test.") {
+                            health.maxHRSource = D.maxHRSource
+                        } content: {
+                            Picker("Maks-puls ud fra", selection: $health.maxHRSource) {
+                                ForEach(MaxHRSource.allCases) { Text($0.title).tag($0) }
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        switch health.maxHRSource {
+                        case .age:
+                            ResetRow(changed: health.age != health.defaultAge, info: "Standard: alderen fra din fødselsdato i Sundhed.") {
                                 health.age = health.defaultAge
                             } content: {
                                 Stepper("Alder: \(health.age) år", value: $health.age, in: 10...100)
                             }
                             // ⓘ viser AHA's tabel; ingen ↺ (værdien følger alderen).
                             ResetRow(changed: false, info: ahaTableInfo) {} content: {
-                                LabeledContent("AHA-aldersgruppe", value: "\(HeartZones.ahaCategory(for: health.age).age) år")
+                                LabeledContent("Maks-puls", value: "\(Int(health.maxHR.rounded())) bpm")
                             }
-                            LabeledContent("Maks-puls", value: "\(Int(HeartZones.maxHR(age: health.age))) bpm")
-                        }
-                    case .maxHR:
-                        Section {
-                            ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: "Den højeste puls, dit hjerte kan nå – fx målt ved en test eller den samme som i en anden app. Moderat starter ved 50 % og hård ved 70 % af den. Standard: AHA-tabellen for din alder.") {
+                        case .manual:
+                            ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: "Den højeste puls, dit hjerte kan nå – fx målt ved en test eller den samme som i en anden app. Standard: 220 − din alder.") {
                                 health.manualMaxHR = health.defaultMaxHR
                             } content: {
                                 Stepper("Maks-puls: \(health.manualMaxHR) bpm", value: $health.manualMaxHR, in: 120...230)
                             }
-                            LabeledContent("Moderat fra", value: "\(Int((Double(health.manualMaxHR) * 0.5).rounded())) bpm")
-                            LabeledContent("Hård fra", value: "\(Int((Double(health.manualMaxHR) * 0.7).rounded())) bpm")
-                        } header: {
-                            Text("Maks-puls")
-                        } footer: {
-                            Text("Brug din målte maks-puls eller den samme som i en anden app. Zonerne er AHA's 50 % og 70 % af den. Standard: AHA-tabellen for din alder.")
                         }
-                    case .manual:
-                        Section {
-                            ResetRow(changed: health.manualModerate != health.defaultManualModerate, info: "Pulsen (bpm), hvor moderat zone starter. Under den tæller tiden ikke.") {
-                                health.manualModerate = health.defaultManualModerate
-                            } content: {
-                                Stepper("Moderat starter: \(health.manualModerate)",
-                                        value: $health.manualModerate, in: 40...(health.manualVigorous - 1))
-                            }
-                            ResetRow(changed: health.manualVigorous != health.defaultManualVigorous, info: "Pulsen (bpm), hvor hård zone starter. Hård zone har intet loft.") {
-                                health.manualVigorous = health.defaultManualVigorous
-                            } content: {
-                                Stepper("Hård starter: \(health.manualVigorous)",
-                                        value: $health.manualVigorous,
-                                        in: (health.manualModerate + 1)...230)
-                            }
-                        } header: {
-                            Text("Grænser (bpm)")
-                        } footer: {
-                            Text("Standard: AHA's grænser for din alder.")
-                        }
+                    } header: {
+                        Text("Maks-puls")
                     }
 
                     Section {
-                        ForEach(ZoneKind.shown) { kind in
-                            LabeledContent {
-                                VStack(alignment: .trailing, spacing: 1) {
-                                    Text(rangeText(kind))
-                                    Text(percentText(kind)).font(.caption).foregroundStyle(.secondary)
-                                }
-                            } label: {
-                                HStack(spacing: 8) {
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(kind.color.opacity(0.5))
-                                        .frame(width: 14, height: 14)
-                                    Text(kind.name)
-                                }
-                            }
+                        ForEach(health.zones.indices, id: \.self) { i in
+                            zoneRow(i)
                         }
                     } header: {
                         Text("Dine zoner")
                     } footer: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Procent af maks-puls \(Int(percentBaseMaxHR.rounded())) bpm" +
-                                 (health.zoneMode == .manual ? " (din maks-puls fra »Maks-puls«)." : "."))
-                            // AHA-forklaring og kilde kun, når grænserne kommer fra AHA (ikke manuelle).
-                            if health.zoneMode != .manual {
-                                Text("Moderat (moderate-intensity) ≈ 50–70 %, hård (vigorous) fra 70 % af maks-puls (AHA).")
-                                Link("Kilde: American Heart Association – Target Heart Rates",
-                                     destination: AHA.targetHeartRatesURL)
-                                    .font(.footnote)
-                                    .multilineTextAlignment(.leading)
-                            }
-                        }
+                        Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; den nederste zone tæller som udgangspunkt ikke (× 0).")
                     }
                 }
 
@@ -231,38 +197,56 @@ struct SettingsView: View {
             let m = Double(row.maxHR)
             return "\(row.age) år: maks \(row.maxHR) · moderat \(Int(m * 0.5))–\(Int(m * 0.7)) · hård \(Int(m * 0.7))–\(Int(m * 0.85)) bpm"
         }
-        return "AHA's tabel (Target Heart Rates). Din alder slås op i den nærmeste aldersgruppe.\n\n"
+        return "Maks-puls = 220 − alder (\(health.age) år → \(Int(health.maxHR.rounded())) bpm). AHA's tabel (Target Heart Rates) bygger på samme formel:\n\n"
             + rows.joined(separator: "\n")
     }
 
-    private func rangeText(_ kind: ZoneKind) -> String {
-        let r = health.zones.bpmRange(kind)
-        let lo = Int(r.lowerBound.rounded())
-        switch kind {
-        case .light: return "under \(Int(r.upperBound.rounded())) bpm"
-        case .moderate: return "\(lo)–\(Int(r.upperBound.rounded())) bpm"
-        case .vigorous: return "fra \(lo) bpm"   // intet loft
+    /// Én zone i "Dine zoner": navn og bpm, grænse i % (ikke den nederste) og faktor.
+    @ViewBuilder private func zoneRow(_ i: Int) -> some View {
+        let z = health.zones
+        let model = health.zoneModel
+        let changed = abs(z.percents[i] - model.defaultPercents[i]) > 0.001
+            || abs(z.weights[i] - model.defaultWeights[i]) > 0.001
+        ResetRow(changed: changed) {
+            setZone(i, percent: model.defaultPercents[i], weight: model.defaultWeights[i])
+        } content: {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(z.color(i).opacity(0.5))
+                        .frame(width: 14, height: 14)
+                    Text(z.name(i)).bold()
+                    Spacer()
+                    Text(rangeText(i)).foregroundStyle(.secondary)
+                }
+                if i > 0 {
+                    // Grænsen skal ligge mellem nabozonernes grænser.
+                    let lo = Int((z.percents[i - 1] * 100).rounded()) + 1
+                    let hi = i + 1 < z.count ? Int((z.percents[i + 1] * 100).rounded()) - 1 : 100
+                    Stepper("Fra \(Int((z.percents[i] * 100).rounded())) %",
+                            value: Binding(get: { Int((z.percents[i] * 100).rounded()) },
+                                           set: { setZone(i, percent: Double($0) / 100) }),
+                            in: max(lo, 1)...max(hi, lo))
+                }
+                Stepper("Tæller × \(z.weights[i].formatted(.number.precision(.fractionLength(0...1))))",
+                        value: Binding(get: { z.weights[i] }, set: { setZone(i, weight: $0) }),
+                        in: 0...5, step: 0.5)
+            }
         }
     }
 
-    /// Maks-pulsen procenterne regnes af – den, der gælder for de valgte indstillinger:
-    /// Alder → AHA for din alder, Maks-puls → din maks-puls, Manuelt → din gemte maks-puls
-    /// (standard: AHA for din alder), da manuelle grænser ikke selv har en maks-puls.
-    private var percentBaseMaxHR: Double {
-        switch health.zoneMode {
-        case .age: HeartZones.maxHR(age: health.age)
-        case .maxHR, .manual: Double(health.manualMaxHR)
-        }
+    private func setZone(_ i: Int, percent: Double? = nil, weight: Double? = nil) {
+        if let percent { var p = health.zonePercents; p[i] = percent; health.zonePercents = p }
+        if let weight { var w = health.zoneWeights; w[i] = weight; health.zoneWeights = w }
     }
 
-    private func percentText(_ kind: ZoneKind) -> String {
-        let r = health.zones.bpmRange(kind)
-        let pct = { (bpm: Double) in Int((bpm / percentBaseMaxHR * 100).rounded()) }
-        switch kind {
-        case .light: return "under \(pct(r.upperBound)) %"
-        case .moderate: return "\(pct(r.lowerBound))–\(pct(r.upperBound)) %"
-        case .vigorous: return "fra \(pct(r.lowerBound)) %"
-        }
+    /// Fx "93–130 bpm", "under 93 bpm" eller "fra 130 bpm".
+    private func rangeText(_ i: Int) -> String {
+        let z = health.zones
+        let r = z.bpmRange(i)
+        if i == 0 { return "under \(Int(r.upperBound.rounded())) bpm" }
+        if i == z.count - 1 { return "fra \(Int(r.lowerBound.rounded())) bpm" }
+        return "\(Int(r.lowerBound.rounded()))–\(Int(r.upperBound.rounded())) bpm"
     }
 }
 
@@ -325,22 +309,6 @@ struct AdvancedSettingsView: View {
                     } content: {
                         Toggle(health.minutesSource == .heartRate ? "Sammenlign med træningsringsminutter" : "Sammenlign med pulszoner",
                                isOn: $health.showComparison)
-                    }
-                    if health.minutesSource == .heartRate {
-                        ResetRow(changed: abs(health.moderateWeight - D.moderateWeight) > 0.001, info: "Hvor meget ét minut i moderat zone tæller. AHA: 1×.") {
-                            health.moderateWeight = D.moderateWeight
-                        } content: {
-                            Stepper(value: $health.moderateWeight, in: 0...5, step: 0.1) {
-                                Text("Moderat tæller: \(health.moderateWeight, format: .number.precision(.fractionLength(0...1)))×")
-                            }
-                        }
-                        ResetRow(changed: abs(health.vigorousWeight - D.vigorousWeight) > 0.001, info: "Hvor meget ét minut i hård zone tæller. AHA: 2×, så 75 min hård svarer til 150 min moderat.") {
-                            health.vigorousWeight = D.vigorousWeight
-                        } content: {
-                            Stepper(value: $health.vigorousWeight, in: 0...5, step: 0.1) {
-                                Text("Hård tæller: \(health.vigorousWeight, format: .number.precision(.fractionLength(0...1)))×")
-                            }
-                        }
                     }
             } header: {
                 Text("Beregning")

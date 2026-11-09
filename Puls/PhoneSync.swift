@@ -7,8 +7,9 @@ final class PhoneSync: NSObject, WCSessionDelegate, @unchecked Sendable {
 
     /// De indstillinger, der påvirker beregningen af Heart Minutes.
     static let keys = [
-        "includeBackground", "includeWorkouts", "moderateWeight", "vigorousWeight", "weeklyGoal",
-        "onlyWhenActive", "age", "zoneMode", "manualMaxHR", "manualModerate", "manualVigorous",
+        "includeBackground", "includeWorkouts", "weeklyGoal",
+        "onlyWhenActive", "age", "zoneModel", "maxHRSource", "manualMaxHR",
+        "zonePercents.two", "zoneWeights.two", "zonePercents.five", "zoneWeights.five",
         "maxGapSeconds", "workoutGaps", "interpolation", "minutesSource", "activitySource",
         "activeBridgeSeconds", "watchPeriod",
     ]

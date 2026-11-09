@@ -1,32 +1,56 @@
+import Foundation
 import Testing
 @testable import Puls
 
 struct HeartZonesTests {
-    @Test func maxHRFromAHATable() {
+    @Test func maxHRIs220MinusAge() {
         #expect(HeartZones.maxHR(age: 40) == 180)
-        #expect(HeartZones.maxHR(age: 43) == 175)   // nærmeste gruppe: 45
-        #expect(HeartZones.maxHR(age: 25) == 200)   // lige langt fra 20 og 30 → 20
-        #expect(HeartZones.maxHR(age: 15) == 200)
-        #expect(HeartZones.maxHR(age: 85) == 150)
+        #expect(HeartZones.maxHR(age: 36) == 184)
+        #expect(HeartZones.maxHR(age: 20) == 200)
     }
 
-    @Test func ageBasedBoundaries() {
-        let z = HeartZones(age: 40)   // maks 180: moderat 90–126, hård fra 126
-        #expect(z.zone(for: 80) == .light)
-        #expect(z.zone(for: 90) == .moderate)
-        #expect(z.zone(for: 125) == .moderate)
-        #expect(z.zone(for: 127) == .vigorous)
-        #expect(z.zone(for: 200) == .vigorous)          // hård har intet loft
-        #expect(z.bpmRange(.vigorous).upperBound == .infinity)
+    @Test func twoZonesFollowAHA() {
+        let z = HeartZones(age: 40)   // maks 180: moderat fra 90, hård fra 126
+        #expect(z.count == 3)
+        #expect(z.zone(for: 80) == 0)
+        #expect(z.zone(for: 90) == 1)
+        #expect(z.zone(for: 125) == 1)
+        #expect(z.zone(for: 127) == 2)
+        #expect(z.zone(for: 200) == 2)              // øverste zone har intet loft
+        #expect(z.bpmRange(2).upperBound == .infinity)
+        #expect(z.weights == [0, 1, 2])
         #expect(abs(z.maxHR - 180) < 0.001)
     }
 
-    @Test func manualBoundaries() {
+    @Test func fiveZonesAreTheCommonOnes() {
+        let z = HeartZones(maxHR: 200, model: .five)
+        #expect(z.count == 5)
+        #expect(z.thresholds == [120, 140, 160, 180])   // 60/70/80/90 %
+        #expect(z.zone(for: 90) == 0)                    // Z1 omfatter også under 50 %
+        #expect(z.zone(for: 150) == 2)
+        #expect(z.zone(for: 195) == 4)
+        #expect(z.weights == [0, 1, 2, 2, 2])
+    }
+
+    @Test func fixedBoundaries() {
         let z = HeartZones(moderate: 100, vigorous: 130)
-        #expect(z.zone(for: 99) == .light)
-        #expect(z.zone(for: 100) == .moderate)
-        #expect(z.zone(for: 130) == .vigorous)
-        #expect(z.bpmRange(.moderate) == 100...130)
+        #expect(z.zone(for: 99) == 0)
+        #expect(z.zone(for: 100) == 1)
+        #expect(z.zone(for: 130) == 2)
+        #expect(abs(z.bpmRange(1).lowerBound - 100) < 0.001)
+        #expect(abs(z.bpmRange(1).upperBound - 130) < 0.001)
         #expect(abs(z.maxHR - 130 / 0.7) < 0.001)
+    }
+
+    @Test func fiveZoneWeightsAreUsed() {
+        // 10 min konstant i Z4 (× 2) = 20 Heart Minutes; i Z1 (× 0) = 0.
+        let t0 = Date(timeIntervalSince1970: 0)
+        let z = HeartZones(maxHR: 200, model: .five)
+        func run(_ bpm: Double) -> Double {
+            let s = (0...10).map { HRSample(date: t0.addingTimeInterval(Double($0) * 60), bpm: bpm) }
+            return ActiveMinutes(s, config: .init(zones: z, requireActive: false)).total
+        }
+        #expect(abs(run(170) - 20) < 0.001)
+        #expect(run(100) == 0)
     }
 }

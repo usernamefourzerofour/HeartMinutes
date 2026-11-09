@@ -2,13 +2,12 @@ import SwiftUI
 import Charts
 import HealthKit
 
-extension ZoneKind {
-    var color: Color {
-        switch self {
-        case .light: .gray
-        case .moderate: .green
-        case .vigorous: .orange
-        }
+extension HeartZones {
+    /// Farve pr. zone. Zoner, der ikke tæller (× 0), er grå.
+    func color(_ i: Int) -> Color {
+        if weights[i] == 0 { return .gray }
+        let palette: [Color] = model == .two ? [.gray, .green, .orange] : [.gray, .blue, .green, .orange, .red]
+        return palette[min(i, palette.count - 1)]
     }
 }
 
@@ -115,13 +114,13 @@ struct HeartChart: View {
                 .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
             }
             Chart {
-                ForEach(ZoneKind.shown) { kind in
-                    let range = zones.bpmRange(kind)
+                ForEach(zones.indices, id: \.self) { i in
+                    let range = zones.bpmRange(i)
                     RectangleMark(
                         xStart: .value("Start", from), xEnd: .value("Slut", to),
-                        yStart: .value("Fra", kind == .light ? min(0, y.lowerBound) : range.lowerBound),
+                        yStart: .value("Fra", i == 0 ? min(0, y.lowerBound) : range.lowerBound),
                         yEnd: .value("Til", min(range.upperBound, max(y.upperBound, zones.maxHR) + 50)))
-                        .foregroundStyle(kind.color.opacity(0.15))
+                        .foregroundStyle(zones.color(i).opacity(0.15))
                 }
                 // Bånd i bunden: Apples vurdering af aktiv / i ro.
                 let bandTop = y.lowerBound + (y.upperBound - y.lowerBound) * 0.04
@@ -221,12 +220,12 @@ struct HeartChart: View {
                     legendDot(Self.workoutColor, "Workout")
                 }
                 legendGroup("Baggrund (pulszoner)") {
-                    ForEach(ZoneKind.shown) { kind in
+                    ForEach(zones.indices, id: \.self) { i in
                         HStack(spacing: 4) {
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(kind.color.opacity(0.4))
+                                .fill(zones.color(i).opacity(0.4))
                                 .frame(width: 10, height: 10)
-                            Text(kind.name)
+                            Text(zones.name(i))
                         }
                     }
                 }
@@ -494,8 +493,7 @@ struct OverviewView: View {
                     ActiveMinutesChart(
                         result: ActiveMinutes(health.minuteSamples, config: health.minutesConfig),
                         period: interval.start...interval.end,
-                        moderateWeight: health.moderateWeight,
-                        vigorousWeight: health.vigorousWeight,
+                        zones: health.zones,
                         weeklyGoal: Double(health.weeklyGoal),
                         applePoints: health.applePoints,
                         source: health.minutesSource,
@@ -523,7 +521,8 @@ struct OverviewView: View {
 
                     if !health.periodWorkouts.isEmpty && health.includeWorkouts {
                         WorkoutScoresView(scores: ActiveMinutes.perWorkout(
-                            health.minuteSamples, workouts: health.periodWorkouts, config: health.minutesConfig)
+                            health.minuteSamples, workouts: health.periodWorkouts, config: health.minutesConfig),
+                            zones: health.zones
                         ) { workout in
                             focus = .init(interval: workout)
                             withAnimation { proxy.scrollTo("pulsechart", anchor: .top) }
@@ -533,8 +532,7 @@ struct OverviewView: View {
                     ActiveMinutesChart(
                         result: ActiveMinutes(health.minuteSamples, config: health.minutesConfig),
                         period: interval.start...interval.end,
-                        moderateWeight: health.moderateWeight,
-                        vigorousWeight: health.vigorousWeight,
+                        zones: health.zones,
                         weeklyGoal: Double(health.weeklyGoal),
                         applePoints: health.applePoints,
                         source: health.minutesSource,

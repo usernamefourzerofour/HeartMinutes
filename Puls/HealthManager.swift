@@ -204,9 +204,8 @@ final class HealthManager {
     enum Defaults {
         static let includeBackground = true
         static let includeWorkouts = true
-        static let zoneMode = ZoneMode.age
-        static let moderateWeight = 1.0
-        static let vigorousWeight = 2.0
+        static let zoneModel = ZoneModel.two
+        static let maxHRSource = MaxHRSource.age
         static let onlyWhenActive = true
         static let maxGapSeconds = 300
         /// Højeste tilladte hul uden for workouts (længere giver ikke mening).
@@ -235,12 +234,25 @@ final class HealthManager {
     var includeWorkouts: Bool = UserDefaults.standard.object(forKey: "includeWorkouts") as? Bool ?? Defaults.includeWorkouts {
         didSet { UserDefaults.standard.set(includeWorkouts, forKey: "includeWorkouts"); refreshShown() }
     }
-    /// Vægt pr. minut i moderat og hård zone for "aktive minutter".
-    var moderateWeight: Double = UserDefaults.standard.object(forKey: "moderateWeight") as? Double ?? Defaults.moderateWeight {
-        didSet { UserDefaults.standard.set(moderateWeight, forKey: "moderateWeight") }
+    /// 2 zoner (AHA) eller 5 zoner.
+    var zoneModel: ZoneModel = ZoneModel(rawValue: UserDefaults.standard.string(forKey: "zoneModel") ?? "") ?? Defaults.zoneModel {
+        didSet { UserDefaults.standard.set(zoneModel.rawValue, forKey: "zoneModel") }
     }
-    var vigorousWeight: Double = UserDefaults.standard.object(forKey: "vigorousWeight") as? Double ?? Defaults.vigorousWeight {
-        didSet { UserDefaults.standard.set(vigorousWeight, forKey: "vigorousWeight") }
+    /// Grænser (andel af maks-puls) og faktorer pr. zone – gemt for hver model for sig.
+    var zonePercents: [Double] {
+        get { stored("zonePercents.\(zoneModel.rawValue)", count: zoneModel.names.count) ?? zoneModel.defaultPercents }
+        set { UserDefaults.standard.set(newValue, forKey: "zonePercents.\(zoneModel.rawValue)"); zonesVersion += 1 }
+    }
+    var zoneWeights: [Double] {
+        get { stored("zoneWeights.\(zoneModel.rawValue)", count: zoneModel.names.count) ?? zoneModel.defaultWeights }
+        set { UserDefaults.standard.set(newValue, forKey: "zoneWeights.\(zoneModel.rawValue)"); zonesVersion += 1 }
+    }
+    /// Får SwiftUI til at opdatere, når grænser/faktorer ændres (de ligger i UserDefaults).
+    private var zonesVersion = 0
+    private func stored(_ key: String, count: Int) -> [Double]? {
+        _ = zonesVersion
+        guard let a = UserDefaults.standard.array(forKey: key) as? [Double], a.count == count else { return nil }
+        return a
     }
 
     /// Perioden, som komplikationer og ur-app viser (synkroniseres til uret).
@@ -333,8 +345,7 @@ final class HealthManager {
 
     /// Indstillingerne for aktive minutter samlet ét sted.
     var minutesConfig: ActiveMinutes.Config {
-        ActiveMinutes.Config(zones: zones, moderateWeight: moderateWeight, vigorousWeight: vigorousWeight,
-                             requireActive: onlyWhenActive, fillWorkoutGaps: workoutGaps != .sameLimit,
+        ActiveMinutes.Config(zones: zones, requireActive: onlyWhenActive, fillWorkoutGaps: workoutGaps != .sameLimit,
                              maxGap: maxGap, interpolation: interpolation, activitySource: activitySource,
                              activeBridge: TimeInterval(max(activeBridgeSeconds, 0)))
     }
@@ -402,40 +413,22 @@ final class HealthManager {
         didSet { UserDefaults.standard.set(age, forKey: "age") }
     }
 
-    /// Om zonegrænserne beregnes ud fra alder eller sættes manuelt.
-    var zoneMode: ZoneMode = ZoneMode(rawValue: UserDefaults.standard.string(forKey: "zoneMode") ?? "") ?? Defaults.zoneMode {
-        didSet {
-            UserDefaults.standard.set(zoneMode.rawValue, forKey: "zoneMode")
-            // Første gang man vælger manuelt, startes der fra de alders-baserede grænser.
-            if zoneMode == .maxHR, UserDefaults.standard.object(forKey: "manualMaxHR") == nil {
-                manualMaxHR = Int(HeartZones.maxHR(age: age))
-            }
-            if zoneMode == .manual, UserDefaults.standard.object(forKey: "manualModerate") == nil {
-                let z = HeartZones(age: age)
-                manualVigorous = Int(z.vigorous.rounded())
-                manualModerate = Int(z.moderate.rounded())
-            }
-        }
+    /// Maks-puls ud fra alder (220 − alder) eller indtastet.
+    var maxHRSource: MaxHRSource = MaxHRSource(rawValue: UserDefaults.standard.string(forKey: "maxHRSource") ?? "") ?? Defaults.maxHRSource {
+        didSet { UserDefaults.standard.set(maxHRSource.rawValue, forKey: "maxHRSource") }
     }
-    /// Manuelle nedre grænser (bpm) for moderat, hård og maks.
-    /// Selvvalgt maks-puls (fx målt, eller den samme som i en anden app); zonerne er AHA's procenter af den.
+    /// Indtastet maks-puls (fx målt ved en test).
     var manualMaxHR: Int = UserDefaults.standard.object(forKey: "manualMaxHR") as? Int ?? 180 {
         didSet { UserDefaults.standard.set(manualMaxHR, forKey: "manualMaxHR") }
     }
-    var manualModerate: Int = UserDefaults.standard.object(forKey: "manualModerate") as? Int ?? 90 {
-        didSet { UserDefaults.standard.set(manualModerate, forKey: "manualModerate") }
-    }
-    var manualVigorous: Int = UserDefaults.standard.object(forKey: "manualVigorous") as? Int ?? 126 {
-        didSet { UserDefaults.standard.set(manualVigorous, forKey: "manualVigorous") }
-    }
+    /// Maks-pulsen, der bruges.
+    var maxHR: Double { maxHRSource == .age ? HeartZones.maxHR(age: age) : Double(manualMaxHR) }
 
     /// Alder fra Sundhed (fødselsdato), hvis den kan læses – standard for "Alder".
     private(set) var healthAge: Int?
     var defaultAge: Int { healthAge ?? Defaults.age }
-    /// Standard for selvvalgt maks-puls og manuelle grænser: ud fra alderen (AHA).
+    /// Standard for indtastet maks-puls: ud fra alderen.
     var defaultMaxHR: Int { Int(HeartZones.maxHR(age: age)) }
-    var defaultManualModerate: Int { Int(HeartZones(age: age).moderate.rounded()) }
-    var defaultManualVigorous: Int { Int(HeartZones(age: age).vigorous.rounded()) }
 
     /// Sætter alle indstillinger tilbage til standard.
     func resetAll() {
@@ -443,11 +436,13 @@ final class HealthManager {
         includeWorkouts = Defaults.includeWorkouts
         age = defaultAge
         manualMaxHR = defaultMaxHR
-        manualModerate = defaultManualModerate
-        manualVigorous = defaultManualVigorous
-        zoneMode = Defaults.zoneMode
-        moderateWeight = Defaults.moderateWeight
-        vigorousWeight = Defaults.vigorousWeight
+        maxHRSource = Defaults.maxHRSource
+        for model in ZoneModel.allCases {
+            UserDefaults.standard.removeObject(forKey: "zonePercents.\(model.rawValue)")
+            UserDefaults.standard.removeObject(forKey: "zoneWeights.\(model.rawValue)")
+        }
+        zoneModel = Defaults.zoneModel
+        zonesVersion += 1
         onlyWhenActive = Defaults.onlyWhenActive
         maxGapSeconds = Defaults.maxGapSeconds
         workoutGaps = Defaults.workoutGaps
@@ -463,11 +458,7 @@ final class HealthManager {
     }
 
     var zones: HeartZones {
-        switch zoneMode {
-        case .age: HeartZones(age: age)
-        case .maxHR: HeartZones(maxHR: Double(manualMaxHR))
-        case .manual: HeartZones(moderate: Double(manualModerate), vigorous: Double(manualVigorous))
-        }
+        HeartZones(maxHR: maxHR, model: zoneModel, percents: zonePercents, weights: zoneWeights)
     }
 
     func requestAuthorization() async {

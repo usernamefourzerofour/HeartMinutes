@@ -5,8 +5,8 @@ import Charts
 struct ActiveMinutesChart: View {
     let result: ActiveMinutes
     let period: ClosedRange<Date>
-    let moderateWeight: Double
-    let vigorousWeight: Double
+    /// Zonerne med navne og faktorer (til regnestykket under grafen).
+    let zones: HeartZones
     let weeklyGoal: Double
     /// træningsringsminutter, kumulativt (tom hvis ingen adgang/data).
     var applePoints: [ActiveMinutes.Point] = []
@@ -47,7 +47,7 @@ struct ActiveMinutesChart: View {
                 Text("\(Int(shownTotal.rounded()))").font(.title2.bold())
                 Text("/ \(Int(goal.rounded()))").foregroundStyle(.secondary)
                 if shownTotal >= goal && goal > 0 {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(ZoneKind.moderate.color)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                 }
             }
             Chart {
@@ -125,7 +125,7 @@ struct ActiveMinutesChart: View {
 
             if source == .heartRate && showBreakdown {
             // Med én decimal, så regnestykket går op (afrundede hele minutter kan give 1 for lidt).
-            Text("Moderat \(result.moderateMinutes, format: .number.precision(.fractionLength(1))) min × \(moderateWeight, format: .number.precision(.fractionLength(0...1))) + hård \(result.vigorousMinutes, format: .number.precision(.fractionLength(1))) min × \(vigorousWeight, format: .number.precision(.fractionLength(0...1))) = \(Int(result.total.rounded())) min")
+            Text(Self.breakdown(result, zones: zones))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
@@ -133,6 +133,23 @@ struct ActiveMinutesChart: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// "Moderat 12,3 min × 1 + hård 4,0 min × 2 = 20 min" – zoner, der tæller (× 0 udelades;
+    /// ved 5 zoner også zoner uden minutter).
+    static func breakdown(_ result: ActiveMinutes, zones: HeartZones) -> String {
+        let one = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(1))
+        let weight = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(0...1))
+        var terms: [String] = []
+        for i in zones.indices {
+            let minutes = i < result.zoneMinutes.count ? result.zoneMinutes[i] : 0
+            guard zones.weights[i] > 0, minutes > 0 || zones.model == .two else { continue }
+            // To zoner: "Moderat … + hård …" (kun første med stort).
+            let name = zones.model == .two && !terms.isEmpty ? zones.name(i).lowercased() : zones.name(i)
+            terms.append("\(name) \(minutes.formatted(one)) min × \(zones.weights[i].formatted(weight))")
+        }
+        let sum = terms.isEmpty ? "0 min" : terms.joined(separator: " + ")
+        return "\(sum) = \(Int(result.total.rounded())) min"
     }
 
     @ViewBuilder private var heartRateLegends: some View {
@@ -171,7 +188,18 @@ struct ActiveMinutesChart: View {
 /// Periodens workouts med point. Tryk på en workout for at zoome pulsgrafen ind på den.
 struct WorkoutScoresView: View {
     let scores: [ActiveMinutes.WorkoutScore]
+    let zones: HeartZones
     var onSelect: (DateInterval) -> Void = { _ in }
+
+    /// Minutter i de zoner, der tæller (fx "moderat 3,2", "Z4 1,0").
+    private func zoneParts(_ r: ActiveMinutes) -> [String] {
+        zones.indices.compactMap { i in
+            let m = i < r.zoneMinutes.count ? r.zoneMinutes[i] : 0
+            guard zones.weights[i] > 0, m > 0 || zones.model == .two else { return nil }
+            let name = zones.model == .two ? zones.name(i).lowercased() : zones.name(i)
+            return "\(name) \(m.formatted(.number.precision(.fractionLength(1))))"
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -185,7 +213,8 @@ struct WorkoutScoresView: View {
                                 Spacer()
                                 Text("\(w.result.total, format: .number.precision(.fractionLength(1))) min").bold()
                             }
-                            Text("\(Int((w.interval.duration / 60).rounded())) min · moderat \(w.result.moderateMinutes, format: .number.precision(.fractionLength(1))) · hård \(w.result.vigorousMinutes, format: .number.precision(.fractionLength(1))) · \(w.sampleCount) målinger")
+                            Text(([ "\(Int((w.interval.duration / 60).rounded())) min" ] + zoneParts(w.result)
+                                  + ["\(w.sampleCount) målinger"]).joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)

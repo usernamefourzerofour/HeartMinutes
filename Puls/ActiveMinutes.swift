@@ -22,8 +22,11 @@ struct ActiveMinutes: Equatable {
     static let maxPoints = 1000
 
     var points: [Point] = []
-    var moderateMinutes: Double = 0
-    var vigorousMinutes: Double = 0
+    /// Minutter (uvægtede) i hver zone, nederste zone først.
+    var zoneMinutes: [Double] = []
+    /// To zoner: minutter i moderat og hård zone.
+    var moderateMinutes: Double { zoneMinutes.count > 1 ? zoneMinutes[1] : 0 }
+    var vigorousMinutes: Double { zoneMinutes.count > 2 ? zoneMinutes[2...].reduce(0, +) : 0 }
     var total: Double = 0
     /// Minutter (vægtede) fra workouts; resten af total er fra baggrundsmålinger.
     var workoutTotal: Double = 0
@@ -100,9 +103,8 @@ struct ActiveMinutes: Equatable {
 
     /// Indstillingerne beregningen afhænger af.
     struct Config: Equatable {
+        /// Zonerne med grænser og faktor pr. zone.
         var zones: HeartZones
-        var moderateWeight: Double
-        var vigorousWeight: Double
         var requireActive: Bool
         var fillWorkoutGaps: Bool = true
         /// Længste hul der tælles med (nil = ingen grænse).
@@ -113,6 +115,28 @@ struct ActiveMinutes: Equatable {
         var activitySource: ActivitySource = .watchMotion
         /// Huller på højst så lang tid mellem to aktive målinger tæller som aktive (0 = fra).
         var activeBridge: TimeInterval = 0
+
+        init(zones: HeartZones, requireActive: Bool, fillWorkoutGaps: Bool = true,
+             maxGap: TimeInterval? = ActiveMinutes.maxGap, interpolation: Interpolation = .linear,
+             activitySource: ActivitySource = .watchMotion, activeBridge: TimeInterval = 0) {
+            self.zones = zones
+            self.requireActive = requireActive
+            self.fillWorkoutGaps = fillWorkoutGaps
+            self.maxGap = maxGap
+            self.interpolation = interpolation
+            self.activitySource = activitySource
+            self.activeBridge = activeBridge
+        }
+
+        /// To zoner med faktor for moderat og hård (bruges i testene).
+        init(zones: HeartZones, moderateWeight: Double, vigorousWeight: Double, requireActive: Bool,
+             fillWorkoutGaps: Bool = true, maxGap: TimeInterval? = ActiveMinutes.maxGap,
+             interpolation: Interpolation = .linear, activitySource: ActivitySource = .watchMotion,
+             activeBridge: TimeInterval = 0) {
+            self.init(zones: zones.withWeights([0, moderateWeight, vigorousWeight]), requireActive: requireActive,
+                      fillWorkoutGaps: fillWorkoutGaps, maxGap: maxGap, interpolation: interpolation,
+                      activitySource: activitySource, activeBridge: activeBridge)
+        }
     }
 
     /// "Udfyld korte huller": målinger mellem to aktive målinger tæller som aktive, når der højst er
@@ -244,10 +268,14 @@ struct ActiveMinutes: Equatable {
 
     /// Hvad der skete med tiden mellem to målinger.
     enum Kind: Equatable {
-        case moderate, vigorous   // tæller
-        case belowZone            // mindst én af målingerne under moderat
+        case zone(Int)            // tiden i en zone (tæller med zonens faktor; × 0 tæller ikke)
         case notActive            // Apple Watch vurderede "i ro" (kun med "Kun når aktiv")
         case gap                  // mere end maxGap uden måling (uden for workouts)
+
+        /// To zoner: let (under moderat), moderat og hård.
+        static let belowZone = Kind.zone(0)
+        static let moderate = Kind.zone(1)
+        static let vigorous = Kind.zone(2)
     }
 
     /// Et stykke af intervallet a→b med én slags.
@@ -273,7 +301,7 @@ struct ActiveMinutes: Equatable {
         case .lowest: segments = [(0, 1, min(a.bpm, b.bpm))]
         case .linear:
             var cuts: [Double] = [0, 1]
-            for threshold in [config.zones.moderate, config.zones.vigorous]
+            for threshold in config.zones.thresholds
             where (a.bpm - threshold) * (b.bpm - threshold) < 0 {
                 cuts.append((threshold - a.bpm) / (b.bpm - a.bpm))
             }
@@ -284,11 +312,9 @@ struct ActiveMinutes: Equatable {
         let active = !config.requireActive || countsAsActive(a, source: config.activitySource)
         var result: [Piece] = []
         for (u, v, bpm) in segments {
-            let kind: Kind = switch config.zones.zone(for: bpm) {
-            case .light: .belowZone
-            case .moderate: active ? .moderate : .notActive
-            case .vigorous: active ? .vigorous : .notActive
-            }
+            let zone = config.zones.zone(for: bpm)
+            // Zoner med × 0 tæller aldrig, så "i ro" er kun interessant for zoner, der tæller.
+            let kind: Kind = active || config.zones.weights[zone] == 0 ? .zone(zone) : .notActive
             result.append(Piece(start: a.date.addingTimeInterval(u * dt),
                                 end: a.date.addingTimeInterval(v * dt), kind: kind))
         }
@@ -296,11 +322,8 @@ struct ActiveMinutes: Equatable {
     }
 
     static func credit(_ piece: Piece, config: Config) -> Double {
-        switch piece.kind {
-        case .moderate: piece.minutes * config.moderateWeight
-        case .vigorous: piece.minutes * config.vigorousWeight
-        default: 0
-        }
+        guard case .zone(let i) = piece.kind else { return 0 }
+        return piece.minutes * config.zones.weights[i]
     }
 
     init(_ samples: [HRSample], zones: HeartZones,
@@ -315,15 +338,12 @@ struct ActiveMinutes: Equatable {
 
     init(_ samples: [HRSample], config: Config) {
         let samples = Self.bridgingActive(samples, config: config)
+        zoneMinutes = Array(repeating: 0, count: config.zones.count)
         guard let first = samples.first else { return }
         var all = [Point(id: 0, date: first.date, total: 0)]
         for (a, b) in zip(samples, samples.dropFirst()) {
             for p in Self.pieces(a, b, config: config) {
-                switch p.kind {
-                case .moderate: moderateMinutes += p.minutes
-                case .vigorous: vigorousMinutes += p.minutes
-                default: break
-                }
+                if case .zone(let i) = p.kind { zoneMinutes[i] += p.minutes }
                 let c = Self.credit(p, config: config)
                 total += c
                 if a.inWorkout { workoutTotal += c }
