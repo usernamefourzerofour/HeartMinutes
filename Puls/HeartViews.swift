@@ -123,8 +123,8 @@ struct HeartChart: View {
             }
             // Zoom-knappen står lige over grafens øverste højre hjørne.
             HStack {
-                // Zoomet ind: hvor mange Heart Minutes der er optjent i det viste område.
-                if visibleLength != nil && abs(length - fitLength) > 1, let heartMinutes {
+                // Hvor mange Heart Minutes der er optjent i det viste område (følger zoom og scroll).
+                if let heartMinutes {
                     Text("\(heartMinutes(from, to), format: .number.precision(.fractionLength(1))) Heart Minutes i visningen")
                         .foregroundStyle(.secondary)
                 }
