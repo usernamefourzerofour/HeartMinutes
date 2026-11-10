@@ -27,6 +27,8 @@ struct HeartChart: View {
     let period: ClosedRange<Date>
     /// Sættes udefra (fx tryk på en workout) for at zoome ind på et tidsrum.
     var focus: FocusRequest? = nil
+    /// Heart Minutes optjent i et tidsrum – vises, når man har zoomet ind.
+    var heartMinutes: ((Date, Date) -> Double)? = nil
 
     /// Ønske om at zoome til et tidsrum; nyt id hver gang, så samme workout kan vælges igen.
     struct FocusRequest: Equatable {
@@ -121,6 +123,11 @@ struct HeartChart: View {
             }
             // Zoom-knappen står lige over grafens øverste højre hjørne.
             HStack {
+                // Zoomet ind: hvor mange Heart Minutes der er optjent i det viste område.
+                if visibleLength != nil && abs(length - fitLength) > 1, let heartMinutes {
+                    Text("\(heartMinutes(from, to), format: .number.precision(.fractionLength(1))) Heart Minutes i visningen")
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 if visibleLength != nil && abs(length - fitLength) > 1 {
                     Button("Nulstil zoom") { reset() }
@@ -558,7 +565,11 @@ struct OverviewView: View {
                         HeartChart(samples: ActiveMinutes.bridgingActive(health.shownSamples, config: health.minutesConfig),
                                    zones: health.zones,
                                    period: interval.start...interval.end,
-                                   focus: focus)
+                                   focus: focus,
+                                   heartMinutes: { a, b in
+                                       ActiveMinutes.credit(in: health.minuteSamples, from: a, to: b,
+                                                            config: health.minutesConfig)
+                                   })
                     }
 
                     if !health.periodWorkouts.isEmpty && health.includeWorkouts {

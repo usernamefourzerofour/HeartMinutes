@@ -376,3 +376,15 @@ struct ActivitySourceTests {
                 == [false, true, true, false, false, false])
     }
 }
+
+struct CreditInRangeTests {
+    @Test func creditOnlyInsideRange() {
+        // 20 min konstant moderat (× 1): de midterste 10 min giver 10 Heart Minutes.
+        let t0 = Date(timeIntervalSince1970: 0)
+        let s = (0...20).map { HRSample(date: t0.addingTimeInterval(Double($0) * 60), bpm: 110) }
+        let config = ActiveMinutes.Config(zones: HeartZones(moderate: 100, vigorous: 130), requireActive: false)
+        let c = ActiveMinutes.credit(in: s, from: t0.addingTimeInterval(5 * 60), to: t0.addingTimeInterval(15 * 60),
+                                     config: config)
+        #expect(abs(c - 10) < 0.001)
+    }
+}

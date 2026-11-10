@@ -394,6 +394,23 @@ extension ActiveMinutes {
         return result
     }
 
+    /// Heart Minutes optjent i tidsrummet [from, to] (stykker, der krydser kanten, tæller med den
+    /// del, der ligger indenfor). Regner kun på målingerne omkring tidsrummet, så det er hurtigt.
+    static func credit(in samples: [HRSample], from: Date, to: Date, config: Config) -> Double {
+        guard to > from, !samples.isEmpty else { return 0 }
+        // Lidt margin (bl.a. til "korte pauser", der kigger på nabomålinger).
+        let margin = max(config.activeBridge, config.maxGap ?? 0, 600)
+        let lo = max(samples.firstIndex(atOrAfter: from.addingTimeInterval(-margin)) - 1, 0)
+        let hi = min(samples.firstIndex(atOrAfter: to.addingTimeInterval(margin)) + 1, samples.count)
+        guard lo < hi else { return 0 }
+        return intervals(samples[lo..<hi], config: config).reduce(0) { sum, iv in
+            let a = max(iv.start, from), b = min(iv.end, to)
+            let len = iv.end.timeIntervalSince(iv.start)
+            guard b > a, len > 0 else { return sum }
+            return sum + iv.credit * b.timeIntervalSince(a) / len
+        }
+    }
+
     /// Strækker hver workouts målinger ud til hele workouten: første måling gælder fra workoutens
     /// start, sidste måling til dens slut.
     static func extendingWorkouts(_ samples: [HRSample], _ workouts: [DateInterval]) -> [HRSample] {
