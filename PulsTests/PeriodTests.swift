@@ -147,3 +147,39 @@ struct PeriodLabelTests {
                 == "Seneste år")
     }
 }
+
+/// Perioder, der følger "nu", flyttes med, når appen kommer frem igen.
+struct PeriodRefreshTests {
+    let cal: Calendar = {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "Europe/Copenhagen")!
+        return c
+    }()
+    func date(_ d: Int, _ h: Int) -> Date { cal.date(from: DateComponents(year: 2026, month: 11, day: d, hour: h))! }
+
+    @Test func todayMovesToNewDay() {
+        let then = date(9, 18), now = date(10, 7)
+        let r = Period.refreshed(Period.day(containing: then, calendar: cal), from: then, to: now, calendar: cal)
+        #expect(r == Period.day(containing: now, calendar: cal))
+    }
+
+    @Test func thisWeekMovesToNewWeek() {
+        let then = date(8, 20), now = date(10, 7)   // søndag → mandag i ny uge
+        let r = Period.refreshed(Period.thisWeek(now: then, calendar: cal), from: then, to: now, calendar: cal)
+        #expect(r == Period.thisWeek(now: now, calendar: cal))
+    }
+
+    @Test func rollingWindowFollowsNow() {
+        let then = date(9, 18), now = date(10, 7)
+        let r = Period.refreshed(DateInterval(start: then.addingTimeInterval(-7 * 86_400), end: then),
+                                 from: then, to: now, calendar: cal)
+        #expect(r.end == now)
+        #expect(r.duration == 7 * 86_400)
+    }
+
+    @Test func olderPeriodStays() {
+        let then = date(9, 18), now = date(10, 7)
+        let old = Period.thisWeek(now: date(1, 12), calendar: cal)
+        #expect(Period.refreshed(old, from: then, to: now, calendar: cal) == old)
+    }
+}

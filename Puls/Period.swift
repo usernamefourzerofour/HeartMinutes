@@ -65,6 +65,23 @@ enum Period {
                             duration: interval.duration)
     }
 
+    /// Når appen kommer frem igen: en periode, der fulgte "nu" (denne uge, i dag, denne måned
+    /// eller et rullende vindue, der sluttede ved sidste indlæsning), flyttes med til det nye "nu".
+    /// Andre perioder (fx en ældre uge) bliver, som de er.
+    static func refreshed(_ interval: DateInterval, from then: Date, to now: Date = .now,
+                          calendar: Calendar = .current) -> DateInterval {
+        if interval == thisWeek(now: then, calendar: calendar) { return thisWeek(now: now, calendar: calendar) }
+        if interval == day(containing: then, calendar: calendar) { return day(containing: now, calendar: calendar) }
+        if let month = calendar.dateInterval(of: .month, for: then), month == interval {
+            return calendar.dateInterval(of: .month, for: now) ?? interval
+        }
+        if abs(interval.end.timeIntervalSince(then)) < 5 * 60 {
+            return DateInterval(start: interval.start.addingTimeInterval(now.timeIntervalSince(then)),
+                                duration: interval.duration)
+        }
+        return interval
+    }
+
     static func label(_ interval: DateInterval, calendar: Calendar = .current, now: Date = .now) -> String {
         // Rullende vindue, der slutter nu: kort navn i stedet for to tidspunkter.
         if abs(interval.end.timeIntervalSince(now)) < 5 * 60 {

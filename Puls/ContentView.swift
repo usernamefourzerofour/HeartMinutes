@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(HealthManager.self) private var health
+    @Environment(\.scenePhase) private var scenePhase
+    /// Hvornår perioden sidst blev indlæst (til at flytte "denne uge"/"i dag" med, når appen kommer frem igen).
+    @State private var loadedAt = Date.now
     @State private var ready = false
     /// Den valgte periode (huskes, når man skifter til Indstillinger og tilbage).
     @State private var interval = Period.thisWeek()
@@ -36,7 +39,19 @@ struct ContentView: View {
         }
         .task(id: interval) {
             guard ready else { return }
+            loadedAt = .now
             await health.loadPeriod(interval)
+        }
+        // Appen kommer frem igen: hent nye målinger, og flyt en "nu"-periode med (fx til en ny dag).
+        .onChange(of: scenePhase) { _, phase in
+            guard ready, phase == .active else { return }
+            let updated = Period.refreshed(interval, from: loadedAt)
+            if updated != interval {
+                interval = updated          // .task(id:) indlæser
+            } else {
+                loadedAt = .now
+                Task { await health.loadPeriod(interval) }
+            }
         }
         .onChange(of: ready) { _, isReady in
             if isReady { Task { await health.loadPeriod(interval) } }
