@@ -208,20 +208,39 @@ struct SettingsView: View {
                 }
                 if i > 0 {
                     // Grænsen skal ligge mellem nabozonernes grænser.
-                    let lo = Int((z.percents[i - 1] * 100).rounded()) + 1
+                    let pct = Int((z.percents[i] * 100).rounded())
+                    let lo = max(Int((z.percents[i - 1] * 100).rounded()) + 1, 1)
                     let hi = i + 1 < z.count ? Int((z.percents[i + 1] * 100).rounded()) - 1 : 100
-                    Stepper("Fra \(Int((z.percents[i] * 100).rounded())) %",
-                            value: Binding(get: { Int((z.percents[i] * 100).rounded()) },
-                                           set: { setZone(i, percent: Double($0) / 100) }),
-                            in: max(lo, 1)...max(hi, lo))
+                    let pMinus: (() -> Void)? = pct > lo ? { setZone(i, percent: Double(pct - 1) / 100) } : nil
+                    let pPlus: (() -> Void)? = pct < hi ? { setZone(i, percent: Double(pct + 1) / 100) } : nil
+                    miniStepper("Fra \(pct) %", minus: pMinus, plus: pPlus)
                 }
-                Stepper("Tæller × \(z.weights[i].formatted(.number.precision(.fractionLength(0...1))))",
-                        value: Binding(get: { z.weights[i] }, set: { setZone(i, weight: $0) }),
-                        in: 0...5, step: 0.5)
+                let w = z.weights[i]
+                let wMinus: (() -> Void)? = w > 0 ? { setZone(i, weight: max(0, w - 0.5)) } : nil
+                let wPlus: (() -> Void)? = w < 5 ? { setZone(i, weight: min(5, w + 0.5)) } : nil
+                miniStepper("Tæller × \(w.formatted(.number.precision(.fractionLength(0...1))))",
+                            minus: wMinus, plus: wPlus)
             }
-            // Mindre knapper og mere luft, så de to knap-par ikke ligger ind over hinanden.
-            .controlSize(.small)
             .padding(.vertical, 4)
+        }
+    }
+
+    /// Kompakt −/+ (runde ikoner) i stedet for Stepper – de store Stepper-knapper lå for tæt.
+    private func miniStepper(_ label: String, minus: (() -> Void)?, plus: (() -> Void)?) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            HStack(spacing: 14) {
+                Button { minus?() } label: { Image(systemName: "minus.circle.fill") }
+                    .disabled(minus == nil)
+                    .accessibilityLabel("Mindre")
+                Button { plus?() } label: { Image(systemName: "plus.circle.fill") }
+                    .disabled(plus == nil)
+                    .accessibilityLabel("Større")
+            }
+            .font(.title2)
+            .symbolRenderingMode(.hierarchical)
+            .buttonStyle(.borderless)
         }
     }
 
