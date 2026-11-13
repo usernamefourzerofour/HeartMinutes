@@ -1,21 +1,57 @@
 {
-  "sourceLanguage": "da",
+  "sourceLanguage": "en",
   "strings": {
     "NSHealthShareUsageDescription": {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يقرأ Heart Minutes قياسات النبض والتمارين من Apple Watch لعرضها في مخططات."
+          }
+        },
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes чете измерванията на пулса и тренировките от Apple Watch, за да ги покаже в графики."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes llegeix les mesures de freqüència i els entrenaments de l’Apple Watch per mostrar-los en gràfics."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes čte měření tepu a tréninky z Apple Watch, aby je zobrazil v grafech."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes læser dine pulsmålinger og træninger fra Apple Watch for at vise dem i grafer."
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutes liest deine Herzfrequenzmessungen und Trainings von der Apple Watch, um sie in Grafiken zu zeigen."
           }
         },
-        "en": {
+        "el": {
           "stringUnit": {
             "state": "translated",
-            "value": "Heart Minutes reads your heart rate measurements and workouts from Apple Watch to show them in charts."
+            "value": "Το Heart Minutes διαβάζει τις μετρήσεις παλμών και τις προπονήσεις από το Apple Watch για να τις δείξει σε γραφήματα."
           }
         },
         "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes lee tus mediciones de frecuencia cardiaca y entrenamientos del Apple Watch para mostrarlos en gráficas."
+          }
+        },
+        "es-419": {
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutes lee tus mediciones de frecuencia cardiaca y entrenamientos del Apple Watch para mostrarlos en gráficas."
@@ -33,6 +69,36 @@
             "value": "Heart Minutes lit vos mesures cardiaques et vos entraînements de l’Apple Watch pour les afficher dans des graphiques."
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes קורא את מדידות הדופק והאימונים מ־Apple Watch כדי להציג אותם בגרפים."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes Apple Watch से हृदय गति के माप और वर्कआउट पढ़ता है ताकि उन्हें ग्राफ़ में दिखा सके।"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes čita mjerenja pulsa i treninge s Apple Watcha kako bi ih prikazao na grafikonima."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Heart Minutes beolvassa az Apple Watch pulzusméréseit és edzéseit, hogy grafikonokon mutassa őket."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes membaca pengukuran detak jantung dan olahraga dari Apple Watch untuk menampilkannya dalam grafik."
+          }
+        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -43,6 +109,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heart MinutesはApple Watchの心拍数の測定値とワークアウトを読み取り、グラフに表示します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes는 Apple Watch의 심박수 측정값과 운동을 읽어 그래프로 표시합니다."
+          }
+        },
+        "lt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes skaito pulso matavimus ir treniruotes iš Apple Watch, kad parodytų juos grafikuose."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes membaca ukuran kadar denyutan jantung dan senaman daripada Apple Watch untuk memaparkannya dalam graf."
           }
         },
         "nb": {
@@ -57,10 +141,46 @@
             "value": "Heart Minutes leest je hartslagmetingen en trainingen van de Apple Watch om ze in grafieken te tonen."
           }
         },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes odczytuje pomiary tętna i treningi z Apple Watch, aby pokazać je na wykresach."
+          }
+        },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "O Heart Minutes lê suas medições de frequência cardíaca e treinos do Apple Watch para mostrá-los em gráficos."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Heart Minutes lê as medições de frequência cardíaca e os treinos do Apple Watch para os mostrar em gráficos."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes citește măsurătorile pulsului și antrenamentele de pe Apple Watch pentru a le afișa în grafice."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes читает измерения пульса и тренировки с Apple Watch, чтобы показать их на графиках."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes číta merania tepu a tréningy z Apple Watch, aby ich zobrazil v grafoch."
+          }
+        },
+        "sl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes bere meritve srčnega utripa in vadbe iz Apple Watch, da jih prikaže na grafih."
           }
         },
         "sv": {
@@ -69,29 +189,95 @@
             "value": "Heart Minutes läser dina pulsmätningar och träningspass från Apple Watch för att visa dem i diagram."
           }
         },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes อ่านการวัดชีพจรและการออกกำลังกายจาก Apple Watch เพื่อแสดงเป็นกราฟ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes, grafiklerde göstermek için Apple Watch’taki nabız ölçümlerinizi ve antrenmanlarınızı okur."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes читає вимірювання пульсу й тренування з Apple Watch, щоб показати їх на графіках."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes đọc số đo nhịp tim và bài tập từ Apple Watch để hiển thị trên biểu đồ."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutes 读取 Apple Watch 的心率测量和体能训练，以便在图表中显示。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes 讀取 Apple Watch 的心率測量與體能訓練，以便在圖表中顯示。"
           }
         }
       }
     },
     "NSHealthUpdateUsageDescription": {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يحفظ Heart Minutes أي بيانات في تطبيق صحتي – بل يقرأ فقط قياسات النبض والتمارين."
+          }
+        },
+        "bg": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes не записва данни в Здраве – само чете измерванията на пулса и тренировките ви."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes no desa dades a Salut: només llegeix les teves mesures de freqüència i els teus entrenaments."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes neukládá do Zdraví žádná data – jen čte vaše měření tepu a tréninky."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes gemmer ikke data i Sundhed – den læser kun dine pulsmålinger og træninger."
+          }
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutes speichert keine Daten in Health – die App liest nur deine Herzfrequenzmessungen und Trainings."
           }
         },
-        "en": {
+        "el": {
           "stringUnit": {
             "state": "translated",
-            "value": "Heart Minutes doesn’t save data in Health – it only reads your heart rate measurements and workouts."
+            "value": "Το Heart Minutes δεν αποθηκεύει δεδομένα στην Υγεία – μόνο διαβάζει τις μετρήσεις παλμών και τις προπονήσεις σας."
           }
         },
         "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes no guarda datos en Salud: solo lee tus mediciones de frecuencia cardiaca y tus entrenamientos."
+          }
+        },
+        "es-419": {
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutes no guarda datos en Salud: solo lee tus mediciones de frecuencia cardiaca y tus entrenamientos."
@@ -109,6 +295,36 @@
             "value": "Heart Minutes n’enregistre aucune donnée dans Santé – l’app lit seulement vos mesures cardiaques et vos entraînements."
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes לא שומר נתונים ב״בריאות״ – הוא רק קורא את מדידות הדופק והאימונים שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes स्वास्थ्य में कोई डेटा सहेजता नहीं – यह केवल आपकी हृदय गति के माप और वर्कआउट पढ़ता है।"
+          }
+        },
+        "hr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes ne sprema podatke u Zdravlje – samo čita vaša mjerenja pulsa i treninge."
+          }
+        },
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Heart Minutes nem ment adatot az Egészség appba – csak beolvassa a pulzusméréseit és edzéseit."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes tidak menyimpan data di Kesehatan – hanya membaca pengukuran detak jantung dan olahraga Anda."
+          }
+        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -119,6 +335,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutesはヘルスケアにデータを保存しません。心拍数の測定値とワークアウトを読み取るだけです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes는 건강 앱에 데이터를 저장하지 않으며, 심박수 측정값과 운동만 읽습니다."
+          }
+        },
+        "lt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes neišsaugo duomenų „Sveikatoje“ – tik skaito jūsų pulso matavimus ir treniruotes."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes tidak menyimpan data dalam Kesihatan – ia hanya membaca ukuran kadar denyutan jantung dan senaman anda."
           }
         },
         "nb": {
@@ -133,10 +367,46 @@
             "value": "Heart Minutes bewaart geen gegevens in Gezondheid – de app leest alleen je hartslagmetingen en trainingen."
           }
         },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes nie zapisuje danych w aplikacji Zdrowie – tylko odczytuje pomiary tętna i treningi."
+          }
+        },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "O Heart Minutes não salva dados no Saúde – ele apenas lê suas medições de frequência cardíaca e seus treinos."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Heart Minutes não guarda dados na app Saúde – apenas lê as suas medições de frequência cardíaca e treinos."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes nu salvează date în Sănătate – doar citește măsurătorile pulsului și antrenamentele."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes не сохраняет данные в «Здоровье» — только читает ваши измерения пульса и тренировки."
+          }
+        },
+        "sk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes neukladá do Zdravia žiadne údaje – len číta vaše merania tepu a tréningy."
+          }
+        },
+        "sl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes ne shranjuje podatkov v Zdravje – samo bere vaše meritve srčnega utripa in vadbe."
           }
         },
         "sv": {
@@ -145,10 +415,40 @@
             "value": "Heart Minutes sparar inga data i Hälsa – appen läser bara dina pulsmätningar och träningspass."
           }
         },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes ไม่บันทึกข้อมูลลงในแอปสุขภาพ – เพียงอ่านการวัดชีพจรและการออกกำลังกายของคุณ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes, Sağlık’a veri kaydetmez – yalnızca nabız ölçümlerinizi ve antrenmanlarınızı okur."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes не зберігає дані у «Здоровʼї» — лише читає ваші вимірювання пульсу й тренування."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes không lưu dữ liệu vào Sức khỏe – chỉ đọc số đo nhịp tim và bài tập của bạn."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "Heart Minutes 不会在“健康”中存储数据——它只读取你的心率测量和体能训练。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Minutes 不會在「健康」中儲存資料——只會讀取你的心率測量與體能訓練。"
           }
         }
       }

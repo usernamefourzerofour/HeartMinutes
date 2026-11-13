@@ -98,10 +98,10 @@ struct HeartChart: View {
                         Text("Workout").foregroundStyle(Self.workoutColor)
                     }
                     if selected.bridgedActive {
-                        Text("Udfyldt").foregroundStyle(Self.activeColor)
+                        Text("Filled in").foregroundStyle(Self.activeColor)
                     }
                     if selected.inExercise {
-                        Text("Træningsring").foregroundStyle(Self.exerciseColor)
+                        Text("Exercise ring").foregroundStyle(Self.exerciseColor)
                     }
                     Spacer()
                     Button { selectedDate = nil } label: { Image(systemName: "xmark.circle.fill") }
@@ -119,15 +119,15 @@ struct HeartChart: View {
             HStack {
                 // Hvor mange Heart Minutes der er optjent i det viste område (følger zoom og scroll).
                 if let heartMinutes {
-                    Text("\(heartMinutes(from, to), format: .number.precision(.fractionLength(1))) Heart Minutes i visningen")
+                    Text("\(heartMinutes(from, to), format: .number.precision(.fractionLength(1))) Heart Minutes in view")
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 if visibleLength != nil && abs(length - fitLength) > 1 {
-                    Button("Nulstil zoom") { reset() }
+                    Button("Reset zoom") { reset() }
                         .buttonStyle(.borderless)
                 } else {
-                    Text("Knib for at zoome").foregroundStyle(.secondary)
+                    Text("Pinch to zoom").foregroundStyle(.secondary)
                 }
             }
             .font(.caption)
@@ -135,48 +135,48 @@ struct HeartChart: View {
                 ForEach(zones.indices, id: \.self) { i in
                     let range = zones.bpmRange(i)
                     RectangleMark(
-                        xStart: .value("Start", from), xEnd: .value("Slut", to),
-                        yStart: .value("Fra", i == 0 ? min(0, y.lowerBound) : range.lowerBound),
-                        yEnd: .value("Til", min(range.upperBound, max(y.upperBound, zones.maxHR) + 50)))
+                        xStart: .value("Start", from), xEnd: .value("End", to),
+                        yStart: .value("From", i == 0 ? min(0, y.lowerBound) : range.lowerBound),
+                        yEnd: .value("To", min(range.upperBound, max(y.upperBound, zones.maxHR) + 50)))
                         .foregroundStyle(zones.color(i).opacity(0.12))
                 }
                 // Bånd i bunden: Apples vurdering af aktiv / i ro.
                 let bandTop = y.lowerBound + (y.upperBound - y.lowerBound) * 0.04
                 ForEach(motionStrips) { strip in
-                    RectangleMark(xStart: .value("Fra", strip.start), xEnd: .value("Til", strip.end),
-                                  yStart: .value("Bund", y.lowerBound), yEnd: .value("Top", bandTop))
+                    RectangleMark(xStart: .value("From", strip.start), xEnd: .value("To", strip.end),
+                                  yStart: .value("Bottom", y.lowerBound), yEnd: .value("Top", bandTop))
                         .foregroundStyle(strip.motion == .active ? Self.activeColor : Self.sedentaryColor)
                 }
                 // Udfyldte huller ("Udfyld korte huller") i samme bånd, lysere blå.
                 ForEach(bridgedStrips) { strip in
-                    RectangleMark(xStart: .value("Fra", strip.start), xEnd: .value("Til", strip.end),
-                                  yStart: .value("Bund", y.lowerBound), yEnd: .value("Top", bandTop))
+                    RectangleMark(xStart: .value("From", strip.start), xEnd: .value("To", strip.end),
+                                  yStart: .value("Bottom", y.lowerBound), yEnd: .value("Top", bandTop))
                         .foregroundStyle(Self.bridgedColor)
                 }
                 // Bånd lige over: hvor Apples grønne træningsring tæller minutter.
                 let exerciseBottom = bandTop + (y.upperBound - y.lowerBound) * 0.01
                 let exerciseTop = exerciseBottom + (y.upperBound - y.lowerBound) * 0.04
                 ForEach(exerciseStrips) { strip in
-                    RectangleMark(xStart: .value("Fra", strip.start), xEnd: .value("Til", strip.end),
-                                  yStart: .value("Bund", exerciseBottom), yEnd: .value("Top", exerciseTop))
+                    RectangleMark(xStart: .value("From", strip.start), xEnd: .value("To", strip.end),
+                                  yStart: .value("Bottom", exerciseBottom), yEnd: .value("Top", exerciseTop))
                         .foregroundStyle(Self.exerciseColor)
                 }
                 ForEach(Array(drawn.enumerated()), id: \.element.id) { i, s in
                     let color = s.inWorkout ? Self.workoutColor : Self.backgroundColor
-                    LineMark(x: .value("Tid", s.date), y: .value("BPM", s.bpm),
-                             series: .value("Serie", segments[i]))
+                    LineMark(x: .value("Time", s.date), y: .value("BPM", s.bpm),
+                             series: .value("Series", segments[i]))
                         .foregroundStyle(color.opacity(0.6))
                         .interpolationMethod(.monotone)
                     if showDots {
-                        PointMark(x: .value("Tid", s.date), y: .value("BPM", s.bpm))
+                        PointMark(x: .value("Time", s.date), y: .value("BPM", s.bpm))
                             .foregroundStyle(color)
                             .symbolSize(20)
                     }
                 }
                 if let selected {
-                    RuleMark(x: .value("Valgt", selected.date))
+                    RuleMark(x: .value("Selected", selected.date))
                         .foregroundStyle(.secondary.opacity(0.5))
-                    PointMark(x: .value("Tid", selected.date), y: .value("BPM", selected.bpm))
+                    PointMark(x: .value("Time", selected.date), y: .value("BPM", selected.bpm))
                         .foregroundStyle(selected.inWorkout ? Self.workoutColor : Self.backgroundColor)
                         .symbolSize(90)
                 }
@@ -213,7 +213,7 @@ struct HeartChart: View {
             .frame(height: 240)
             .overlay {
                 if drawn.isEmpty {
-                    Text("Ingen målinger i dette udsnit").font(.caption).foregroundStyle(.secondary)
+                    Text("No measurements in this range").font(.caption).foregroundStyle(.secondary)
                 }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { chartWidth = $0 }
@@ -243,11 +243,11 @@ struct HeartChart: View {
             // Forklaringen er foldet sammen, så grafen får ro: kurven, baggrunden og båndene i bunden.
             DisclosureGroup(isExpanded: $showLegend) {
               VStack(alignment: .leading, spacing: 8) {
-                legendGroup("Kurven") {
-                    legendDot(Self.backgroundColor, "Baggrundsaktivitet")
+                legendGroup("The curve") {
+                    legendDot(Self.backgroundColor, "Background activity")
                     legendDot(Self.workoutColor, "Workout")
                 }
-                legendGroup("Baggrund (pulszoner)") {
+                legendGroup("Background (heart rate zones)") {
                     ForEach(zones.indices, id: \.self) { i in
                         HStack(spacing: 4) {
                             RoundedRectangle(cornerRadius: 2)
@@ -257,21 +257,21 @@ struct HeartChart: View {
                         }
                     }
                 }
-                legendGroup("Bånd i bunden (aktivitet)") {
-                    legendBar(Self.activeColor, "Aktiv")
-                    legendBar(Self.sedentaryColor, "I ro")
-                    legendBar(Self.exerciseColor, "Træningsring")
+                legendGroup("Bands at the bottom (activity)") {
+                    legendBar(Self.activeColor, "Active")
+                    legendBar(Self.sedentaryColor, "Resting")
+                    legendBar(Self.exerciseColor, "Exercise ring")
                     if samples.contains(where: \.bridgedActive) {
-                        legendBar(Self.bridgedColor, "Udfyldt")
+                        legendBar(Self.bridgedColor, "Filled in")
                     }
                 }
                 // Målingerne: antal og sampling i visningen.
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Målinger").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                    Text("Measurements").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
                     if let hz = visible.samplingRateHz {
-                        Text("\(samples.count) målinger · sampling i visning: \(hz, format: .number.precision(.significantDigits(2))) Hz · ca. 1 måling pr. \(Self.interval(1 / hz))")
+                        Text("\(samples.count) measurements · sampling in view: \(hz, format: .number.precision(.significantDigits(2))) Hz · about 1 measurement per \(Self.interval(1 / hz))")
                     } else {
-                        Text("\(samples.count) målinger")
+                        Text("\(samples.count) measurements")
                     }
                 }
                 .foregroundStyle(.secondary)
@@ -279,7 +279,7 @@ struct HeartChart: View {
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.top, 4)
             } label: {
-                Label("Forklaring", systemImage: "info.circle")
+                Label("Legend", systemImage: "info.circle")
             }
             .font(.caption)
         }
@@ -453,7 +453,7 @@ struct StatsRow: View {
     var body: some View {
         HStack {
             stat("Min", stats.min); Spacer()
-            stat("Gns.", stats.avg); Spacer()
+            stat("Avg.", stats.avg); Spacer()
             stat("Max", stats.max)
         }
     }
@@ -491,7 +491,7 @@ struct PeriodHeader: View {
             }
             .buttonStyle(.bordered)
             .buttonBorderShape(.capsule)
-            .accessibilityHint("Vælg periode")
+            .accessibilityHint("Choose period")
             Spacer()
             Button { interval = Period.shifted(interval, by: 1) } label: {
                 Image(systemName: "chevron.right")
@@ -552,7 +552,7 @@ struct OverviewView: View {
                 if let stats {
                     Section {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Pulsmålinger").font(.headline)
+                            Text("Heart rate").font(.headline)
                             StatsRow(stats: stats)
                         }
                         .id("pulsechart")
@@ -598,11 +598,11 @@ struct NoDataView: View {
 
     var body: some View {
         if !health.includeBackground && !health.includeWorkouts {
-            ContentUnavailableView("Ingen målinger valgt", systemImage: "line.3.horizontal.decrease.circle",
-                description: Text("Slå baggrundsmålinger eller workouts til øverst i Indstillinger."))
+            ContentUnavailableView("No measurements selected", systemImage: "line.3.horizontal.decrease.circle",
+                description: Text("Turn on background measurements or workouts at the top of Settings."))
         } else {
-            ContentUnavailableView("Ingen pulsdata", systemImage: "heart.slash",
-                description: Text("Tjek at Heart Minutes har adgang i Sundhed-appen."))
+            ContentUnavailableView("No heart rate data", systemImage: "heart.slash",
+                description: Text("Make sure Heart Minutes has access in the Health app."))
         }
     }
 }
@@ -621,15 +621,15 @@ struct UnmarkedHint: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Målinger tæller ikke med", systemImage: "exclamationmark.triangle.fill")
+            Label("Measurements not counted", systemImage: "exclamationmark.triangle.fill")
                 .font(.subheadline.bold())
                 .foregroundStyle(.orange)
-            Text("\(Int((info.fraction * 100).rounded())) % af dine baggrundsmålinger (fra \(sourceText)) har ingen markering for aktiv/i ro, så de tæller ikke med »Kun når aktiv«. Markeringen kommer kun fra Apple Watch.")
+            Text("\(Int((info.fraction * 100).rounded())) % of your background measurements (from \(sourceText)) have no active/resting marking, so they don’t count with “Only when active”. The marking only comes from Apple Watch.")
                 .font(.callout)
             HStack {
-                Button("Slå »Kun når aktiv« fra", action: turnOff)
+                Button("Turn off “Only when active”", action: turnOff)
                     .buttonStyle(.borderedProminent)
-                Button("Ignorér", action: ignore)
+                Button("Ignore", action: ignore)
                     .buttonStyle(.bordered)
             }
             .font(.callout)
@@ -655,37 +655,37 @@ struct PeriodPicker: View {
         NavigationStack {
             Form {
                 Section {
-                    DatePicker("Fra", selection: $start, in: ...Date.now)
-                    DatePicker("Til", selection: $end, in: start.addingTimeInterval(60)...)
+                    DatePicker("From", selection: $start, in: ...Date.now)
+                    DatePicker("To", selection: $end, in: start.addingTimeInterval(60)...)
                 } footer: {
-                    Text("Varighed: \(Duration.seconds(end.timeIntervalSince(start)), format: .units(allowed: [.days, .hours, .minutes], width: .wide))")
+                    Text("Duration: \(Duration.seconds(end.timeIntervalSince(start)), format: .units(allowed: [.days, .hours, .minutes], width: .wide))")
                 }
                 Section {
-                    quick("I dag", Period.day())
-                    quick("Denne uge", Period.thisWeek())
+                    quick("Today", Period.day())
+                    quick("This week", Period.thisWeek())
                     // Hele måneden, ligesom "Denne uge" er hele ugen.
-                    quick("Denne måned", Calendar.current.dateInterval(of: .month, for: .now) ?? Period.thisWeek())
-                    quick("Seneste 24 timer", DateInterval(start: .now.addingTimeInterval(-86_400), end: .now))
-                    quick("Seneste 7 dage", DateInterval(start: .now.addingTimeInterval(-7 * 86_400), end: .now))
-                    quick("Seneste måned", DateInterval(
+                    quick("This month", Calendar.current.dateInterval(of: .month, for: .now) ?? Period.thisWeek())
+                    quick("Last 24 hours", DateInterval(start: .now.addingTimeInterval(-86_400), end: .now))
+                    quick("Last 7 days", DateInterval(start: .now.addingTimeInterval(-7 * 86_400), end: .now))
+                    quick("Last month", DateInterval(
                         start: Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now.addingTimeInterval(-30 * 86_400),
                         end: .now))
-                    quick("Seneste år", DateInterval(
+                    quick("Last year", DateInterval(
                         start: Calendar.current.date(byAdding: .year, value: -1, to: .now) ?? .now.addingTimeInterval(-365 * 86_400),
                         end: .now))
                 } header: {
-                    Text("Hurtigvalg")
+                    Text("Quick picks")
                 } footer: {
-                    Text("I dag, denne uge og denne måned er faste perioder: målet skal nås, inden perioden er omme, og så starter du forfra.\n\n»Seneste …« er et rullende vindue, der hele tiden flytter sig med tiden. Her handler det om at holde dig over målet hele tiden – gamle minutter falder ud, efterhånden som nye kommer til.")
+                    Text("Today, this week and this month are fixed periods: reach the goal before the period ends, then you start over.\n\n“Last …” is a rolling window that moves with time. Here it’s about staying above the goal all the time – old minutes drop out as new ones come in.")
                 }
             }
-            .navigationTitle("Vælg periode")
+            .navigationTitle("Choose period")
             .navigationBarTitleDisplayMode(.inline)
             .onChange(of: start) { if end <= start { end = start.addingTimeInterval(3600) } }
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Annuller") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Vis") {
+                    Button("Show") {
                         interval = DateInterval(start: start, end: end)
                         dismiss()
                     }

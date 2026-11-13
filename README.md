@@ -10,17 +10,16 @@ and has no server – everything is calculated on your device.
 ## Features
 
 - **Heart Minutes from heart-rate zones**: minutes in the moderate zone count 1×, minutes in the
-  vigorous zone count 2× (weights are adjustable). Zones are based on age (AHA table), your own
-  max heart rate, or manual limits.
+  vigorous zone count 2×. Choose 2 zones (AHA, default) or the common 5 zones (Z0–Z5); limits and
+  factors are adjustable. Max heart rate from your age (220 − age) or entered by hand.
 - **Background activity filter**: daytime heart rate only counts when you are active – according to
-  Apple Watch's activity flag, the exercise ring, or both – optionally bridging short pauses.
-- **Exercise ring as an alternative source**: use Apple's exercise minutes instead of heart-rate zones.
-- **Overview**: weekly (or any period) progress toward your goal, a detailed heart-rate chart with
-  zone bands and activity markers, and a list of workouts.
-- **Widgets**: home screen (small/medium/large with a chart), lock screen and StandBy.
-- **Apple Watch app and complications**: heart, ring, heart-ring, corner and rectangular styles.
-
-The app's user interface is in Danish.
+  Apple Watch's activity flag, the Exercise ring, or both – optionally bridging short pauses.
+- **Overview**: an animated heart ring for the period's progress toward your goal, a cumulative chart,
+  a zone breakdown, a detailed heart-rate chart with zone bands and activity markers, and workouts.
+- **Comparison**: optionally show Apple's Exercise minutes as a line next to your Heart Minutes.
+- **Widgets**: Home Screen (small/medium/large with a chart), Lock Screen and StandBy.
+- **Apple Watch app and complications**: heart ring and ring complications, minutes or percent.
+- **38 languages**, including right-to-left.
 
 ## Building
 
@@ -52,6 +51,8 @@ xcodebuild test -project Puls.xcodeproj -scheme Puls -destination 'platform=iOS 
 | `Shared/` | Code shared between app, watch and widgets |
 | `PulsTests/` | Unit tests |
 | `Design/` | Scripts that draw the app icon |
+| `Localization/` | All translations (`translations.json`) and the script that builds the String Catalog |
+| `docs/` | Privacy policy, support page and App Store listing (GitHub Pages) |
 
 ## Sources
 

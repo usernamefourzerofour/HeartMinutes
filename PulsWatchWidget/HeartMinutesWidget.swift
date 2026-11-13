@@ -11,8 +11,8 @@ struct BigRingWidget {
         }
         .configurationDisplayName(center == .percent ? Text("Heart Minutes – ring %") : Text("Heart Minutes – ring min"))
         .description(center == .percent
-                     ? Text("Ring, der fyldes mod ugens mål og fortsætter rundt over 100 %, med procent i midten.")
-                     : Text("Ring, der fyldes mod ugens mål og fortsætter rundt over 100 %, med minutter i midten."))
+                     ? Text("A ring that fills towards the weekly goal and keeps going past 100 %, with percent in the middle.")
+                     : Text("A ring that fills towards the weekly goal and keeps going past 100 %, with minutes in the middle."))
         .supportedFamilies([.accessoryCircular])
     }
 }
@@ -25,10 +25,10 @@ struct HeartRingWidget {
                 .containerBackground(for: .widget) { Color.clear }
                 .widgetURL(URL(string: "heartminutes://minutes"))
         }
-        .configurationDisplayName(center == .percent ? Text("Heart Minutes – hjerte %") : Text("Heart Minutes – hjerte min"))
+        .configurationDisplayName(center == .percent ? Text("Heart Minutes – heart %") : Text("Heart Minutes – heart min"))
         .description(center == .percent
-                     ? Text("Hjertets kant fyldes mod ugens mål, med procent i midten.")
-                     : Text("Hjertets kant fyldes mod ugens mål, med minutter i midten."))
+                     ? Text("The outline of the heart fills towards the weekly goal, with percent in the middle.")
+                     : Text("The outline of the heart fills towards the weekly goal, with minutes in the middle."))
         .supportedFamilies([.accessoryCircular])
     }
 }

@@ -426,13 +426,13 @@ struct MiniChart: View {
                                               to: min(.now, domain.upperBound))
         Chart {
             ForEach(Array(points.enumerated()), id: \.offset) { _, p in
-                AreaMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                AreaMark(x: .value("Time", p.t), y: .value("Minutes", p.v))
                     .foregroundStyle(color.opacity(0.25))
-                LineMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                LineMark(x: .value("Time", p.t), y: .value("Minutes", p.v))
                     .foregroundStyle(color)
                     .lineStyle(StrokeStyle(lineWidth: 1.5))
             }
-            RuleMark(y: .value("Mål", data.goal))
+            RuleMark(y: .value("Goal", data.goal))
                 .foregroundStyle(Color.gray)
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 2]))
         }

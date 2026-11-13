@@ -87,12 +87,12 @@ enum Period {
         if abs(interval.end.timeIntervalSince(now)) < 5 * 60 {
             let end = interval.end
             func near(_ date: Date?) -> Bool { date.map { abs($0.timeIntervalSince(interval.start)) < 5 * 60 } ?? false }
-            if near(calendar.date(byAdding: .year, value: -1, to: end)) { return String(localized: "Seneste år") }
-            if near(calendar.date(byAdding: .month, value: -1, to: end)) { return String(localized: "Seneste måned") }
+            if near(calendar.date(byAdding: .year, value: -1, to: end)) { return String(localized: "Last year") }
+            if near(calendar.date(byAdding: .month, value: -1, to: end)) { return String(localized: "Last month") }
             let days = interval.duration / 86_400
             if abs(days - days.rounded()) < 0.01, days.rounded() >= 1 {
                 let n = Int(days.rounded())
-                return n == 1 ? String(localized: "Seneste 24 timer") : String(localized: "Seneste \(n) dage")
+                return n == 1 ? String(localized: "Last 24 hours") : String(localized: "Last \(n) days")
             }
         }
         // Hele kalendermåneden.
@@ -106,12 +106,12 @@ enum Period {
             let week = weekCalendar(calendar).component(.weekOfYear, from: interval.start)
             let last = calendar.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end
             let fmt = Date.FormatStyle.dateTime.day().month(.abbreviated)
-            return String(localized: "Uge \(week) · \(interval.start.formatted(fmt)) – \(last.formatted(fmt))")
+            return String(localized: "Week \(week) · \(interval.start.formatted(fmt)) – \(last.formatted(fmt))")
         }
         if let days = wholeDays(interval, calendar: calendar) {
             let last = calendar.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end
             let fmt = Date.FormatStyle.dateTime.day().month(.abbreviated)
-            return "\(interval.start.formatted(fmt)) – \(last.formatted(fmt)) (" + String(localized: "\(days) dage") + ")"
+            return "\(interval.start.formatted(fmt)) – \(last.formatted(fmt)) (" + String(localized: "\(days) days") + ")"
         }
         // Kort format (fx 2.11 21.23 – 9.11 21.23), så det kan stå på én linje.
         let fmt = Date.FormatStyle.dateTime.day().month(.defaultDigits).hour().minute()

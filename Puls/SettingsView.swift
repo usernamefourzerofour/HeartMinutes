@@ -14,15 +14,15 @@ struct SettingsView: View {
             Form {
                 // Øverst: målinger bestemmer, hvad der tæller i pulsberegningen.
                 Section {
-                    ResetRow(changed: health.includeBackground != D.includeBackground, info: String(localized: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.")) {
+                    ResetRow(changed: health.includeBackground != D.includeBackground, info: String(localized: "Heart rate measured during the day outside workouts – usually by Apple Watch, but also by other devices that save heart rate in Health. Turn off to see and count only workouts.")) {
                         health.includeBackground = D.includeBackground
                     } content: {
                         Toggle(isOn: $health.includeBackground) {
-                            Label("Baggrundsmålinger", systemImage: "applewatch")
+                            Label("Background measurements", systemImage: "applewatch")
                         }
                         .tint(HeartChart.backgroundColor)
                     }
-                    ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: String(localized: "Pulsmålinger taget under en registreret træning (workout).")) {
+                    ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: String(localized: "Heart rate measured during a recorded workout.")) {
                         health.includeWorkouts = D.includeWorkouts
                     } content: {
                         Toggle(isOn: $health.includeWorkouts) {
@@ -31,28 +31,28 @@ struct SettingsView: View {
                         .tint(HeartChart.workoutColor)
                     }
                 } header: {
-                    Text("Målinger")
+                    Text("Measurements")
                 } footer: {
-                    Text("Hvilke pulsmålinger der tæller med i Heart Minutes og vises i pulsgrafen.")
+                    Text("Which heart rate measurements count towards Heart Minutes and are shown in the heart rate chart.")
                 }
 
                 Section {
-                    ResetRow(changed: health.weeklyGoal != D.weeklyGoal, info: String(localized: "Dit mål pr. uge. AHA anbefaler mindst 150 min moderat eller 75 min hård aktivitet om ugen. Målet skaleres til den valgte periode, fx ca. 21 min for én dag.")) {
+                    ResetRow(changed: health.weeklyGoal != D.weeklyGoal, info: String(localized: "Your weekly goal. The AHA recommends at least 150 min of moderate or 75 min of vigorous activity per week. The goal is scaled to the selected period, e.g. about 21 min for one day.")) {
                         health.weeklyGoal = D.weeklyGoal
                     } content: {
                         Stepper(value: $health.weeklyGoal, in: 10...1000, step: 10) {
-                            Text("Mål: \(health.weeklyGoal) min pr. uge")
+                            Text("Goal: \(health.weeklyGoal) min per week")
                         }
                     }
                     ResetRow(changed: health.activityMode != D.activityMode || health.pauseSeconds != D.pauseSeconds,
-                             info: String(localized: "Hvornår din puls i løbet af dagen (uden for workouts) tæller med:") + "\n\n" + ActiveMinutes.ActivityMode.allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n") + "\n\n" + String(localized: "Målinger under workouts tæller altid.")) {
+                             info: String(localized: "When your heart rate during the day (outside workouts) counts:") + "\n\n" + ActiveMinutes.ActivityMode.allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n") + "\n\n" + String(localized: "Measurements during workouts always count.")) {
                         health.activityMode = D.activityMode
                         health.pauseSeconds = D.pauseSeconds
                     } content: {
                         NavigationLink {
                             ActivityModeView()
                         } label: {
-                            LabeledContent("Baggrundsaktivitet", value: health.activityMode.shortTitle)
+                            LabeledContent("Background activity", value: health.activityMode.shortTitle)
                         }
                     }
                 } header: {
@@ -60,22 +60,22 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.zoneModel != D.zoneModel, info: String(localized: "2 zoner: moderat fra 50 % og hård fra 70 % af maks-puls – American Heart Association (AHA)'s anbefaling. Moderat tæller × 1 og hård × 2, så 150 min moderat eller 75 min hård om ugen er nok.\n\n5 zoner: de gængse zoner fra fx Garmin og Polar (Z1 fra 50 %, Z2 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z0 er pulsen under 50 %.\n\nGrænser og faktorer kan ændres under »Dine zoner«.")) {
+                    ResetRow(changed: health.zoneModel != D.zoneModel, info: String(localized: "2 zones: moderate from 50 % and vigorous from 70 % of max heart rate – the American Heart Association (AHA) recommendation. Moderate counts × 1 and vigorous × 2, so 150 min moderate or 75 min vigorous per week is enough.\n\n5 zones: the common zones used by e.g. Garmin and Polar (Z1 from 50 %, Z2 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z0 is heart rate below 50 %.\n\nLimits and factors can be changed under “Your zones”.")) {
                         health.zoneModel = D.zoneModel
                     } content: {
-                        Picker("Antal zoner", selection: $health.zoneModel) {
+                        Picker("Number of zones", selection: $health.zoneModel) {
                             ForEach(ZoneModel.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented)
                     }
                 } header: {
-                    Text("Pulszoner")
+                    Text("Heart rate zones")
                 } footer: {
                     if health.zoneModel == .two {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Følger anbefalingerne fra American Heart Association (AHA): moderat 50–70 %, hård fra 70 % af maks-puls.")
+                            Text("Follows the American Heart Association (AHA) recommendations: moderate 50–70 %, vigorous from 70 % of max heart rate.")
                             Link(destination: AHA.targetHeartRatesURL) {
-                                Text("Kilde: American Heart Association – Target Heart Rates")
+                                Text("Source: American Heart Association – Target Heart Rates")
                                     .multilineTextAlignment(.leading)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
@@ -85,31 +85,31 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.maxHRSource != D.maxHRSource, info: String(localized: "Alder: maks-puls = 220 − alder.\nIndtast: din egen maks-puls, fx målt ved en test.")) {
+                    ResetRow(changed: health.maxHRSource != D.maxHRSource, info: String(localized: "Age: max heart rate = 220 − age.\nEnter: your own max heart rate, e.g. measured in a test.")) {
                         health.maxHRSource = D.maxHRSource
                     } content: {
-                        Picker("Maks-puls ud fra", selection: $health.maxHRSource) {
+                        Picker("Max heart rate from", selection: $health.maxHRSource) {
                             ForEach(MaxHRSource.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented)
                     }
                     switch health.maxHRSource {
                     case .age:
-                        ResetRow(changed: health.age != health.defaultAge, info: String(localized: "Standard: alderen fra din fødselsdato i Sundhed.")) {
+                        ResetRow(changed: health.age != health.defaultAge, info: String(localized: "Default: your age from your date of birth in Health.")) {
                             health.age = health.defaultAge
                         } content: {
-                            Stepper("Alder: \(health.age) år", value: $health.age, in: 10...100)
+                            Stepper("Age: \(health.age) years", value: $health.age, in: 10...100)
                         }
-                        LabeledContent("Maks-puls (220 − alder)", value: "\(Int(health.maxHR.rounded())) bpm")
+                        LabeledContent("Max heart rate (220 − age)", value: "\(Int(health.maxHR.rounded())) bpm")
                     case .manual:
-                        ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: String(localized: "Den højeste puls, dit hjerte kan nå – fx målt ved en test eller den samme som i en anden app. Standard: 220 − din alder.")) {
+                        ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: String(localized: "The highest heart rate your heart can reach – e.g. measured in a test or the same as in another app. Default: 220 − your age.")) {
                             health.manualMaxHR = health.defaultMaxHR
                         } content: {
-                            Stepper("Maks-puls: \(health.manualMaxHR) bpm", value: $health.manualMaxHR, in: 120...230)
+                            Stepper("Max heart rate: \(health.manualMaxHR) bpm", value: $health.manualMaxHR, in: 120...230)
                         }
                     }
                 } header: {
-                    Text("Maks-puls")
+                    Text("Max heart rate")
                 }
 
                 Section {
@@ -117,19 +117,19 @@ struct SettingsView: View {
                         zoneRow(i)
                     }
                 } header: {
-                    Text("Dine zoner")
+                    Text("Your zones")
                 } footer: {
-                    Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; den nederste zone tæller som udgangspunkt ikke (× 0).")
+                    Text("The limits are a percentage of your max heart rate (\(Int(health.maxHR.rounded())) bpm). The factor is how much one minute in the zone counts; by default the lowest zone doesn’t count (× 0).")
                 }
 
                 Section {
-                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: String(localized: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.")) {
+                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: String(localized: "The period shown by the complications and the Apple Watch app. The goal is scaled to the period, e.g. about 21 min for Today.")) {
                         health.watchPeriod = D.watchPeriod
                     } content: {
                         // Kort etiket (sektionen hedder "Apple Watch") og menu-vælger på samme linje,
                         // så "Seneste 7 dage" ikke får linjen til at bryde.
-                        LabeledContent("Periode") {
-                            Picker("Periode på uret", selection: $health.watchPeriod) {
+                        LabeledContent("Period") {
+                            Picker("Period on the watch", selection: $health.watchPeriod) {
                                 ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
                             }
                             .labelsHidden()
@@ -146,25 +146,25 @@ struct SettingsView: View {
                     NavigationLink {
                         AdvancedSettingsView()
                     } label: {
-                        Label("Avanceret", systemImage: "slider.horizontal.3")
+                        Label("Advanced", systemImage: "slider.horizontal.3")
                     }
                 } footer: {
-                    Text("Sammenligning, puls mellem målinger og huller.")
+                    Text("Comparison, heart rate between measurements and gaps.")
                 }
 
                 Section {
-                    Button("Nulstil alle indstillinger", role: .destructive) { confirmResetAll = true }
+                    Button("Reset all settings", role: .destructive) { confirmResetAll = true }
                 } footer: {
-                    Text("Tryk på ⓘ for at se, hvad en indstilling gør. \(Image(systemName: "arrow.counterclockwise")) vises, når en indstilling er ændret – tryk på den for at sætte indstillingen tilbage til standard.")
+                    Text("Tap ⓘ to see what a setting does. \(Image(systemName: "arrow.counterclockwise")) appears when a setting has been changed – tap it to reset the setting to its default.")
                 }
             }
-            .navigationTitle("Indstillinger")
+            .navigationTitle("Settings")
             // Alert midt på skærmen (en confirmationDialog vises som en boble ved Form'en øverst).
-            .alert("Nulstil alle indstillinger?", isPresented: $confirmResetAll) {
-                Button("Nulstil alle", role: .destructive) { health.resetAll() }
-                Button("Annuller", role: .cancel) {}
+            .alert("Reset all settings?", isPresented: $confirmResetAll) {
+                Button("Reset all", role: .destructive) { health.resetAll() }
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Alle indstillinger sættes tilbage til standard.")
+                Text("All settings will be reset to their defaults.")
             }
         }
     }
@@ -194,12 +194,12 @@ struct SettingsView: View {
                     let hi = i + 1 < z.count ? Int((z.percents[i + 1] * 100).rounded()) - 1 : 100
                     let pMinus: (() -> Void)? = pct > lo ? { setZone(i, percent: Double(pct - 1) / 100) } : nil
                     let pPlus: (() -> Void)? = pct < hi ? { setZone(i, percent: Double(pct + 1) / 100) } : nil
-                    miniStepper("Fra \(pct) %", minus: pMinus, plus: pPlus)
+                    miniStepper("From \(pct) %", minus: pMinus, plus: pPlus)
                 }
                 let w = z.weights[i]
                 let wMinus: (() -> Void)? = w > 0 ? { setZone(i, weight: max(0, w - 0.5)) } : nil
                 let wPlus: (() -> Void)? = w < 5 ? { setZone(i, weight: min(5, w + 0.5)) } : nil
-                miniStepper("Tæller × \(w.formatted(.number.precision(.fractionLength(0...1))))",
+                miniStepper("Counts × \(w.formatted(.number.precision(.fractionLength(0...1))))",
                             minus: wMinus, plus: wPlus)
             }
             .padding(.vertical, 8)
@@ -220,8 +220,8 @@ struct SettingsView: View {
     private func rangeText(_ i: Int) -> String {
         let z = health.zones
         let r = z.bpmRange(i)
-        if i == 0 { return String(localized: "under \(Int(r.upperBound.rounded())) bpm") }
-        if i == z.count - 1 { return String(localized: "fra \(Int(r.lowerBound.rounded())) bpm") }
+        if i == 0 { return String(localized: "below \(Int(r.upperBound.rounded())) bpm") }
+        if i == z.count - 1 { return String(localized: "from \(Int(r.lowerBound.rounded())) bpm") }
         return "\(Int(r.lowerBound.rounded()))–\(Int(r.upperBound.rounded())) bpm"
     }
 }
@@ -248,14 +248,14 @@ private struct ResetRow<Content: View>: View {
             .opacity(changed ? 1 : 0)
             .disabled(!changed)
             .accessibilityHidden(!changed)
-            .accessibilityLabel("Nulstil til standard")
+            .accessibilityLabel("Reset to default")
             if let info {
                 Button { showInfo = true } label: {
                     Image(systemName: "info.circle")
                 }
                 .buttonStyle(.borderless)
                 .frame(width: 22)
-                .accessibilityLabel("Forklaring")
+                .accessibilityLabel("Legend")
                 .popover(isPresented: $showInfo) {
                     Text(info)
                         .font(.callout)
@@ -280,36 +280,36 @@ struct AdvancedSettingsView: View {
         @Bindable var health = health
         Form {
             Section {
-                    ResetRow(changed: health.showComparison != D.showComparison, info: String(localized: "Viser træningsringsminutterne (den grønne træningsring på Apple Watch) som en grøn linje i Heart Minutes-grafen, så du kan se forskellen. Beregningen bruger altid dine pulszoner.")) {
+                    ResetRow(changed: health.showComparison != D.showComparison, info: String(localized: "Shows your Exercise ring minutes (the green ring on Apple Watch) as a green line in the Heart Minutes chart so you can see the difference. The calculation always uses your heart rate zones.")) {
                         health.showComparison = D.showComparison
                     } content: {
-                        Toggle("Sammenlign med træningsringsminutter", isOn: $health.showComparison)
+                        Toggle("Compare with Exercise ring minutes", isOn: $health.showComparison)
                     }
             } header: {
-                Text("Beregning")
+                Text("Calculation")
             }
 
                 Section {
                     ResetRow(changed: health.interpolation != D.interpolation, info: ActiveMinutes.Interpolation.allExplained) {
                         health.interpolation = D.interpolation
                     } content: {
-                        Picker("Puls mellem målinger", selection: $health.interpolation) {
+                        Picker("Heart rate between measurements", selection: $health.interpolation) {
                             ForEach(ActiveMinutes.Interpolation.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.menu)
                     }
                 } header: {
-                    Text("Puls mellem målinger")
+                    Text("Heart rate between measurements")
                 } footer: {
                     Text("\(health.interpolation.title): \(health.interpolation.explanation)")
                 }
 
                 Section {
-                    ResetRow(changed: health.maxGapSeconds != D.maxGapSeconds, info: String(localized: "Er der længere tid mellem to målinger uden for en workout end dette, tæller tiden imellem ikke med – der er ikke målt. Fra 1 til \(D.maxGapLimit) s. Standard: \(D.maxGapSeconds) s (5 min).")) {
+                    ResetRow(changed: health.maxGapSeconds != D.maxGapSeconds, info: String(localized: "If there is more time between two measurements outside a workout than this, the time in between doesn’t count – nothing was measured. From 1 to \(D.maxGapLimit) s. Default: \(D.maxGapSeconds) s (5 min).")) {
                         health.maxGapSeconds = D.maxGapSeconds
                     } content: {
                         // Skriv selv antal sekunder (1–600).
-                        LabeledContent("Uden for workouts") {
+                        LabeledContent("Outside workouts") {
                             HStack(spacing: 4) {
                                 TextField("s", value: $health.maxGapSeconds, format: .number)
                                     .keyboardType(.numberPad)
@@ -327,24 +327,24 @@ struct AdvancedSettingsView: View {
                     ResetRow(changed: health.workoutGaps != D.workoutGaps, info: ActiveMinutes.WorkoutGaps.allExplained) {
                         health.workoutGaps = D.workoutGaps
                     } content: {
-                        Picker("I workouts", selection: $health.workoutGaps) {
+                        Picker("In workouts", selection: $health.workoutGaps) {
                             ForEach(ActiveMinutes.WorkoutGaps.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.menu)
                     }
                 } header: {
-                    Text("Huller i målingerne")
+                    Text("Gaps in measurements")
                 } footer: {
-                    Text("Uden for workouts tæller huller op til \(Int(health.maxGap)) s. Under workouts \(health.workoutGaps.summary)")
+                    Text("Outside workouts, gaps of up to \(Int(health.maxGap)) s count. During workouts \(health.workoutGaps.summary)")
                 }
         }
-        .navigationTitle("Avanceret")
+        .navigationTitle("Advanced")
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
             // Taltastaturet har ingen retur-tast, så der er en "Færdig"-knap over det.
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Færdig") { editingGap = false }.bold()
+                Button("Done") { editingGap = false }.bold()
             }
         }
     }
@@ -377,13 +377,13 @@ struct ActivityModeView: View {
                     }
                 }
             } footer: {
-                Text("Hvornår din puls i løbet af dagen – uden for workouts – tæller som Heart Minutes. Workouts tæller altid.")
+                Text("When your heart rate during the day – outside workouts – counts as Heart Minutes. Workouts always count.")
             }
 
             if health.activityMode == .withPauses || health.activityMode == .watchWithPauses {
                 Section {
                     // Skriv selv antal sekunder (1–600).
-                    LabeledContent("Længste pause") {
+                    LabeledContent("Longest pause") {
                         HStack(spacing: 4) {
                             TextField("s", value: $health.pauseSeconds, format: .number)
                                 .keyboardType(.numberPad)
@@ -394,18 +394,18 @@ struct ActivityModeView: View {
                         }
                     }
                 } footer: {
-                    Text("Kæder to aktive stykker sammen, når pausen imellem er højst så mange sekunder (1–\(D.pauseLimit)). Så tæller fx havearbejde med små pauser som én sammenhængende aktivitet. De udfyldte pauser vises lyseblå i bunden af pulsgrafen.")
+                    Text("Joins two active stretches when the pause between them is at most this many seconds (1–\(D.pauseLimit)). Then, for example, gardening with short breaks counts as one continuous activity. The filled-in pauses are shown in light blue at the bottom of the heart rate chart.")
                 }
             }
         }
-        .navigationTitle("Baggrundsaktivitet")
+        .navigationTitle("Background activity")
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
             // Taltastaturet har ingen retur-tast, så der er en "Færdig"-knap over det.
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Færdig") { editingPause = false }.bold()
+                Button("Done") { editingPause = false }.bold()
             }
         }
     }

@@ -18,13 +18,13 @@ struct ContentView: View {
         Group {
             if ready {
                 TabView(selection: $tab) {
-                    Tab("Overblik", systemImage: "heart.fill", value: AppTab.overview) {
+                    Tab("Overview", systemImage: "heart.fill", value: AppTab.overview) {
                         OverviewView(interval: $interval, showMinutes: showMinutes)
                     }
-                    Tab("Indstillinger", systemImage: "gearshape", value: AppTab.settings) { SettingsView() }
+                    Tab("Settings", systemImage: "gearshape", value: AppTab.settings) { SettingsView() }
                 }
             } else {
-                ProgressView("Forbinder til Sundhed…")
+                ProgressView("Connecting to Health…")
             }
         }
         .tint(Brand.accent)

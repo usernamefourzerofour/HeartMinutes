@@ -14,7 +14,7 @@ struct WatchContentView: View {
                     // Tæller op ligesom på iPhone (fra 0 ved åbning og ny periode).
                     CountingHeartRing(total: d.minutes, goal: d.goal, resetKey: model.period.rawValue)
                         .frame(width: 96, height: 96)
-                    Text("af \(Int(d.goal.rounded())) min · \(d.percent) %")
+                    Text("of \(Int(d.goal.rounded())) min · \(d.percent) %")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
@@ -50,13 +50,13 @@ struct WatchMinutesChart: View {
                                               to: min(.now, domain.upperBound))
         Chart {
             ForEach(Array(points.enumerated()), id: \.offset) { _, p in
-                AreaMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                AreaMark(x: .value("Time", p.t), y: .value("Minutes", p.v))
                     .foregroundStyle(Brand.area())
-                LineMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                LineMark(x: .value("Time", p.t), y: .value("Minutes", p.v))
                     .foregroundStyle(Brand.accent)
                     .lineStyle(StrokeStyle(lineWidth: 2))
             }
-            RuleMark(y: .value("Mål", data.goal))
+            RuleMark(y: .value("Goal", data.goal))
                 .foregroundStyle(Color.gray)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
         }

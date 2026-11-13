@@ -54,34 +54,34 @@ struct ActiveMinutesChart: View {
             Chart {
                 // Stablet: baggrundsmålinger nederst, workouts ovenpå – samme farver som pulsgrafen.
                 ForEach(shownPoints) { p in
-                    AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.background),
+                    AreaMark(x: .value("Time", p.date), y: .value("Minutes", p.background),
                              stacking: .standard)
-                        .foregroundStyle(by: .value("Kilde", "Baggrund"))
-                    AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.workout),
+                        .foregroundStyle(by: .value("Source", "Background"))
+                    AreaMark(x: .value("Time", p.date), y: .value("Minutes", p.workout),
                              stacking: .standard)
-                        .foregroundStyle(by: .value("Kilde", "Workout"))
+                        .foregroundStyle(by: .value("Source", "Workout"))
                 }
                 if showComparison {
                     ForEach(shownApplePoints) { p in
-                        LineMark(x: .value("Tid", p.date), y: .value("Apple", p.total),
-                                 series: .value("Serie", "Apple"))
+                        LineMark(x: .value("Time", p.date), y: .value("Apple", p.total),
+                                 series: .value("Series", "Apple"))
                             .interpolationMethod(.stepEnd)
                             .foregroundStyle(Self.appleColor)
                             .lineStyle(StrokeStyle(lineWidth: 2))
                     }
                 }
-                RuleMark(y: .value("Mål", goal))
+                RuleMark(y: .value("Goal", goal))
                     // Grå stiplet mållinje – samme som i widgets.
                     .foregroundStyle(Color.gray)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                     .annotation(position: .top, alignment: .leading) {
-                        Text("Mål \(Int(goal.rounded())) min").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                        Text("Goal \(Int(goal.rounded())) min").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
                     }
             }
             .chartXScale(domain: period)
             .chartYScale(domain: 0...yMax)
             .chartForegroundStyleScale([
-                "Baggrund": Brand.area(HeartChart.backgroundColor, top: 0.5),
+                "Background": Brand.area(HeartChart.backgroundColor, top: 0.5),
                 "Workout": Brand.area(HeartChart.workoutColor, top: 0.55),
             ])
             // Rolig y-akse: få, svage linjer.
@@ -105,7 +105,7 @@ struct ActiveMinutesChart: View {
             // Med én decimal, så regnestykket går op (afrundede hele minutter kan give 1 for lidt).
             ZoneBreakdown(result: result, zones: zones)
             }
-            Text("Mål: \(Int(weeklyGoal)) min pr. uge, tilpasset den valgte periode")
+            Text("Goal: \(Int(weeklyGoal)) min per week, adjusted to the selected period")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -129,10 +129,10 @@ struct ActiveMinutesChart: View {
     }
 
     @ViewBuilder private var heartRateLegends: some View {
-        legend(HeartChart.backgroundColor, "Baggrundsaktivitet: \(Int(result.backgroundTotal.rounded())) min")
+        legend(HeartChart.backgroundColor, "Background activity: \(Int(result.backgroundTotal.rounded())) min")
         legend(HeartChart.workoutColor, "Workouts: \(Int(result.workoutTotal.rounded())) min")
         if showComparison {
-            line(Self.appleColor, "Træningsring: \(Int(appleTotal.rounded())) min")
+            line(Self.appleColor, "Exercise ring: \(Int(appleTotal.rounded())) min")
         }
     }
 
@@ -186,7 +186,7 @@ struct WorkoutScoresView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Workouts").font(.headline)
                 if !scores.isEmpty {
-                    Text("Tryk på en workout for at se den i pulsgrafen.")
+                    Text("Tap a workout to see it in the heart rate chart.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -206,7 +206,7 @@ struct WorkoutScoresView: View {
                                 Text("\(w.result.total, format: .number.precision(.fractionLength(1))) min").bold()
                             }
                             Text(([ "\(Int((w.interval.duration / 60).rounded())) min" ] + zoneParts(w.result)
-                                  + [String(localized: "\(w.sampleCount) målinger")]).joined(separator: " · "))
+                                  + [String(localized: "\(w.sampleCount) measurements")]).joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -215,13 +215,13 @@ struct WorkoutScoresView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityHint("Zoom pulsgrafen ind på denne workout")
+                .accessibilityHint("Zoom the heart rate chart to this workout")
                 .listRowSeparator(.hidden)
                 // Lidt mere luft under det sidste kort, så det ikke rører kanten.
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: w.id == scores.last?.id ? 16 : 4, trailing: 16))
             }
             if scores.isEmpty {
-                Text("Ingen workouts i perioden").font(.caption).foregroundStyle(.secondary)
+                Text("No workouts in this period").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -294,7 +294,7 @@ struct ZoneBreakdown: View {
         }
         .contentShape(Rectangle())
         .onTapGesture { withAnimation { showMath.toggle() } }
-        .accessibilityHint("Tryk for at se regnestykket")
+        .accessibilityHint("Tap to see the calculation")
     }
 }
 
@@ -317,7 +317,7 @@ struct HeroRing: View {
                 // Mørk tilstand: ringen lyser lidt, som på uret.
                 .shadow(color: colorScheme == .dark ? Brand.accent.opacity(0.4) : .clear, radius: 14)
             HStack(spacing: 6) {
-                Text("af \(Int(goal.rounded())) min · \(Int((fraction * 100).rounded())) %")
+                Text("of \(Int(goal.rounded())) min · \(Int((fraction * 100).rounded())) %")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 if reached {

@@ -1,14 +1,14 @@
 name: Puls
 options:
   bundleIdPrefix: dk.erik
-  developmentLanguage: da
+  developmentLanguage: en
   deploymentTarget: { iOS: "27.0", watchOS: "11.0" }
 settings:
   base:
     # Samme versionsnumre for iPhone-app, ur-app og komplikation (Apple kræver det).
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "67"
-    # Oversættelser: tekster trækkes ud af koden til String Catalogs (Localizable.xcstrings).
+    # Translations: English source strings are extracted into String Catalogs (Localizable.xcstrings).
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 targets:
@@ -26,8 +26,8 @@ targets:
       path: Puls/Info.plist
       properties:
         UILaunchScreen: {}
-        CFBundleDevelopmentRegion: da
-        CFBundleLocalizations: [da]
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
         ITSAppUsesNonExemptEncryption: false
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
@@ -35,8 +35,8 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: dk.erik.puls
             CFBundleURLSchemes: [heartminutes]
-        NSHealthUpdateUsageDescription: "Heart Minutes gemmer ikke data i Sundhed – den læser kun dine pulsmålinger og træninger."
-        NSHealthShareUsageDescription: "Heart Minutes læser dine pulsmålinger og træninger fra Apple Watch for at vise dem i grafer."
+        NSHealthUpdateUsageDescription: "Heart Minutes doesn’t save data in Health – it only reads your heart rate measurements and workouts."
+        NSHealthShareUsageDescription: "Heart Minutes reads your heart rate measurements and workouts from Apple Watch to show them in charts."
         UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [dk.erik.puls.refresh]
     dependencies:
@@ -68,14 +68,15 @@ targets:
     info:
       path: PulsWatch/Info.plist
       properties:
-        CFBundleDevelopmentRegion: da
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
         CFBundleDisplayName: Heart Minutes
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         WKApplication: true
         WKCompanionAppBundleIdentifier: dk.erik.puls
-        NSHealthUpdateUsageDescription: "Heart Minutes gemmer ikke data i Sundhed – den læser kun dine pulsmålinger og træninger."
-        NSHealthShareUsageDescription: "Heart Minutes læser dine pulsmålinger og træninger for at vise ugens Heart Minutes på uret."
+        NSHealthUpdateUsageDescription: "Heart Minutes doesn’t save data in Health – it only reads your heart rate measurements and workouts."
+        NSHealthShareUsageDescription: "Heart Minutes reads your heart rate measurements and workouts to show this week’s Heart Minutes on your watch."
     dependencies:
       - target: PulsWatchWidget
     settings:
@@ -98,7 +99,8 @@ targets:
     info:
       path: PulsWatchWidget/Info.plist
       properties:
-        CFBundleDevelopmentRegion: da
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
         CFBundleDisplayName: Heart Minutes
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
@@ -123,7 +125,8 @@ targets:
     info:
       path: PulsWidget/Info.plist
       properties:
-        CFBundleDevelopmentRegion: da
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
         CFBundleDisplayName: Heart Minutes
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"

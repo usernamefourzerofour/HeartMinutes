@@ -6,15 +6,15 @@ import AppIntents
 // MARK: - Indstillinger for widgetten (Rediger widget)
 
 extension SummaryPeriod: AppEnum {
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Periode")
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Period")
     static let caseDisplayRepresentations: [SummaryPeriod: DisplayRepresentation] = [
-        .today: "I dag",
-        .thisWeek: "Denne uge",
-        .thisMonth: "Denne måned",
-        .last3Days: "Seneste 3 dage",
-        .last7Days: "Seneste 7 dage",
-        .last14Days: "Seneste 14 dage",
-        .last30Days: "Seneste 30 dage",
+        .today: "Today",
+        .thisWeek: "This week",
+        .thisMonth: "This month",
+        .last3Days: "Last 3 days",
+        .last7Days: "Last 7 days",
+        .last14Days: "Last 14 days",
+        .last30Days: "Last 30 days",
     ]
 }
 
@@ -22,10 +22,10 @@ extension SummaryPeriod: AppEnum {
 enum WidgetDisplay: String, AppEnum {
     case minutes, percent
 
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Vis")
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Show")
     static let caseDisplayRepresentations: [WidgetDisplay: DisplayRepresentation] = [
-        .minutes: "Minutter",
-        .percent: "Procent",
+        .minutes: "Minutes",
+        .percent: "Percent",
     ]
 }
 
@@ -33,9 +33,9 @@ enum WidgetDisplay: String, AppEnum {
 enum WidgetStyle: String, AppEnum {
     case heart, ring
 
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Stil")
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Style")
     static let caseDisplayRepresentations: [WidgetStyle: DisplayRepresentation] = [
-        .heart: "Hjerte",
+        .heart: "Heart",
         .ring: "Ring",
     ]
 }
@@ -50,12 +50,12 @@ protocol HeartMinutesIntent: WidgetConfigurationIntent {
 /// Hjemmeskærm: periode og minutter/procent.
 struct HeartMinutesHomeConfig: HeartMinutesIntent {
     static let title: LocalizedStringResource = "Heart Minutes"
-    static let description = IntentDescription("Vælg periode, og om tallet vises i minutter eller procent af målet.")
+    static let description = IntentDescription("Choose the period and whether the number is shown in minutes or percent of the goal.")
 
-    @Parameter(title: "Periode", default: .thisWeek)
+    @Parameter(title: "Period", default: .thisWeek)
     var period: SummaryPeriod
 
-    @Parameter(title: "Vis", default: .minutes)
+    @Parameter(title: "Show", default: .minutes)
     var display: WidgetDisplay
 
     var style: WidgetStyle { .heart }
@@ -64,15 +64,15 @@ struct HeartMinutesHomeConfig: HeartMinutesIntent {
 /// Låseskærm: som hjemmeskærmen + stil (hjerte eller ring).
 struct HeartMinutesLockConfig: HeartMinutesIntent {
     static let title: LocalizedStringResource = "Heart Minutes"
-    static let description = IntentDescription("Vælg periode, minutter eller procent, og hjerte eller ring.")
+    static let description = IntentDescription("Choose the period, minutes or percent, and heart or ring.")
 
-    @Parameter(title: "Periode", default: .thisWeek)
+    @Parameter(title: "Period", default: .thisWeek)
     var period: SummaryPeriod
 
-    @Parameter(title: "Vis", default: .minutes)
+    @Parameter(title: "Show", default: .minutes)
     var display: WidgetDisplay
 
-    @Parameter(title: "Stil", default: .heart)
+    @Parameter(title: "Style", default: .heart)
     var style: WidgetStyle
 }
 
@@ -127,18 +127,18 @@ struct PeriodChart: View {
                                               to: min(entry.date, domain.upperBound))
         Chart {
             ForEach(Array(points.enumerated()), id: \.offset) { _, p in
-                AreaMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                AreaMark(x: .value("Time", p.t), y: .value("Minutes", p.v))
                     .foregroundStyle(Brand.area())
-                LineMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
+                LineMark(x: .value("Time", p.t), y: .value("Minutes", p.v))
                     .foregroundStyle(Brand.accent)
                     .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
-            RuleMark(y: .value("Mål", data.goal))
+            RuleMark(y: .value("Goal", data.goal))
                 .foregroundStyle(Color.gray)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                 // Lille widget: under stregen, så den ikke rammer teksten ovenover.
                 .annotation(position: compact ? .bottom : .top, alignment: .leading, spacing: 1) {
-                    Text("Mål \(Int(data.goal.rounded())) min")
+                    Text("Goal \(Int(data.goal.rounded())) min")
                         .font(.system(size: compact ? 8 : 9, weight: .semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -212,13 +212,13 @@ struct WidgetCaption: View {
                 // Lille widget: smal plads ved siden af ringen, så minutterne får deres egen linje.
                 Text("\(Int(d.minutes.rounded())) min")
                     .font(.caption2.weight(.semibold))
-                Text("af \(Int(d.goal.rounded())) min")
+                Text("of \(Int(d.goal.rounded())) min")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             } else {
                 (entry.display == .percent
-                 ? Text("% · \(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min")
-                 : Text("af \(Int(d.goal.rounded())) min"))
+                 ? Text("% · \(Int(d.minutes.rounded())) of \(Int(d.goal.rounded())) min")
+                 : Text("of \(Int(d.goal.rounded())) min"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -287,7 +287,7 @@ struct HomeWidgetView: View {
                                 .font(.system(size: 17, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.secondary)
                         }
-                        Text("af \(Int(d.goal.rounded())) min · \(d.percent) %")
+                        Text("of \(Int(d.goal.rounded())) min · \(d.percent) %")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(entry.period.title)
@@ -338,7 +338,7 @@ struct HeartMinutesHomeWidget: Widget {
                 .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
-        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent.")
+        .description("Heart Minutes towards your goal – choose the period and minutes or percent.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -353,7 +353,7 @@ struct HeartMinutesLockWidget: Widget {
                 .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
-        .description("Heart Minutes på låseskærmen – vælg periode, minutter eller procent, og hjerte eller ring.")
+        .description("Heart Minutes on the Lock Screen – choose the period, minutes or percent, and heart or ring.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
