@@ -374,8 +374,6 @@ struct HeroRing: View {
             if phase == .background { wasInBackground = true }
             if phase == .active && wasInBackground { wasInBackground = false; shown = 0; run += 1 }
         }
-        // Et lille "dunk", når målet nås.
-        .sensoryFeedback(trigger: reached) { _, now in now ? .success : nil }
         .accessibilityElement(children: .combine)
     }
 
