@@ -522,18 +522,20 @@ struct OverviewView: View {
                 let result = ActiveMinutes(health.minuteSamples, config: health.minutesConfig)
                 let total = health.minutesSource == .appleExercise
                     ? (health.applePoints.last?.total ?? 0) : result.total
-                let goal = ActiveMinutes.scaledGoal(weekly: Double(health.weeklyGoal), duration: interval.duration)
+                // Indtil den nye periodes data er hentet, vises den forrige periode samlet.
+                let shown = health.loadedInterval ?? interval
+                let goal = ActiveMinutes.scaledGoal(weekly: Double(health.weeklyGoal), duration: shown.duration)
                 Section {
                     PeriodHeader(interval: $interval)
                         .id("top")
                     // Hero: den store hjerte-ring med periodens tal.
-                    HeroRing(total: total, goal: goal)
+                    HeroRing(total: total, goal: goal, period: shown)
                         .listRowSeparator(.hidden)
                     if stats != nil || health.minutesSource == .appleExercise {
                         ActiveMinutesChart(
                             result: result,
                             showHeader: false,
-                            period: interval.start...interval.end,
+                            period: shown.start...shown.end,
                             zones: health.zones,
                             weeklyGoal: Double(health.weeklyGoal),
                             applePoints: health.applePoints,
@@ -559,7 +561,7 @@ struct OverviewView: View {
                         // Med pauser markeres de udfyldte målinger, så båndet i bunden kan vise dem.
                         HeartChart(samples: ActiveMinutes.bridgingActive(health.shownSamples, config: health.minutesConfig),
                                    zones: health.zones,
-                                   period: interval.start...interval.end,
+                                   period: shown.start...shown.end,
                                    focus: focus,
                                    heartMinutes: { a, b in
                                        ActiveMinutes.credit(in: health.minuteSamples, from: a, to: b,

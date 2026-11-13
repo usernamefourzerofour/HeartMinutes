@@ -375,6 +375,9 @@ final class HealthManager {
     private(set) var minuteSamples: [HRSample] = []
     /// Periodens workouts.
     private(set) var periodWorkouts: [DateInterval] = []
+    /// Den periode, de viste data hører til. Skiftes samtidig med data, så tal, mål og grafer
+    /// ikke blander den gamle periodes målinger med den nyes tidsakse.
+    private(set) var loadedInterval: DateInterval?
     /// Workout-typen (fra Sundhed) for hver workout i perioden, efter starttidspunkt.
     private(set) var workoutTypes: [Date: HKWorkoutActivityType] = [:]
     /// Baggrundsmålinger i perioden uden aktiv/i ro-markering.
@@ -545,8 +548,10 @@ final class HealthManager {
         let samples = await heartRates(from: interval.start, to: interval.end)
         let workoutIntervals = await workoutIntervals(from: interval.start, to: interval.end)
         let exercise = await exerciseSamples(from: interval.start, to: interval.end)
-        // Afbrudt (fx når iOS stopper en baggrundsopdatering): data er ufuldstændige.
-        if Task.isCancelled { loadFailed = true }
+        // Afbrudt (fx når iOS stopper en baggrundsopdatering, eller der er valgt en ny periode):
+        // data er ufuldstændige eller forældede, så de vises ikke.
+        if Task.isCancelled { loadFailed = true; return }
+        loadedInterval = interval
         applePoints = ActiveMinutes.cumulativeExercise(exercise.map { (end: $0.end, minutes: $0.minutes) },
                                                        start: interval.start)
         periodWorkouts = workoutIntervals

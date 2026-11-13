@@ -336,6 +336,9 @@ struct ZoneBreakdown: View {
 struct HeroRing: View {
     let total: Double
     let goal: Double
+    /// Ny periode: ringen tæller op fra 0 igen.
+    var period: DateInterval? = nil
+    @State private var countedPeriod: DateInterval?
     /// Andelen, ringen viser lige nu (tælles op fra 0 eller fra den forrige værdi).
     @State private var shown = 0.0
     /// Øges, når appen åbnes igen, så ringen fyldes op forfra.
@@ -368,7 +371,10 @@ struct HeroRing: View {
         .padding(.vertical, 4)
         // Ved visning, ny periode/nye data og når appen åbnes igen. Animeres trin for trin (i stedet
         // for withAnimation), så det virker pålideligt inde i en liste.
-        .task(id: "\(fraction)-\(run)") { await fill(to: fraction) }
+        .task(id: "\(fraction)-\(run)-\(period?.start.timeIntervalSince1970 ?? 0)-\(period?.end.timeIntervalSince1970 ?? 0)") {
+            if period != countedPeriod { countedPeriod = period; shown = 0 }
+            await fill(to: fraction)
+        }
         .onChange(of: scenePhase) { _, phase in
             // Kun efter baggrunden – ikke fx når Kontrolcenter lukkes.
             if phase == .background { wasInBackground = true }
