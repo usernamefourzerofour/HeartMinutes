@@ -280,7 +280,9 @@ struct ShapeProgressRing<S: Shape>: View {
         GeometryReader { geo in
             let size = min(geo.size.width, geo.size.height)
             let lw = size * thickness
-            let pos = f > 1 ? min(f - 1, 0.999) : f
+            // Hvor på den nuværende omgang enden er – også efter 2., 3., … omgang.
+            let laps = f > 1 ? (f - 0.0005).rounded(.down) : 0
+            let pos = f > 1 ? min(max(f - laps, 0.001), 0.999) : f
             // Spids i hjertets bund, men ingen lang pil ind i kløften (miterLimit).
             let style = { (cap: CGLineCap) in
                 StrokeStyle(lineWidth: lw, lineCap: cap, lineJoin: .miter, miterLimit: miterLimit)
@@ -296,14 +298,14 @@ struct ShapeProgressRing<S: Shape>: View {
                     // Over målet: hele formen tegnes som ÉN lukket streg (ingen samling ved kl. 12, som
                     // gav en hvid streg på tonet urskive). Farven er én sammenhængende skala over hele
                     // forløbet: ny omgang tone(k) → tone(1) fra kl. 12 til enden, derefter resten af
-                    // første omgang tone(k·p) → tone(k).
-                    let k = 1 / f
+                    // omgangen før (laps − 1 + p)/f → tone(k).
+                    let k = laps / f   // hvor langt på skalaen de hele omgange når
                     let rect = CGRect(x: 0, y: 0, width: geo.size.width - lw, height: geo.size.height - lw)
                     let p = angleFraction(of: pos, in: rect)
                     let lap = AngularGradient(stops: [
                         .init(color: tone(k), location: 0),
                         .init(color: tone(1), location: p),
-                        .init(color: tone(k * p), location: min(p + 0.0001, 1)),
+                        .init(color: tone((laps - 1 + p) / f), location: min(p + 0.0001, 1)),
                         .init(color: tone(k), location: 1),
                     ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
                     RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
