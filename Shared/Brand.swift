@@ -22,7 +22,7 @@ struct AnimatedHeartRing: View, Animatable {
 
     var body: some View {
         ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: value,
-                          thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                          thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
     }
 }
 

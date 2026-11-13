@@ -384,7 +384,7 @@ struct HeartMinutesHeartRingView: View {
         let d = entry.data
         ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
                           value: center == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))",
-                          thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                          thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
     }
 }
 

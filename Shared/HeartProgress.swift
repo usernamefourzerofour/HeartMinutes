@@ -63,7 +63,7 @@ struct HeartProgress: View {
 /// one stroke width and its inner edge just comes to a point (no sharp corners where the stroke could fold over).
 struct HeartOutlineShape: Shape {
     /// The stroke width the corners are rounded for, as a fraction of the size (as in `ShapeProgressRing`).
-    var thickness: CGFloat = 0.13
+    var thickness: CGFloat = 0.12
 
     func path(in rect: CGRect) -> Path {
         // In the icon's coordinates (see `HeartShape.box`). The ring draws the shape inset by half a stroke, so one
@@ -71,9 +71,9 @@ struct HeartOutlineShape: Shape {
         let box = HeartShape.box
         let corner = thickness / (1 - thickness) * box.width / 2   // half a stroke width
         let mid = box.midX                                        // 110
-        let lobe = CGPoint(x: mid + 32, y: 90), lobeRadius: CGFloat = 34
-        let sideRadius: CGFloat = 160
-        let tip = CGPoint(x: mid, y: box.maxY - corner)           // the lowest point is at the bottom of the box
+        let lobe = CGPoint(x: mid + 33, y: 89), lobeRadius: CGFloat = 33
+        let sideRadius: CGFloat = 230
+        let tip = CGPoint(x: mid, y: box.maxY + 1 - corner)       // the lowest point (just below the box)
         // The cleft: a circle above it that touches both lobes.
         let cleft = CGPoint(x: mid, y: lobe.y - sqrt(pow(lobeRadius + corner, 2) - pow(lobe.x - mid, 2)))
         // The side: a large circle that touches the lobe and the tip from the inside.

@@ -194,7 +194,7 @@ struct WidgetRing: View {
         let d = entry.data
         ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
                           value: entry.display == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))",
-                          thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                          thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
             .aspectRatio(1, contentMode: .fit)
     }
 }

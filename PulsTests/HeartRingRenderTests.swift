@@ -18,7 +18,7 @@ struct HeartRingRenderTests {
     @Test(arguments: [0.5, 1.04, 1.47, 2.2, 3.1])
     func nothingDrawnOutsideTheHeart(fraction: Double) throws {
         let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: "",
-                                     thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                                     thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
             .frame(width: 200, height: 200)
         let renderer = ImageRenderer(content: view)
         renderer.scale = 1
@@ -31,7 +31,7 @@ struct HeartRingRenderTests {
 
     private func png(_ fraction: Double, scale: CGFloat, dark: Bool = false) -> Data? {
         let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: "\(Int(fraction * 150))",
-                                     thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                                     thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
             .frame(width: 200, height: 200)
             .padding(10)
             .background(dark ? Color.black : Color.white)
