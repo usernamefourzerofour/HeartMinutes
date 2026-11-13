@@ -227,6 +227,26 @@ struct RoundStartStroke<S: Shape>: Shape {
     }
 }
 
+/// Den nye omgang over målet som ÉN figur: stregen fra start til `to` plus den runde kløft ved
+/// start (samme rundede start som `RoundStartStroke`).
+struct NewLapStroke<S: Shape>: Shape {
+    let shape: S
+    let to: Double
+    let lineWidth: CGFloat
+    let miterLimit: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let full = shape.path(in: rect)
+        var result = full.trimmedPath(from: 0, to: max(min(to, 1), 0.001))
+            .strokedPath(StrokeStyle(lineWidth: lineWidth, lineCap: .butt, lineJoin: .miter, miterLimit: miterLimit))
+        if let start = full.trimmedPath(from: 0, to: 0.0001).currentPoint, start.x.isFinite, start.y.isFinite {
+            let r = lineWidth / 2
+            result = result.union(Path(ellipseIn: CGRect(x: start.x - r, y: start.y - r, width: 2 * r, height: 2 * r)))
+        }
+        return result
+    }
+}
+
 /// En prik (cirkel) på formens kant ved `fraction` af vejen rundt.
 struct EndDot<S: Shape>: Shape {
     let shape: S
@@ -324,8 +344,8 @@ struct ShapeProgressRing<S: Shape>: View {
                             .init(color: tone(k), location: min(p + 0.0001, 1)),
                             .init(color: tone(k), location: 1),
                         ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
-                        EndDot(shape: shape, fraction: 0, radius: lw / 2).fill(newLap)
-                        shape.trim(from: 0, to: pos).stroke(newLap, style: style(.butt))
+                        NewLapStroke(shape: shape, to: pos, lineWidth: lw, miterLimit: miterLimit)
+                            .fill(newLap)
                     }
                     EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1))
                         .shadow(color: renderingMode == .fullColor && colorScheme != .dark
