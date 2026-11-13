@@ -12,6 +12,30 @@ struct SettingsView: View {
         @Bindable var health = health
         NavigationStack {
             Form {
+                // Øverst: målinger bestemmer, hvad der tæller i pulsberegningen.
+                Section {
+                    ResetRow(changed: health.includeBackground != D.includeBackground, info: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.") {
+                        health.includeBackground = D.includeBackground
+                    } content: {
+                        Toggle(isOn: $health.includeBackground) {
+                            Label("Baggrundsmålinger", systemImage: "applewatch")
+                        }
+                        .tint(HeartChart.backgroundColor)
+                    }
+                    ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: "Pulsmålinger taget under en registreret træning (workout).") {
+                        health.includeWorkouts = D.includeWorkouts
+                    } content: {
+                        Toggle(isOn: $health.includeWorkouts) {
+                            Label("Workouts", systemImage: "figure.run")
+                        }
+                        .tint(HeartChart.workoutColor)
+                    }
+                } header: {
+                    Text("Målinger")
+                } footer: {
+                    Text("Hvilke pulsmålinger der tæller med i Heart Minutes og vises i pulsgrafen.")
+                }
+
                 Section {
                     ResetRow(changed: health.weeklyGoal != D.weeklyGoal, info: "Dit mål pr. uge. AHA anbefaler mindst 150 min moderat eller 75 min hård aktivitet om ugen. Målet skaleres til den valgte periode, fx ca. 21 min for én dag.") {
                         health.weeklyGoal = D.weeklyGoal
@@ -98,30 +122,6 @@ struct SettingsView: View {
                     Text("Grænserne er i procent af din maks-puls (\(Int(health.maxHR.rounded())) bpm). Faktoren er, hvor meget ét minut i zonen tæller; den nederste zone tæller som udgangspunkt ikke (× 0).")
                 }
 
-                // Målinger bestemmer, hvad der tæller i pulsberegningen.
-                Section {
-                    ResetRow(changed: health.includeBackground != D.includeBackground, info: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.") {
-                        health.includeBackground = D.includeBackground
-                    } content: {
-                        Toggle(isOn: $health.includeBackground) {
-                            Label("Baggrundsmålinger", systemImage: "applewatch")
-                        }
-                        .tint(HeartChart.backgroundColor)
-                    }
-                    ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: "Pulsmålinger taget under en registreret træning (workout).") {
-                        health.includeWorkouts = D.includeWorkouts
-                    } content: {
-                        Toggle(isOn: $health.includeWorkouts) {
-                            Label("Workouts", systemImage: "figure.run")
-                        }
-                        .tint(HeartChart.workoutColor)
-                    }
-                } header: {
-                    Text("Målinger")
-                } footer: {
-                    Text("Hvilke pulsmålinger der tæller med i Heart Minutes og vises i pulsgrafen.")
-                }
-
                 Section {
                     ResetRow(changed: health.watchPeriod != D.watchPeriod, info: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.") {
                         health.watchPeriod = D.watchPeriod
@@ -152,7 +152,6 @@ struct SettingsView: View {
                     Text("Sammenligning, puls mellem målinger og huller.")
                 }
 
-
                 Section {
                     Button("Nulstil alle indstillinger", role: .destructive) { confirmResetAll = true }
                 } footer: {
@@ -169,7 +168,6 @@ struct SettingsView: View {
             }
         }
     }
-
 
     /// Én zone i "Dine zoner": navn og bpm, grænse i % (ikke den nederste) og faktor.
     @ViewBuilder private func zoneRow(_ i: Int) -> some View {
