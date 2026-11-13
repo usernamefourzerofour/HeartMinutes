@@ -57,17 +57,68 @@ struct HeartProgress: View {
     }
 }
 
-/// The heart's outline drawn from the cleft at the top, clockwise – so it can be trimmed like a ring.
+/// The heart's outline (the middle of the stroke) drawn from the cleft at the top, clockwise – so it can be trimmed like
+/// a ring. Built from circles so it is smooth everywhere: two round lobes, slightly curved sides and a rounded tip and
+/// cleft. The tip and the cleft are rounded with half the stroke width, so the stroke's outer edge there has a radius of
+/// one stroke width and its inner edge just comes to a point (no sharp corners where the stroke could fold over).
 struct HeartOutlineShape: Shape {
+    /// The stroke width the corners are rounded for, as a fraction of the size (as in `ShapeProgressRing`).
+    var thickness: CGFloat = 0.13
+
     func path(in rect: CGRect) -> Path {
+        // In the icon's coordinates (see `HeartShape.box`). The ring draws the shape inset by half a stroke, so one
+        // stroke width is thickness / (1 − thickness) of the box width.
+        let box = HeartShape.box
+        let corner = thickness / (1 - thickness) * box.width / 2   // half a stroke width
+        let mid = box.midX                                        // 110
+        let lobe = CGPoint(x: mid + 32, y: 90), lobeRadius: CGFloat = 34
+        let sideRadius: CGFloat = 160
+        let tip = CGPoint(x: mid, y: box.maxY - corner)           // the lowest point is at the bottom of the box
+        // The cleft: a circle above it that touches both lobes.
+        let cleft = CGPoint(x: mid, y: lobe.y - sqrt(pow(lobeRadius + corner, 2) - pow(lobe.x - mid, 2)))
+        // The side: a large circle that touches the lobe and the tip from the inside.
+        let side = Self.touchingCircle(lobe, lobeRadius, tip, corner, radius: sideRadius)
+        func angle(_ c: CGPoint, toward p: CGPoint) -> Double { atan2(Double(p.y - c.y), Double(p.x - c.x)) }
+        func mirrored(_ a: Double) -> Double { .pi - a }
+        let cleftToLobe = angle(cleft, toward: lobe)           // where the cleft meets the lobe (seen from the cleft)
+        let lobeToCleft = angle(lobe, toward: cleft)
+        let lobeToSide = angle(side, toward: lobe)              // where the lobe meets the side
+        let sideToTip = angle(side, toward: tip)                // where the side meets the tip
+        let rad = { (a: Double) in Angle(radians: a) }
+
+        // SwiftUI's y axis points down: clockwise: false sweeps increasing angles, which is clockwise on screen.
         var p = Path()
-        p.move(to: CGPoint(x: 110, y: 74))
-        p.addCurve(to: CGPoint(x: 158, y: 62), control1: CGPoint(x: 116, y: 58), control2: CGPoint(x: 136, y: 46))
-        p.addCurve(to: CGPoint(x: 110, y: 178), control1: CGPoint(x: 186, y: 82), control2: CGPoint(x: 180, y: 128))
-        p.addCurve(to: CGPoint(x: 62, y: 62), control1: CGPoint(x: 40, y: 128), control2: CGPoint(x: 34, y: 82))
-        p.addCurve(to: CGPoint(x: 110, y: 74), control1: CGPoint(x: 84, y: 46), control2: CGPoint(x: 104, y: 58))
-        p.closeSubpath()   // neat join in the cleft when the whole heart is drawn
+        p.addArc(center: cleft, radius: corner, startAngle: rad(.pi / 2), endAngle: rad(cleftToLobe), clockwise: true)
+        p.addArc(center: lobe, radius: lobeRadius, startAngle: rad(lobeToCleft), endAngle: rad(lobeToSide),
+                 clockwise: false)
+        p.addArc(center: side, radius: sideRadius, startAngle: rad(lobeToSide), endAngle: rad(sideToTip),
+                 clockwise: false)
+        p.addArc(center: tip, radius: corner, startAngle: rad(sideToTip), endAngle: rad(mirrored(sideToTip)),
+                 clockwise: false)
+        let otherSide = CGPoint(x: 2 * mid - side.x, y: side.y), otherLobe = CGPoint(x: 2 * mid - lobe.x, y: lobe.y)
+        p.addArc(center: otherSide, radius: sideRadius, startAngle: rad(mirrored(sideToTip)),
+                 endAngle: rad(mirrored(lobeToSide)), clockwise: false)
+        p.addArc(center: otherLobe, radius: lobeRadius, startAngle: rad(mirrored(lobeToSide)),
+                 endAngle: rad(mirrored(lobeToCleft)), clockwise: false)
+        p.addArc(center: cleft, radius: corner, startAngle: rad(mirrored(cleftToLobe)), endAngle: rad(.pi / 2),
+                 clockwise: true)
+        p.closeSubpath()
         return p.applying(HeartShape.transform(for: rect))
+    }
+
+    /// The centre of a circle with `radius` that touches two smaller circles from the outside of them (both lie
+    /// inside it), on the side toward the heart's middle.
+    private static func touchingCircle(_ c1: CGPoint, _ r1: CGFloat, _ c2: CGPoint, _ r2: CGFloat,
+                                       radius: CGFloat) -> CGPoint {
+        let d1 = radius - r1, d2 = radius - r2
+        let dx = c2.x - c1.x, dy = c2.y - c1.y
+        let l = sqrt(dx * dx + dy * dy)
+        let ux = dx / l, uy = dy / l
+        let along = (d1 * d1 - d2 * d2 + l * l) / (2 * l)
+        let h = sqrt(max(d1 * d1 - along * along, 0))
+        let a = CGPoint(x: c1.x + ux * along - uy * h, y: c1.y + uy * along + ux * h)
+        let b = CGPoint(x: c1.x + ux * along + uy * h, y: c1.y + uy * along - ux * h)
+        return a.x < b.x ? a : b
     }
 }
 

@@ -29,19 +29,38 @@ struct HeartRingRenderTests {
         #expect(alpha(at: CGPoint(x: 195, y: 150), in: image) == 0)
     }
 
-    /// Writes previews of the ring to /tmp/hm-renders (for looking at the ring's end; ignored if it can't write).
-    @Test(arguments: [0.1, 0.5, 0.9, 0.96, 0.99, 1.01, 1.04, 1.47, 2.2])
-    func writePreview(fraction: Double) throws {
+    private func png(_ fraction: Double, scale: CGFloat, dark: Bool = false) -> Data? {
         let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: "\(Int(fraction * 150))",
                                      thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
             .frame(width: 200, height: 200)
             .padding(10)
-            .background(Color.white)
+            .background(dark ? Color.black : Color.white)
+            .environment(\.colorScheme, dark ? .dark : .light)
         let renderer = ImageRenderer(content: view)
-        renderer.scale = 3
-        guard let image = renderer.uiImage, let data = image.pngData() else { return }
-        let dir = URL(fileURLWithPath: "/tmp/hm-renders")
+        renderer.scale = scale
+        return renderer.uiImage?.pngData()
+    }
+
+    private func write(_ data: Data?, _ name: String, in folder: String) {
+        guard let data else { return }
+        let dir = URL(fileURLWithPath: "/tmp/hm-renders").appendingPathComponent(folder)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try? data.write(to: dir.appendingPathComponent("ring-\(Int(fraction * 100)).png"))
+        try? data.write(to: dir.appendingPathComponent(name))
+    }
+
+    /// Writes previews of the ring to /tmp/hm-renders (for looking at the ring's end; ignored if it can't write).
+    @Test(arguments: [0.1, 0.5, 0.9, 0.96, 0.99, 1.01, 1.04, 1.47, 2.2])
+    func writePreview(fraction: Double) {
+        write(png(fraction, scale: 3), "ring-\(Int((fraction * 100).rounded())).png", in: ".")
+        write(png(fraction, scale: 3, dark: true), "dark-\(Int((fraction * 100).rounded())).png", in: ".")
+    }
+
+    /// Every frame of the count-up from 0 to 300 % (1 % per frame) to /tmp/hm-renders/frames. Only when the test runner
+    /// has HM_FRAMES set (xcodebuild: TEST_RUNNER_HM_FRAMES=1), as it takes a while.
+    @Test func writeAnimationFrames() {
+        guard ProcessInfo.processInfo.environment["HM_FRAMES"] != nil else { return }
+        for percent in 0...300 {
+            write(png(Double(percent) / 100, scale: 2), String(format: "f%03d.png", percent), in: "frames")
+        }
     }
 }

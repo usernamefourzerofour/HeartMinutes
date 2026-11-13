@@ -242,9 +242,12 @@ struct EndDot<S: Shape>: Shape {
     }
 }
 
-/// Progress as an Activity-style ring along any shape (circle or heart): dark track, gradient, a new lap above the goal
-/// (continuing from 12 o'clock), dark edge (full colour only), a white dot at the current position and only the number
-/// in the middle.
+/// Progress as an Activity-style ring along any shape (circle or heart): dark track, a colour scale along the stroke, a
+/// new lap above the goal (continuing from 12 o'clock), dark edge (dark mode only), a white dot at the current position
+/// and only the number in the middle.
+///
+/// The colour follows the way along the shape, not the angle: the progress is drawn as many short pieces, each in its
+/// own colour. (An angular gradient gave seams on a heart, where the angle and the way along it don't match.)
 struct ShapeProgressRing<S: Shape>: View {
     @Environment(\.widgetRenderingMode) private var renderingMode
     @Environment(\.colorScheme) private var colorScheme
@@ -257,22 +260,24 @@ struct ShapeProgressRing<S: Shape>: View {
     var textY: CGFloat = 0.5
     var textWidth: CGFloat = 0.68
     var textSize: CGFloat = 0.36
-    /// Above this limit the heart's cleft is cut off straight (bevelled join). Higher = a point down into the hollow
-    /// (more heart-like), but it can hit the number in the middle.
+    /// For shapes with corners (only the track uses it; the heart has rounded corners).
     var miterLimit: CGFloat = 2
 
     static var start: Color { Color(red: 0.88, green: 0.02, blue: 0.27) }
     static var end: Color { Color(red: 1.0, green: 0.36, blue: 0.62) }
 
-    /// The colour at `x` (0…1) of the whole way: from light/faint at the start to deep/full where you have reached.
-    /// Full colour: light pink → deep red-pink. Tinted watch face: faint → full (opacity).
+    /// Pieces per lap: enough that the steps in colour can't be seen.
+    private static var piecesPerLap: Double { 160 }
+
+    /// The colour at `x` (0…1) of the whole way: from light at the start to deep where you have reached.
+    /// Full colour: light pink (1.0 · 0.70 · 0.82) → deep red-pink (0.82 · 0.0 · 0.24). Other modes: a grey level that
+    /// becomes the opacity (faint → full) through a luminance mask, so overlapping pieces don't show.
     private func tone(_ x: Double) -> Color {
         let t = min(max(x, 0), 1)
         if renderingMode == .fullColor {
-            // Light pink (1.0 · 0.70 · 0.82) → deep red-pink (0.82 · 0.0 · 0.24)
             return Color(red: 1.0 - 0.18 * t, green: 0.70 - 0.70 * t, blue: 0.82 - 0.58 * t)
         }
-        return Self.start.opacity(0.22 + 0.78 * t)
+        return Color(white: 0.22 + 0.78 * t)
     }
 
     var body: some View {
@@ -283,73 +288,19 @@ struct ShapeProgressRing<S: Shape>: View {
             // Where on the current lap the end is – also after the 2nd, 3rd, … lap.
             let laps = f > 1 ? (f - 0.0005).rounded(.down) : 0
             let pos = f > 1 ? min(max(f - laps, 0.001), 0.999) : f
-            // A point at the bottom of the heart, but no long arrow into the cleft (miterLimit).
-            let style = { (cap: CGLineCap) in
-                StrokeStyle(lineWidth: lw, lineCap: cap, lineJoin: .miter, miterLimit: miterLimit)
-            }
             ZStack {
                 // The track: the same colour but very dark (fainter on a tinted watch face).
                 RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
                     .fill(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12))
-                if f <= 1 {
-                    // Gets gradually more intense all the way to where you have reached.
-                    // The gradient ends at the angle of the end point, so the end is exactly tone(1) (for a heart
-                    // the angle isn't the same as the fraction of the way).
-                    let rect = CGRect(x: 0, y: 0, width: geo.size.width - lw, height: geo.size.height - lw)
-                    let endAngle = angleFraction(of: max(f, 0.01), in: rect)
-                    // At (almost) 100 % the end is back at 12 o'clock, where the angle wraps to 0.
-                    let end = f > 0.5 && endAngle < 0.5 ? 1 : endAngle
-                    // Full colour: a flat start with the start's round cap painted underneath in the start colour,
-                    // and the end drawn as a "head" on top. A round cap is coloured by angle, so near the cleft the
-                    // ray from the centre through the end showed as a thin dark wedge in it.
-                    let flat = renderingMode == .fullColor && f > 0.02
-                    if flat {
-                        startCap(lw: lw, colour: tone(0))
-                    }
-                    shape.trim(from: 0, to: max(f, 0.001))
-                        .stroke(sweep(base: 0, endAngle: end), style: style(flat ? .butt : .round))
-                        .widgetAccentable()
-                    if flat || f > 0.85 {
-                        // Close to the goal the end meets the start in the cleft, and the gradient's seam at
-                        // 12 o'clock cut straight through the round end. The head covers it.
-                        head(at: f, base: 0, endAngle: end, lw: lw)
-                    }
-                } else {
-                    // Above the goal: the whole shape is drawn as ONE closed stroke (no join at 12 o'clock, which gave
-                    // a white line on a tinted watch face). The colour is one continuous scale over the whole way: the
-                    // new lap tone(k) → tone(1) from 12 o'clock to the end, then the rest of the previous lap (laps − 1
-                    // + p)/f → tone(k).
-                    let k = laps / f   // how far along the scale the whole laps reach
-                    let rect = CGRect(x: 0, y: 0, width: geo.size.width - lw, height: geo.size.height - lw)
-                    let p = angleFraction(of: pos, in: rect)
-                    let previous = tone((laps - 1 + p) / f)
-                    // In full colour the new lap is drawn on top, so up to the end the previous lap only needs the
-                    // colour it has right after the end (no seam that could show next to the end).
-                    let lap = AngularGradient(stops: renderingMode == .fullColor ? [
-                        .init(color: previous, location: 0),
-                        .init(color: previous, location: p),
-                        .init(color: tone(k), location: 1),
-                    ] : [
-                        .init(color: tone(k), location: 0),
-                        .init(color: tone(1), location: p),
-                        .init(color: previous, location: min(p + 0.0001, 1)),
-                        .init(color: tone(k), location: 1),
-                    ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
-                    RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
-                        .fill(lap).widgetAccentable()
+                if f > 0 {
                     if renderingMode == .fullColor {
-                        // Dark edge below the end so the new lap clearly lies on top. On a light background (Home
-                        // Screen) it became a visible black ring – a shadow is used instead.
-                        if colorScheme == .dark {
-                            EndDot(shape: shape, fraction: pos, radius: lw / 2 + 2).fill(.black)
-                        }
-                        // The new lap on top: the round cleft at the start in the start colour, then a flat-ended
-                        // stroke to the end (the head on top rounds it off).
-                        startCap(lw: lw, colour: tone(k))
-                        shape.trim(from: 0, to: max(pos, 0.001))
-                            .stroke(sweep(base: k, endAngle: p), style: style(.butt))
+                        progress(f: f, laps: laps, pos: pos, lw: lw)
+                    } else {
+                        // Tinted: the grey levels become the opacity of one colour.
+                        Rectangle().fill(Self.start)
+                            .mask(progress(f: f, laps: laps, pos: pos, lw: lw).luminanceToAlpha())
+                            .widgetAccentable()
                     }
-                    head(at: pos, base: k, endAngle: p, lw: lw)
                 }
                 // Small white dot where you have reached.
                 EndDot(shape: shape, fraction: pos, radius: lw * 0.19).fill(.white)
@@ -367,59 +318,46 @@ struct ShapeProgressRing<S: Shape>: View {
         }
     }
 
-    /// The end of the progress as a "head": the round end, clipped to the ring. It covers the gradient's seam where the
-    /// end meets the start. It is filled with the same colours as the stroke below it (`base` at 12 o'clock → tone(1)
-    /// at `endAngle`), but with the gradient turned so its seam is on the opposite side: behind the end it blends into
-    /// the stroke, past the end it stays tone(1). (A flat colour, a shadow or an extra stroke all made the end look
-    /// like a separate piece.)
-    private func head(at pos: Double, base: Double, endAngle: Double, lw: CGFloat) -> some View {
-        let e = min(max(endAngle, 0.01), 1)
-        let colour = { (a: Double) in self.tone(base + (1 - base) * min(max(a / e, 0), 1)) }
-        // Locations are relative to the turned start (e − 0.5): the end sits at 0.5, 12 o'clock at 0.5 − e.
-        let stops: [Gradient.Stop] = e >= 0.5
-            ? [.init(color: colour(e - 0.5), location: 0), .init(color: tone(1), location: 0.5),
-               .init(color: tone(1), location: 1)]
-            : [.init(color: colour(0), location: 0), .init(color: colour(0), location: 0.5 - e),
-               .init(color: tone(1), location: 0.5), .init(color: tone(1), location: 1)]
-        return EndDot(shape: shape, fraction: pos, radius: lw / 2)
-            .fill(AngularGradient(stops: stops, center: .center,
-                                  startAngle: .degrees(-90 + 360 * (e - 0.5)), endAngle: .degrees(270 + 360 * (e - 0.5))))
-            .mask(RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit))
-            .widgetAccentable()
-    }
-
-    /// The colours along the progress: `base` at 12 o'clock → tone(1) at `endAngle`, tone(1) a bit past the end (the
-    /// round end) and `base` just before 12 o'clock (the round start in the cleft). The gradient's seam lies halfway
-    /// between the end and 12 o'clock, where nothing of the progress is drawn.
-    private func sweep(base: Double, endAngle: Double) -> AngularGradient {
-        let e = min(max(endAngle, 0.01), 0.999)
-        let m = (e + 1) / 2   // the seam
-        let colours: [Gradient.Stop] = [
-            .init(color: tone(base), location: 0),
-            .init(color: tone(base), location: 1 - m),
-            .init(color: tone(1), location: 1 - m + e),
-            .init(color: tone(1), location: 1),
-        ]
-        return AngularGradient(stops: colours, center: .center,
-                               startAngle: .degrees(-90 + 360 * m), endAngle: .degrees(270 + 360 * m))
-    }
-
-    /// The round start in the cleft, in one colour (drawn below the progress, which starts flat).
-    private func startCap(lw: CGFloat, colour: Color) -> some View {
-        EndDot(shape: shape, fraction: 0, radius: lw / 2).fill(colour)
-            .mask(RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit))
-    }
-
-    /// The angle (0…1 from 12 o'clock, clockwise) to the point `fraction` along the shape. For a heart it isn't the
-    /// same as the fraction of the way, so the colour change must be placed at the right angle.
-    private func angleFraction(of fraction: Double, in rect: CGRect) -> Double {
-        let path = shape.path(in: rect)
-        guard let pt = path.trimmedPath(from: 0, to: max(fraction, 0.001)).currentPoint
-        else { return fraction }
-        // A gradient on a shape is centred on the path's bounding box, not on the frame.
-        let box = path.boundingRect
-        let deg = atan2(pt.y - box.midY, pt.x - box.midX) * 180 / .pi + 90
-        return (deg < 0 ? deg + 360 : deg) / 360
+    /// The progress itself. Below the goal: tone(0) at the start → tone(1) at the end. Above the goal one continuous
+    /// scale over the whole way: the rest of the previous lap, then the new lap on top of it from 12 o'clock to the end.
+    /// Each part has a round start (in the cleft) and a round end, drawn as circles in the colour there.
+    private func progress(f: Double, laps: Double, pos: Double, lw: CGFloat) -> some View {
+        let darkEdge = renderingMode == .fullColor && colorScheme == .dark
+        return Canvas { context, canvasSize in
+            let path = shape.path(in: CGRect(origin: .zero, size: canvasSize))
+            let style = StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .round)
+            func point(_ u: Double) -> CGPoint? {
+                path.trimmedPath(from: 0, to: min(max(u, 0.0001), 1)).currentPoint
+            }
+            func dot(_ u: Double, radius: CGFloat, _ color: Color) {
+                guard let p = point(u) else { return }
+                context.fill(Path(ellipseIn: CGRect(x: p.x - radius, y: p.y - radius, width: 2 * radius,
+                                                    height: 2 * radius)), with: .color(color))
+            }
+            /// Short pieces from `u0` to `u1`, each in the colour `color(u)` at its middle. Each piece reaches a little
+            /// into the next one, so no hairline shows between them.
+            func stroke(from u0: Double, to u1: Double, _ color: (Double) -> Color) {
+                let count = max(1, Int(((u1 - u0) * Self.piecesPerLap).rounded(.up)))
+                let step = (u1 - u0) / Double(count)
+                for n in 0..<count {
+                    let a = u0 + step * Double(n)
+                    let b = min(a + step * 1.6, u1)
+                    context.stroke(path.trimmedPath(from: a, to: b), with: .color(color(a + step / 2)), style: style)
+                }
+            }
+            if f <= 1 {
+                dot(0, radius: lw / 2, tone(0))
+                stroke(from: 0, to: f) { tone($0 / f) }
+                dot(f, radius: lw / 2, tone(1))
+            } else {
+                stroke(from: pos, to: 1) { tone((laps - 1 + $0) / f) }   // the rest of the previous lap
+                // Dark edge below the end so the new lap clearly lies on top (only on a dark background).
+                if darkEdge { dot(pos, radius: lw / 2 + 2, .black) }
+                dot(0, radius: lw / 2, tone(laps / f))
+                stroke(from: 0, to: pos) { tone((laps + $0) / f) }       // the new lap
+                dot(pos, radius: lw / 2, tone(1))
+            }
+        }
     }
 }
 
