@@ -316,7 +316,16 @@ struct ShapeProgressRing<S: Shape>: View {
                         if colorScheme == .dark {
                             EndDot(shape: shape, fraction: pos, radius: lw / 2 + 2).fill(.black)
                         }
-                        shape.trim(from: 0, to: pos).stroke(lap, style: style(.butt))
+                        // Den nye omgang ovenpå – inkl. den runde kløft ved start, så farveskiftet til
+                        // omgangen før (ved enden) ikke skærer gennem kløften, når enden er tæt på den.
+                        let newLap = AngularGradient(stops: [
+                            .init(color: tone(k), location: 0),
+                            .init(color: tone(1), location: p),
+                            .init(color: tone(k), location: min(p + 0.0001, 1)),
+                            .init(color: tone(k), location: 1),
+                        ], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270))
+                        EndDot(shape: shape, fraction: 0, radius: lw / 2).fill(newLap)
+                        shape.trim(from: 0, to: pos).stroke(newLap, style: style(.butt))
                     }
                     EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1))
                         .shadow(color: renderingMode == .fullColor && colorScheme != .dark
