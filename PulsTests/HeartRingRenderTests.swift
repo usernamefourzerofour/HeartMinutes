@@ -28,4 +28,20 @@ struct HeartRingRenderTests {
         #expect(alpha(at: CGPoint(x: 4, y: 195), in: image) == 0)
         #expect(alpha(at: CGPoint(x: 195, y: 150), in: image) == 0)
     }
+
+    /// Writes previews of the ring to /tmp/hm-renders (for looking at the ring's end; ignored if it can't write).
+    @Test(arguments: [0.5, 0.9, 0.96, 1.04, 1.47, 2.2])
+    func writePreview(fraction: Double) throws {
+        let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: "\(Int(fraction * 150))",
+                                     thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+            .frame(width: 200, height: 200)
+            .padding(10)
+            .background(Color.white)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 3
+        guard let image = renderer.uiImage, let data = image.pngData() else { return }
+        let dir = URL(fileURLWithPath: "/tmp/hm-renders")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? data.write(to: dir.appendingPathComponent("ring-\(Int(fraction * 100)).png"))
+    }
 }
