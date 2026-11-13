@@ -84,26 +84,37 @@ struct HeartOutlineShape: Shape {
         let lobeToCleft = angle(lobe, toward: cleft)
         let lobeToSide = angle(side, toward: lobe)              // where the lobe meets the side
         let sideToTip = angle(side, toward: tip)                // where the side meets the tip
-        let rad = { (a: Double) in Angle(radians: a) }
 
-        // SwiftUI's y axis points down: clockwise: false sweeps increasing angles, which is clockwise on screen.
+        // Angles grow clockwise on screen (the y axis points down). Each arc continues exactly from where the previous
+        // one ended: Path.addArc adds a tiny connecting line when the points differ by a rounding error, and a stroke's
+        // join at such a line (random direction) showed as a circle or a spike.
         var p = Path()
-        p.addArc(center: cleft, radius: corner, startAngle: rad(.pi / 2), endAngle: rad(cleftToLobe), clockwise: true)
-        p.addArc(center: lobe, radius: lobeRadius, startAngle: rad(lobeToCleft), endAngle: rad(lobeToSide),
-                 clockwise: false)
-        p.addArc(center: side, radius: sideRadius, startAngle: rad(lobeToSide), endAngle: rad(sideToTip),
-                 clockwise: false)
-        p.addArc(center: tip, radius: corner, startAngle: rad(sideToTip), endAngle: rad(mirrored(sideToTip)),
-                 clockwise: false)
+        p.move(to: CGPoint(x: cleft.x, y: cleft.y + corner))
+        Self.arc(&p, center: cleft, radius: corner, from: .pi / 2, to: cleftToLobe)
+        Self.arc(&p, center: lobe, radius: lobeRadius, from: lobeToCleft, to: lobeToSide)
+        Self.arc(&p, center: side, radius: sideRadius, from: lobeToSide, to: sideToTip)
+        Self.arc(&p, center: tip, radius: corner, from: sideToTip, to: mirrored(sideToTip))
         let otherSide = CGPoint(x: 2 * mid - side.x, y: side.y), otherLobe = CGPoint(x: 2 * mid - lobe.x, y: lobe.y)
-        p.addArc(center: otherSide, radius: sideRadius, startAngle: rad(mirrored(sideToTip)),
-                 endAngle: rad(mirrored(lobeToSide)), clockwise: false)
-        p.addArc(center: otherLobe, radius: lobeRadius, startAngle: rad(mirrored(lobeToSide)),
-                 endAngle: rad(mirrored(lobeToCleft)), clockwise: false)
-        p.addArc(center: cleft, radius: corner, startAngle: rad(mirrored(cleftToLobe)), endAngle: rad(.pi / 2),
-                 clockwise: true)
+        Self.arc(&p, center: otherSide, radius: sideRadius, from: mirrored(sideToTip), to: mirrored(lobeToSide))
+        Self.arc(&p, center: otherLobe, radius: lobeRadius, from: mirrored(lobeToSide), to: mirrored(lobeToCleft))
+        Self.arc(&p, center: cleft, radius: corner, from: mirrored(cleftToLobe), to: .pi / 2)
         p.closeSubpath()
         return p.applying(HeartShape.transform(for: rect))
+    }
+
+    /// An arc from angle `a0` to `a1` (radians; increasing = clockwise on screen) as Bézier curves (at most 90° each),
+    /// continuing from the path's current point without a connecting line.
+    private static func arc(_ p: inout Path, center c: CGPoint, radius r: CGFloat, from a0: Double, to a1: Double) {
+        let parts = max(1, Int((abs(a1 - a0) / (.pi / 2)).rounded(.up)))
+        let step = (a1 - a0) / Double(parts)
+        let k = 4.0 / 3.0 * tan(step / 4)
+        for n in 0..<parts {
+            let a = a0 + step * Double(n), b = a + step
+            let p1 = CGPoint(x: c.x + r * (cos(a) - k * sin(a)), y: c.y + r * (sin(a) + k * cos(a)))
+            let p3 = CGPoint(x: c.x + r * cos(b), y: c.y + r * sin(b))
+            let p2 = CGPoint(x: p3.x + r * k * sin(b), y: p3.y - r * k * cos(b))
+            p.addCurve(to: p3, control1: p1, control2: p2)
+        }
     }
 
     /// The centre of a circle with `radius` that touches two smaller circles from the outside of them (both lie

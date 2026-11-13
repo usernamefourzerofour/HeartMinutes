@@ -325,7 +325,8 @@ struct ShapeProgressRing<S: Shape>: View {
         let darkEdge = renderingMode == .fullColor && colorScheme == .dark
         return Canvas { context, canvasSize in
             let path = shape.path(in: CGRect(origin: .zero, size: canvasSize))
-            let style = StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .round)
+            // Miter joins: a round join where two arcs meet drew a whole circle in the piece's colour (a "ghost" circle).
+            let style = StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .miter)
             func point(_ u: Double) -> CGPoint? {
                 path.trimmedPath(from: 0, to: min(max(u, 0.0001), 1)).currentPoint
             }
