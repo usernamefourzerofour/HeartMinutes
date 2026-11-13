@@ -379,14 +379,15 @@ struct HeroRing: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// Konstant fart: én hel omgang (100 %) pr. sekund, så 300 % tager 3 sekunder – ikke en fast tid.
     private func fill(to target: Double) async {
         let start = shown
-        let duration = 0.9
+        let lapsPerSecond = 1.0
+        let duration = max(abs(target - start) / lapsPerSecond, 0.01)
         let begin = Date.now
         while !Task.isCancelled {
             let t = min(Date.now.timeIntervalSince(begin) / duration, 1)
-            let eased = 1 - pow(1 - t, 3)   // easeOut
-            shown = start + (target - start) * eased
+            shown = start + (target - start) * t
             if t >= 1 { break }
             try? await Task.sleep(for: .milliseconds(16))
         }
