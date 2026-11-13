@@ -316,13 +316,8 @@ struct ShapeProgressRing<S: Shape>: View {
                     segment(from: 0, to: f, style: style(.round), colors: [tone(0), tone(1)])
                     if f > 0.85 {
                         // Close to the goal the end meets the start in the cleft, and the gradient's seam at
-                        // 12 o'clock cut straight through the round end. Draw the end as a small "head" on top
-                        // (one solid colour, like Activity rings), with a shadow in full colour.
-                        shape.trim(from: max(f - 0.03, 0), to: f)
-                            .stroke(tone(1), style: style(.round))
-                            .shadow(color: renderingMode == .fullColor && colorScheme != .dark
-                                    ? .black.opacity(0.3) : .clear, radius: lw * 0.12)
-                            .widgetAccentable()
+                        // 12 o'clock cut straight through the round end. Draw the end as a "head" on top.
+                        head(at: f, lw: lw, style: style)
                     }
                 } else {
                     // Above the goal: the whole shape is drawn as ONE closed stroke (no join at 12 o'clock, which gave
@@ -357,10 +352,7 @@ struct ShapeProgressRing<S: Shape>: View {
                         NewLapStroke(shape: shape, to: pos, lineWidth: lw, miterLimit: miterLimit)
                             .fill(newLap)
                     }
-                    EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1))
-                        .shadow(color: renderingMode == .fullColor && colorScheme != .dark
-                                ? .black.opacity(0.35) : .clear, radius: lw * 0.15)
-                        .widgetAccentable()
+                    head(at: pos, lw: lw, style: style)
                 }
                 // Small white dot where you have reached.
                 EndDot(shape: shape, fraction: pos, radius: lw * 0.19).fill(.white)
@@ -376,6 +368,20 @@ struct ShapeProgressRing<S: Shape>: View {
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
+    }
+
+    /// The end of the progress as a "head" in one solid colour, like Activity rings: the round end plus the last
+    /// bit of stroke behind it. The shadow (full colour, light mode) falls only on the ring ahead of the end – the
+    /// whole head is clipped to the ring, so it doesn't show as a separate circle with a halo on the background.
+    private func head(at pos: Double, lw: CGFloat, style: (CGLineCap) -> StrokeStyle) -> some View {
+        ZStack {
+            EndDot(shape: shape, fraction: pos, radius: lw / 2).fill(tone(1))
+                .shadow(color: renderingMode == .fullColor && colorScheme != .dark
+                        ? .black.opacity(0.35) : .clear, radius: lw * 0.15)
+            shape.trim(from: max(pos - 0.03, 0), to: pos).stroke(tone(1), style: style(.butt))
+        }
+        .mask(RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit))
+        .widgetAccentable()
     }
 
     private func segment(from: Double = 0, to t: Double, style: StrokeStyle, colors: [Color]) -> some View {
