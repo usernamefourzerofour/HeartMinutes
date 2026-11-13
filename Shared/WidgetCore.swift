@@ -314,6 +314,16 @@ struct ShapeProgressRing<S: Shape>: View {
                 if f <= 1 {
                     // Gets gradually more intense all the way to where you have reached.
                     segment(from: 0, to: f, style: style(.round), colors: [tone(0), tone(1)])
+                    if f > 0.85 {
+                        // Close to the goal the end meets the start in the cleft, and the gradient's seam at
+                        // 12 o'clock cut straight through the round end. Draw the end as a small "head" on top
+                        // (one solid colour, like Activity rings), with a shadow in full colour.
+                        shape.trim(from: max(f - 0.03, 0), to: f)
+                            .stroke(tone(1), style: style(.round))
+                            .shadow(color: renderingMode == .fullColor && colorScheme != .dark
+                                    ? .black.opacity(0.3) : .clear, radius: lw * 0.12)
+                            .widgetAccentable()
+                    }
                 } else {
                     // Above the goal: the whole shape is drawn as ONE closed stroke (no join at 12 o'clock, which gave
                     // a white line on a tinted watch face). The colour is one continuous scale over the whole way: the
