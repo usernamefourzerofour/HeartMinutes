@@ -520,8 +520,7 @@ struct OverviewView: View {
                 // Tre "vinduer" (sektioner) oven på baggrunden: Heart Minutes, pulsmålinger og workouts.
                 let stats = HeartStats(health.shownSamples)
                 let result = ActiveMinutes(health.minuteSamples, config: health.minutesConfig)
-                let total = health.minutesSource == .appleExercise
-                    ? (health.applePoints.last?.total ?? 0) : result.total
+                let total = result.total
                 // Indtil den nye periodes data er hentet, vises den forrige periode samlet.
                 let shown = health.loadedInterval ?? interval
                 let goal = ActiveMinutes.scaledGoal(weekly: Double(health.weeklyGoal), duration: shown.duration)
@@ -531,7 +530,7 @@ struct OverviewView: View {
                     // Hero: den store hjerte-ring med periodens tal.
                     HeroRing(total: total, goal: goal, period: shown)
                         .listRowSeparator(.hidden)
-                    if stats != nil || health.minutesSource == .appleExercise {
+                    if stats != nil {
                         ActiveMinutesChart(
                             result: result,
                             showHeader: false,
@@ -539,7 +538,6 @@ struct OverviewView: View {
                             zones: health.zones,
                             weeklyGoal: Double(health.weeklyGoal),
                             applePoints: health.applePoints,
-                            source: health.minutesSource,
                             showComparison: health.showComparison)
                     } else {
                         NoDataView()

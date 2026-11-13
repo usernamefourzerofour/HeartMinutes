@@ -184,18 +184,6 @@ struct ActiveMinutes: Equatable {
         }
     }
 
-    /// Hvad Heart Minutes regnes ud fra.
-    enum Source: String, CaseIterable, Identifiable {
-        case heartRate, appleExercise
-        var id: String { rawValue }
-        var title: String {
-            switch self {
-            case .heartRate: "Pulszoner"
-            case .appleExercise: "Træningsring"
-            }
-        }
-    }
-
     /// Kumulative minutter fra træningsringsminutter (den grønne ring), en værdi pr. sample.
     static func cumulativeExercise(_ samples: [(end: Date, minutes: Double)], start: Date) -> [Point] {
         var total = 0.0

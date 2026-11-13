@@ -299,7 +299,7 @@ struct HomeWidgetView: View {
                     Spacer(minLength: 0)
                 }
                 PeriodChart(entry: entry)
-                // Fordelingen på pulszoner (ikke ved Træningsring eller ældre data).
+                // Fordelingen på pulszoner (ikke ved ældre data).
                 if let zones = d.zones, !zones.isEmpty {
                     ZoneBar(slices: zones)
                 }

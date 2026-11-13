@@ -212,7 +212,6 @@ final class HealthManager {
         static let maxGapLimit = 600
         static let workoutGaps = ActiveMinutes.WorkoutGaps.betweenMeasurements
         static let interpolation = ActiveMinutes.Interpolation.linear
-        static let minutesSource = ActiveMinutes.Source.heartRate
         static let showComparison = false
         static let activitySource = ActiveMinutes.ActivitySource.either
         /// Korte huller mellem aktive målinger, der udfyldes (sekunder; 0 = fra).
@@ -356,12 +355,7 @@ final class HealthManager {
     }
     var maxGap: TimeInterval { TimeInterval(min(max(maxGapSeconds, 1), Defaults.maxGapLimit)) }
 
-    /// Heart Minutes regnes ud fra puls (zoner × vægt) eller træningsringsminutter.
-    var minutesSource: ActiveMinutes.Source =
-        ActiveMinutes.Source(rawValue: UserDefaults.standard.string(forKey: "minutesSource") ?? "") ?? Defaults.minutesSource {
-        didSet { UserDefaults.standard.set(minutesSource.rawValue, forKey: "minutesSource"); refreshShown() }
-    }
-    /// Vis den anden kilde som stiplet linje i minut-grafen.
+    /// Vis træningsringsminutterne som linje i minut-grafen til sammenligning.
     var showComparison: Bool = UserDefaults.standard.object(forKey: "showComparison") as? Bool ?? Defaults.showComparison {
         didSet { UserDefaults.standard.set(showComparison, forKey: "showComparison") }
     }
@@ -391,7 +385,7 @@ final class HealthManager {
     /// Vis beskeden, når "Kun når aktiv" sorterer en betydelig del af baggrundsmålingerne fra,
     /// fordi de ikke kommer fra Apple Watch.
     var showUnmarkedHint: Bool {
-        minutesSource == .heartRate && onlyWhenActive && activitySource == .watchMotion && includeBackground
+        onlyWhenActive && activitySource == .watchMotion && includeBackground
             && unmarked.count >= 50 && unmarked.fraction >= 0.2
             && !Set(unmarked.sources).isSubset(of: Set(ignoredUnmarkedSources))
     }
@@ -402,10 +396,8 @@ final class HealthManager {
 
     private func refreshShown() {
         unmarked = HRSample.unmarkedBackground(periodSamples)
-        // Med Træningsring bruges målingerne ikke i beregningen – så vises alle i pulsgrafen.
-        let ring = minutesSource == .appleExercise
-        shownSamples = HRSample.filtered(periodSamples, background: ring || includeBackground,
-                                         workouts: ring || includeWorkouts)
+        shownSamples = HRSample.filtered(periodSamples, background: includeBackground,
+                                         workouts: includeWorkouts)
         minuteSamples = workoutGaps == .wholeWorkout
             ? ActiveMinutes.extendingWorkouts(shownSamples, periodWorkouts) : shownSamples
     }
@@ -454,7 +446,6 @@ final class HealthManager {
         interpolation = Defaults.interpolation
         weeklyGoal = Defaults.weeklyGoal
         ignoredUnmarkedSources = []
-        minutesSource = Defaults.minutesSource
         showComparison = Defaults.showComparison
         activitySource = Defaults.activitySource
         activeBridgeSeconds = Defaults.activeBridgeSeconds
@@ -618,16 +609,10 @@ extension HealthManager {
         guard !health.loadFailed else { return [:] }
         var result: [SummaryPeriod: ComplicationData] = [:]
         for (period, interval) in intervals {
-            let points: [ActiveMinutes.Point]
-            var zoneSlices: [ZoneSlice]? = nil
-            if health.minutesSource == .appleExercise {
-                points = ActiveMinutes.rebased(health.applePoints, to: interval)
-            } else {
-                let slice = Array(health.minuteSamples.slice(from: interval.start, to: interval.end))
-                let r = ActiveMinutes(slice, config: health.minutesConfig)
-                points = r.points
-                zoneSlices = health.zones.slices(r.zoneMinutes)
-            }
+            let slice = Array(health.minuteSamples.slice(from: interval.start, to: interval.end))
+            let r = ActiveMinutes(slice, config: health.minutesConfig)
+            let points = r.points
+            let zoneSlices = health.zones.slices(r.zoneMinutes)
             result[period] = ComplicationData(
                 minutes: points.last?.total ?? 0,
                 goal: period.goal(weekly: Double(health.weeklyGoal), now: now),
@@ -643,9 +628,7 @@ extension HealthManager {
         let health = HealthManager()
         await health.loadPeriod(period.interval(now: now))
         guard !health.loadFailed else { return nil }
-        let apple = health.minutesSource == .appleExercise
-        let points = apple ? health.applePoints
-            : ActiveMinutes(health.minuteSamples, config: health.minutesConfig).points
+        let points = ActiveMinutes(health.minuteSamples, config: health.minutesConfig).points
         return ComplicationData(
             minutes: points.last?.total ?? 0,
             goal: period.goal(weekly: Double(health.weeklyGoal), now: now),

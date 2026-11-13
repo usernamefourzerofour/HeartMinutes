@@ -10,7 +10,7 @@ final class PhoneSync: NSObject, WCSessionDelegate, @unchecked Sendable {
         "includeBackground", "includeWorkouts", "weeklyGoal",
         "onlyWhenActive", "age", "zoneModel", "maxHRSource", "manualMaxHR",
         "zonePercents.two", "zoneWeights.two", "zonePercents.five", "zoneWeights.five",
-        "maxGapSeconds", "workoutGaps", "interpolation", "minutesSource", "activitySource",
+        "maxGapSeconds", "workoutGaps", "interpolation", "activitySource",
         "activeBridgeSeconds", "watchPeriod",
     ]
 

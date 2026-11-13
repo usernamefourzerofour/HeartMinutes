@@ -13,7 +13,6 @@ struct ActiveMinutesChart: View {
     let weeklyGoal: Double
     /// træningsringsminutter, kumulativt (tom hvis ingen adgang/data).
     var applePoints: [ActiveMinutes.Point] = []
-    var source: ActiveMinutes.Source = .heartRate
     /// Vis den anden kilde som stiplet linje til sammenligning.
     var showComparison: Bool = true
     /// Vis linjen "Moderat … × 1 + hård … × 2" under grafen.
@@ -30,11 +29,8 @@ struct ActiveMinutesChart: View {
     private var shownApplePoints: [ActiveMinutes.Point] {
         ActiveMinutes.spanning(applePoints, from: period.lowerBound, to: curveEnd)
     }
-    private var shownTotal: Double { source == .appleExercise ? appleTotal : result.total }
-    private var comparedTotal: Double {
-        guard showComparison else { return 0 }
-        return source == .appleExercise ? result.total : appleTotal
-    }
+    private var shownTotal: Double { result.total }
+    private var comparedTotal: Double { showComparison ? appleTotal : 0 }
     private var yMax: Double { max(shownTotal, comparedTotal, goal, 1) * 1.15 }
 
     private var goal: Double {
@@ -56,42 +52,22 @@ struct ActiveMinutesChart: View {
                 }
             }
             Chart {
-                if source == .heartRate {
-                    // Stablet: baggrundsmålinger nederst, workouts ovenpå – samme farver som pulsgrafen.
-                    ForEach(shownPoints) { p in
-                        AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.background),
-                                 stacking: .standard)
-                            .foregroundStyle(by: .value("Kilde", "Baggrund"))
-                        AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.workout),
-                                 stacking: .standard)
-                            .foregroundStyle(by: .value("Kilde", "Workout"))
-                    }
-                    if showComparison {
-                        ForEach(shownApplePoints) { p in
-                            LineMark(x: .value("Tid", p.date), y: .value("Apple", p.total),
-                                     series: .value("Serie", "Apple"))
-                                .interpolationMethod(.stepEnd)
-                                .foregroundStyle(Self.appleColor)
-                                .lineStyle(StrokeStyle(lineWidth: 2))
-                        }
-                    }
-                } else {
+                // Stablet: baggrundsmålinger nederst, workouts ovenpå – samme farver som pulsgrafen.
+                ForEach(shownPoints) { p in
+                    AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.background),
+                             stacking: .standard)
+                        .foregroundStyle(by: .value("Kilde", "Baggrund"))
+                    AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.workout),
+                             stacking: .standard)
+                        .foregroundStyle(by: .value("Kilde", "Workout"))
+                }
+                if showComparison {
                     ForEach(shownApplePoints) { p in
-                        AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.total))
-                            .interpolationMethod(.stepEnd)
-                            .foregroundStyle(Brand.area(Self.appleColor))
                         LineMark(x: .value("Tid", p.date), y: .value("Apple", p.total),
                                  series: .value("Serie", "Apple"))
                             .interpolationMethod(.stepEnd)
                             .foregroundStyle(Self.appleColor)
-                    }
-                    if showComparison {
-                        ForEach(shownPoints) { p in
-                            LineMark(x: .value("Tid", p.date), y: .value("Total", p.total),
-                                     series: .value("Serie", "Puls"))
-                                .foregroundStyle(Color.primary.opacity(0.6))
-                                .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [5, 3]))
-                        }
+                            .lineStyle(StrokeStyle(lineWidth: 2))
                     }
                 }
                 RuleMark(y: .value("Mål", goal))
@@ -118,24 +94,14 @@ struct ActiveMinutesChart: View {
             .chartLegend(.hidden)
             .frame(height: 160)
 
-            if source == .heartRate {
-                // Fuld skriftstørrelse: på én linje, hvis der er plads – ellers én pr. linje.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 12) { heartRateLegends }
-                    VStack(alignment: .leading, spacing: 4) { heartRateLegends }
-                }
-                .font(.caption)
-            } else {
-                HStack(spacing: 12) {
-                    legend(Self.appleColor, "Træningsring: \(Int(appleTotal.rounded())) min")
-                    if showComparison {
-                        dashed(.primary, "Pulszoner: \(Int(result.total.rounded())) min")
-                    }
-                }
-                .font(.caption)
+            // Fuld skriftstørrelse: på én linje, hvis der er plads – ellers én pr. linje.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) { heartRateLegends }
+                VStack(alignment: .leading, spacing: 4) { heartRateLegends }
             }
+            .font(.caption)
 
-            if source == .heartRate && showBreakdown {
+            if showBreakdown {
             // Med én decimal, så regnestykket går op (afrundede hele minutter kan give 1 for lidt).
             ZoneBreakdown(result: result, zones: zones)
             }
