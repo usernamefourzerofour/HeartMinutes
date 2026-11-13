@@ -18,9 +18,9 @@ enum MotionContext: Equatable {
 
     var name: String {
         switch self {
-        case .unknown: "Ukendt"
-        case .sedentary: "I ro"
-        case .active: "Aktiv"
+        case .unknown: String(localized: "Ukendt")
+        case .sedentary: String(localized: "I ro")
+        case .active: String(localized: "Aktiv")
         }
     }
 }
@@ -68,7 +68,7 @@ struct HRSample: Identifiable, Equatable {
             background += 1
             if s.motion == .unknown {
                 unmarked += 1
-                perSource[s.source ?? "Ukendt kilde", default: 0] += 1
+                perSource[s.source ?? String(localized: "Ukendt kilde"), default: 0] += 1
             }
         }
         let sources = perSource.sorted { $0.value > $1.value }.map(\.key)
@@ -459,7 +459,7 @@ final class HealthManager {
 
     func requestAuthorization() async {
         guard HKHealthStore.isHealthDataAvailable() else {
-            errorMessage = "Sundhedsdata er ikke tilgængelige på denne enhed."
+            errorMessage = String(localized: "Sundhedsdata er ikke tilgængelige på denne enhed.")
             return
         }
         do {

@@ -122,7 +122,7 @@ struct ActiveMinutesChart: View {
             guard zones.weights[i] > 0, minutes > 0 || zones.model == .two else { continue }
             // To zoner: "Moderat … + hård …" (kun første med stort).
             let name = zones.model == .two && !terms.isEmpty ? zones.name(i).lowercased() : zones.name(i)
-            terms.append("\(name) \(minutes.formatted(one)) min × \(zones.weights[i].formatted(weight))")
+            terms.append(String(localized: "\(name) \(minutes.formatted(one)) min × \(zones.weights[i].formatted(weight))"))
         }
         let sum = terms.isEmpty ? "0 min" : terms.joined(separator: " + ")
         return "\(sum) = \(Int(result.total.rounded())) min"
@@ -136,7 +136,7 @@ struct ActiveMinutesChart: View {
         }
     }
 
-    private func dashed(_ color: Color, _ title: String) -> some View {
+    private func dashed(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             Path { p in p.move(to: .init(x: 0, y: 5)); p.addLine(to: .init(x: 14, y: 5)) }
                 .stroke(color, style: StrokeStyle(lineWidth: 2, dash: [4, 2]))
@@ -146,14 +146,14 @@ struct ActiveMinutesChart: View {
     }
 
     /// Fuldoptrukken streg (træningsringsminutterne som linje oven på grafen).
-    private func line(_ color: Color, _ title: String) -> some View {
+    private func line(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             Capsule().fill(color).frame(width: 14, height: 2.5)
             Text(title)
         }
     }
 
-    private func legend(_ color: Color, _ title: String) -> some View {
+    private func legend(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             RoundedRectangle(cornerRadius: 2).fill(color.opacity(0.6)).frame(width: 10, height: 10)
             Text(title)
@@ -206,7 +206,7 @@ struct WorkoutScoresView: View {
                                 Text("\(w.result.total, format: .number.precision(.fractionLength(1))) min").bold()
                             }
                             Text(([ "\(Int((w.interval.duration / 60).rounded())) min" ] + zoneParts(w.result)
-                                  + ["\(w.sampleCount) målinger"]).joined(separator: " · "))
+                                  + [String(localized: "\(w.sampleCount) målinger")]).joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }

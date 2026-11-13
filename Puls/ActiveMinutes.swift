@@ -40,30 +40,30 @@ struct ActiveMinutes: Equatable {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .always: "Al puls"
-            case .watch: "Kun når aktiv"
-            case .watchWithPauses: "Aktiv og korte pauser"
-            case .watchOrRing: "Aktiv eller træningsring"
-            case .withPauses: "Aktiv, træningsring og korte pauser"
+            case .always: String(localized: "Al puls")
+            case .watch: String(localized: "Kun når aktiv")
+            case .watchWithPauses: String(localized: "Aktiv og korte pauser")
+            case .watchOrRing: String(localized: "Aktiv eller træningsring")
+            case .withPauses: String(localized: "Aktiv, træningsring og korte pauser")
             }
         }
         /// Kort tekst til rækken i Indstillinger.
         var shortTitle: String {
             switch self {
-            case .always: "Al puls"
-            case .watch: "Aktiv"
-            case .watchWithPauses: "Aktiv + pauser"
-            case .watchOrRing: "Aktiv/ring"
-            case .withPauses: "Aktiv/ring + pauser"
+            case .always: String(localized: "Al puls")
+            case .watch: String(localized: "Aktiv")
+            case .watchWithPauses: String(localized: "Aktiv + pauser")
+            case .watchOrRing: String(localized: "Aktiv/ring")
+            case .withPauses: String(localized: "Aktiv/ring + pauser")
             }
         }
         var explanation: String {
             switch self {
-            case .always: "Al puls i zonerne tæller – også høj puls i ro, fx stress eller kaffe."
-            case .watch: "Kun når Apple Watch markerer dig aktiv – det bygger mest på skridt. Havearbejde og rengøring tæller ofte ikke."
-            case .watchWithPauses: "Som »Kun når aktiv«, men to aktive stykker kædes sammen, når pausen imellem er kort – uden træningsringen."
-            case .watchOrRing: "Som »Kun når aktiv«, plus de minutter, der tæller i den grønne træningsring (puls og bevægelse)."
-            case .withPauses: "Som »Aktiv eller træningsring«, men to aktive stykker kædes sammen, når pausen imellem er kort – godt til fx havearbejde, rengøring og leg."
+            case .always: String(localized: "Al puls i zonerne tæller – også høj puls i ro, fx stress eller kaffe.")
+            case .watch: String(localized: "Kun når Apple Watch markerer dig aktiv – det bygger mest på skridt. Havearbejde og rengøring tæller ofte ikke.")
+            case .watchWithPauses: String(localized: "Som »Kun når aktiv«, men to aktive stykker kædes sammen, når pausen imellem er kort – uden træningsringen.")
+            case .watchOrRing: String(localized: "Som »Kun når aktiv«, plus de minutter, der tæller i den grønne træningsring (puls og bevægelse).")
+            case .withPauses: String(localized: "Som »Aktiv eller træningsring«, men to aktive stykker kædes sammen, når pausen imellem er kort – godt til fx havearbejde, rengøring og leg.")
             }
         }
     }
@@ -73,16 +73,16 @@ struct ActiveMinutes: Equatable {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .watchMotion: "Apple Watch-markering"
-            case .exerciseRing: "Træningsring"
-            case .either: "Markering eller ring"
+            case .watchMotion: String(localized: "Apple Watch-markering")
+            case .exerciseRing: String(localized: "Træningsring")
+            case .either: String(localized: "Markering eller ring")
             }
         }
         var explanation: String {
             switch self {
-            case .watchMotion: "Aktiv, når Apple Watch har markeret målingen »aktiv« (bygger mest på skridt og bevægelse)."
-            case .exerciseRing: "Aktiv i de minutter, der tæller i træningsringen (den grønne ring – puls og bevægelse)."
-            case .either: "Aktiv, når enten Apple Watch har markeret målingen »aktiv«, eller minuttet tæller i træningsringen."
+            case .watchMotion: String(localized: "Aktiv, når Apple Watch har markeret målingen »aktiv« (bygger mest på skridt og bevægelse).")
+            case .exerciseRing: String(localized: "Aktiv i de minutter, der tæller i træningsringen (den grønne ring – puls og bevægelse).")
+            case .either: String(localized: "Aktiv, når enten Apple Watch har markeret målingen »aktiv«, eller minuttet tæller i træningsringen.")
             }
         }
     }
@@ -161,25 +161,25 @@ struct ActiveMinutes: Equatable {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .linear: "Lige linje"
-            case .previous: "Forrige måling (trin)"
-            case .next: "Næste måling (trin)"
-            case .nearest: "Nærmeste måling"
-            case .lowest: "Laveste af de to"
+            case .linear: String(localized: "Lige linje")
+            case .previous: String(localized: "Forrige måling (trin)")
+            case .next: String(localized: "Næste måling (trin)")
+            case .nearest: String(localized: "Nærmeste måling")
+            case .lowest: String(localized: "Laveste af de to")
             }
         }
         var explanation: String {
             switch self {
-            case .linear: "Pulsen ændrer sig jævnt mellem målingerne; tiden deles, hvor den krydser en grænse."
-            case .previous: "Hver måling gælder, indtil den næste kommer."
-            case .next: "Hver måling gælder tilbage til den forrige."
-            case .nearest: "Første halvdel af tiden følger den forrige måling, anden halvdel den næste."
-            case .lowest: "Forsigtig: tiden tæller kun i den zone, begge målinger mindst når."
+            case .linear: String(localized: "Pulsen ændrer sig jævnt mellem målingerne; tiden deles, hvor den krydser en grænse.")
+            case .previous: String(localized: "Hver måling gælder, indtil den næste kommer.")
+            case .next: String(localized: "Hver måling gælder tilbage til den forrige.")
+            case .nearest: String(localized: "Første halvdel af tiden følger den forrige måling, anden halvdel den næste.")
+            case .lowest: String(localized: "Forsigtig: tiden tæller kun i den zone, begge målinger mindst når.")
             }
         }
         /// Alle metoder med forklaring (til ⓘ i Indstillinger).
         static var allExplained: String {
-            "Pulsen måles kun en gang imellem. Her vælger du, hvad pulsen antages at være mellem to målinger:\n\n"
+            String(localized: "Pulsen måles kun en gang imellem. Her vælger du, hvad pulsen antages at være mellem to målinger:") + "\n\n"
                 + allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n")
         }
     }
@@ -230,22 +230,22 @@ struct ActiveMinutes: Equatable {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .sameLimit: "Samme grænse"
-            case .betweenMeasurements: "Første–sidste"
-            case .wholeWorkout: "Hele workout"
+            case .sameLimit: String(localized: "Samme grænse")
+            case .betweenMeasurements: String(localized: "Første–sidste")
+            case .wholeWorkout: String(localized: "Hele workout")
             }
         }
         /// Fortsættelse af "Under workouts …" i forklaringen.
         var summary: String {
             switch self {
-            case .sameLimit: "gælder samme grænse."
-            case .betweenMeasurements: "tæller al tid fra første til sidste måling, uanset huller."
-            case .wholeWorkout: "tæller hele workouten fra start til slut – også før første og efter sidste måling."
+            case .sameLimit: String(localized: "gælder samme grænse.")
+            case .betweenMeasurements: String(localized: "tæller al tid fra første til sidste måling, uanset huller.")
+            case .wholeWorkout: String(localized: "tæller hele workouten fra start til slut – også før første og efter sidste måling.")
             }
         }
         static var allExplained: String {
-            "Under workouts kan pulsen være målt med pauser (fx ved styrketræning eller med en pulsrem).\n\n"
-                + allCases.map { "• \($0.title): Under workouts \($0.summary)" }.joined(separator: "\n")
+            String(localized: "Under workouts kan pulsen være målt med pauser (fx ved styrketræning eller med en pulsrem).") + "\n\n"
+                + allCases.map { "• \($0.title): " + String(localized: "Under workouts \($0.summary)") }.joined(separator: "\n")
         }
     }
 

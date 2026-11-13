@@ -6,13 +6,13 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .today: "I dag"
-        case .last3Days: "Seneste 3 dage"
-        case .thisWeek: "Denne uge"
-        case .last7Days: "Seneste 7 dage"
-        case .last14Days: "Seneste 14 dage"
-        case .thisMonth: "Denne måned"
-        case .last30Days: "Seneste 30 dage"
+        case .today: String(localized: "I dag")
+        case .last3Days: String(localized: "Seneste 3 dage")
+        case .thisWeek: String(localized: "Denne uge")
+        case .last7Days: String(localized: "Seneste 7 dage")
+        case .last14Days: String(localized: "Seneste 14 dage")
+        case .thisMonth: String(localized: "Denne måned")
+        case .last30Days: String(localized: "Seneste 30 dage")
         }
     }
 
@@ -70,10 +70,10 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
 
     var goalLabel: String {
         switch self {
-        case .today: "dagens mål"
-        case .thisWeek: "ugens mål"
-        case .thisMonth: "månedens mål"
-        default: "målet for \(rollingDays ?? 7) dage"
+        case .today: String(localized: "dagens mål")
+        case .thisWeek: String(localized: "ugens mål")
+        case .thisMonth: String(localized: "månedens mål")
+        default: String(localized: "målet for \(rollingDays ?? 7) dage")
         }
     }
 

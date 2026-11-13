@@ -332,14 +332,14 @@ struct HeartChart: View {
     }
 
     /// En lille overskrift og forklaringerne under den.
-    private func legendGroup<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {
+    private func legendGroup<Content: View>(_ title: LocalizedStringKey, @ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
             HStack(spacing: 12) { content() }
         }
     }
 
-    private func legendBar(_ color: Color, _ title: String) -> some View {
+    private func legendBar(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             // Farvet kasse, ligesom båndene i bunden af grafen.
             RoundedRectangle(cornerRadius: 1.5).fill(color).frame(width: 14, height: 8)
@@ -371,7 +371,7 @@ struct HeartChart: View {
         return strips
     }
 
-    private func legendDot(_ color: Color, _ title: String) -> some View {
+    private func legendDot(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             // En streg, som kurven i grafen.
             Capsule().fill(color.opacity(0.8)).frame(width: 14, height: 3)
@@ -457,7 +457,7 @@ struct StatsRow: View {
             stat("Max", stats.max)
         }
     }
-    private func stat(_ title: String, _ value: Int) -> some View {
+    private func stat(_ title: LocalizedStringKey, _ value: Int) -> some View {
         VStack {
             Text("\(value)").font(.title2.bold())
             Text(title).font(.caption).foregroundStyle(.secondary)
@@ -695,7 +695,7 @@ struct PeriodPicker: View {
         }
     }
 
-    private func quick(_ title: String, _ value: DateInterval) -> some View {
+    private func quick(_ title: LocalizedStringKey, _ value: DateInterval) -> some View {
         Button(title) { start = value.start; end = value.end }
     }
 }

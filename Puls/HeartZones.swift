@@ -17,15 +17,15 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .two: "2 zoner"
-        case .five: "5 zoner"
+        case .two: String(localized: "2 zoner")
+        case .five: String(localized: "5 zoner")
         }
     }
 
     /// Navne på zonerne, nederst først. Den nederste tæller som udgangspunkt ikke (× 0).
     var names: [String] {
         switch self {
-        case .two: ["Let", "Moderat", "Hård"]
+        case .two: [String(localized: "Let"), String(localized: "Moderat"), String(localized: "Hård")]
         case .five: ["Z0", "Z1", "Z2", "Z3", "Z4", "Z5"]
         }
     }
@@ -54,8 +54,8 @@ enum MaxHRSource: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .age: "Alder"
-        case .manual: "Indtast"
+        case .age: String(localized: "Alder")
+        case .manual: String(localized: "Indtast")
         }
     }
 }

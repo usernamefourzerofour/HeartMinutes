@@ -52,8 +52,8 @@ struct HeartMinutesView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Image(systemName: "heart.fill").font(.caption2).widgetAccentable()
                     // Minutter skrives som antal / mål, fx "207/150 min".
-                    Text(center == .percent ? "\(d.percent) %" : "\(minutesText)/\(Int(d.goal.rounded())) min").font(.headline)
-                    Text(center == .percent ? "\(minutesText)/\(Int(d.goal.rounded())) min" : "\(d.percent) %")
+                    (center == .percent ? Text("\(d.percent) %") : Text("\(minutesText)/\(Int(d.goal.rounded())) min")).font(.headline)
+                    (center == .percent ? Text("\(minutesText)/\(Int(d.goal.rounded())) min") : Text("\(d.percent) %"))
                         .font(.caption2).foregroundStyle(.secondary)
                     Spacer(minLength: 0)
                 }
@@ -151,9 +151,9 @@ struct HeartMinutesRingView: View {
                 .padding(2.5)
                 .aspectRatio(1, contentMode: .fit)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(center == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))/\(Int(d.goal.rounded())) min")
+                    (center == .percent ? Text("\(d.percent) %") : Text("\(Int(d.minutes.rounded()))/\(Int(d.goal.rounded())) min"))
                         .font(.headline)
-                    Text(center == .percent ? "\(Int(d.minutes.rounded()))/\(Int(d.goal.rounded())) min" : "\(d.percent) %")
+                    (center == .percent ? Text("\(Int(d.minutes.rounded()))/\(Int(d.goal.rounded())) min") : Text("\(d.percent) %"))
                         .font(.caption2).foregroundStyle(.secondary)
                     Text(period.title).font(.caption2).foregroundStyle(.secondary)
                 }

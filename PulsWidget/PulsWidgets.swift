@@ -216,9 +216,9 @@ struct WidgetCaption: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             } else {
-                Text(entry.display == .percent
-                     ? "% · \(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
-                     : "af \(Int(d.goal.rounded())) min")
+                (entry.display == .percent
+                 ? Text("% · \(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min")
+                 : Text("af \(Int(d.goal.rounded())) min"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

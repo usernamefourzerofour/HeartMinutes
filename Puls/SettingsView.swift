@@ -14,7 +14,7 @@ struct SettingsView: View {
             Form {
                 // Øverst: målinger bestemmer, hvad der tæller i pulsberegningen.
                 Section {
-                    ResetRow(changed: health.includeBackground != D.includeBackground, info: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.") {
+                    ResetRow(changed: health.includeBackground != D.includeBackground, info: String(localized: "Pulsmålinger taget i løbet af dagen uden for workouts – typisk af Apple Watch, men også fra andre enheder, der gemmer puls i Sundhed. Slå fra for kun at se og tælle workouts.")) {
                         health.includeBackground = D.includeBackground
                     } content: {
                         Toggle(isOn: $health.includeBackground) {
@@ -22,7 +22,7 @@ struct SettingsView: View {
                         }
                         .tint(HeartChart.backgroundColor)
                     }
-                    ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: "Pulsmålinger taget under en registreret træning (workout).") {
+                    ResetRow(changed: health.includeWorkouts != D.includeWorkouts, info: String(localized: "Pulsmålinger taget under en registreret træning (workout).")) {
                         health.includeWorkouts = D.includeWorkouts
                     } content: {
                         Toggle(isOn: $health.includeWorkouts) {
@@ -37,7 +37,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.weeklyGoal != D.weeklyGoal, info: "Dit mål pr. uge. AHA anbefaler mindst 150 min moderat eller 75 min hård aktivitet om ugen. Målet skaleres til den valgte periode, fx ca. 21 min for én dag.") {
+                    ResetRow(changed: health.weeklyGoal != D.weeklyGoal, info: String(localized: "Dit mål pr. uge. AHA anbefaler mindst 150 min moderat eller 75 min hård aktivitet om ugen. Målet skaleres til den valgte periode, fx ca. 21 min for én dag.")) {
                         health.weeklyGoal = D.weeklyGoal
                     } content: {
                         Stepper(value: $health.weeklyGoal, in: 10...1000, step: 10) {
@@ -45,7 +45,7 @@ struct SettingsView: View {
                         }
                     }
                     ResetRow(changed: health.activityMode != D.activityMode || health.pauseSeconds != D.pauseSeconds,
-                             info: "Hvornår din puls i løbet af dagen (uden for workouts) tæller med:\n\n" + ActiveMinutes.ActivityMode.allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n") + "\n\nMålinger under workouts tæller altid.") {
+                             info: String(localized: "Hvornår din puls i løbet af dagen (uden for workouts) tæller med:") + "\n\n" + ActiveMinutes.ActivityMode.allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n") + "\n\n" + String(localized: "Målinger under workouts tæller altid.")) {
                         health.activityMode = D.activityMode
                         health.pauseSeconds = D.pauseSeconds
                     } content: {
@@ -60,7 +60,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.zoneModel != D.zoneModel, info: "2 zoner: moderat fra 50 % og hård fra 70 % af maks-puls – American Heart Association (AHA)'s anbefaling. Moderat tæller × 1 og hård × 2, så 150 min moderat eller 75 min hård om ugen er nok.\n\n5 zoner: de gængse zoner fra fx Garmin og Polar (Z1 fra 50 %, Z2 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z0 er pulsen under 50 %.\n\nGrænser og faktorer kan ændres under »Dine zoner«.") {
+                    ResetRow(changed: health.zoneModel != D.zoneModel, info: String(localized: "2 zoner: moderat fra 50 % og hård fra 70 % af maks-puls – American Heart Association (AHA)'s anbefaling. Moderat tæller × 1 og hård × 2, så 150 min moderat eller 75 min hård om ugen er nok.\n\n5 zoner: de gængse zoner fra fx Garmin og Polar (Z1 fra 50 %, Z2 60 %, Z3 70 %, Z4 80 %, Z5 90 %). Z0 er pulsen under 50 %.\n\nGrænser og faktorer kan ændres under »Dine zoner«.")) {
                         health.zoneModel = D.zoneModel
                     } content: {
                         Picker("Antal zoner", selection: $health.zoneModel) {
@@ -85,7 +85,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.maxHRSource != D.maxHRSource, info: "Alder: maks-puls = 220 − alder.\nIndtast: din egen maks-puls, fx målt ved en test.") {
+                    ResetRow(changed: health.maxHRSource != D.maxHRSource, info: String(localized: "Alder: maks-puls = 220 − alder.\nIndtast: din egen maks-puls, fx målt ved en test.")) {
                         health.maxHRSource = D.maxHRSource
                     } content: {
                         Picker("Maks-puls ud fra", selection: $health.maxHRSource) {
@@ -95,14 +95,14 @@ struct SettingsView: View {
                     }
                     switch health.maxHRSource {
                     case .age:
-                        ResetRow(changed: health.age != health.defaultAge, info: "Standard: alderen fra din fødselsdato i Sundhed.") {
+                        ResetRow(changed: health.age != health.defaultAge, info: String(localized: "Standard: alderen fra din fødselsdato i Sundhed.")) {
                             health.age = health.defaultAge
                         } content: {
                             Stepper("Alder: \(health.age) år", value: $health.age, in: 10...100)
                         }
                         LabeledContent("Maks-puls (220 − alder)", value: "\(Int(health.maxHR.rounded())) bpm")
                     case .manual:
-                        ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: "Den højeste puls, dit hjerte kan nå – fx målt ved en test eller den samme som i en anden app. Standard: 220 − din alder.") {
+                        ResetRow(changed: health.manualMaxHR != health.defaultMaxHR, info: String(localized: "Den højeste puls, dit hjerte kan nå – fx målt ved en test eller den samme som i en anden app. Standard: 220 − din alder.")) {
                             health.manualMaxHR = health.defaultMaxHR
                         } content: {
                             Stepper("Maks-puls: \(health.manualMaxHR) bpm", value: $health.manualMaxHR, in: 120...230)
@@ -123,7 +123,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.") {
+                    ResetRow(changed: health.watchPeriod != D.watchPeriod, info: String(localized: "Den periode, som komplikationerne og Apple Watch-appen viser. Målet skaleres til perioden, fx ca. 21 min for I dag.")) {
                         health.watchPeriod = D.watchPeriod
                     } content: {
                         // Kort etiket (sektionen hedder "Apple Watch") og menu-vælger på samme linje,
@@ -207,7 +207,7 @@ struct SettingsView: View {
     }
 
     /// Samme Stepper som ved alder; en knap er slået fra, når grænsen er nået.
-    private func miniStepper(_ label: String, minus: (() -> Void)?, plus: (() -> Void)?) -> some View {
+    private func miniStepper(_ label: LocalizedStringKey, minus: (() -> Void)?, plus: (() -> Void)?) -> some View {
         Stepper(label, onIncrement: plus, onDecrement: minus)
     }
 
@@ -220,8 +220,8 @@ struct SettingsView: View {
     private func rangeText(_ i: Int) -> String {
         let z = health.zones
         let r = z.bpmRange(i)
-        if i == 0 { return "under \(Int(r.upperBound.rounded())) bpm" }
-        if i == z.count - 1 { return "fra \(Int(r.lowerBound.rounded())) bpm" }
+        if i == 0 { return String(localized: "under \(Int(r.upperBound.rounded())) bpm") }
+        if i == z.count - 1 { return String(localized: "fra \(Int(r.lowerBound.rounded())) bpm") }
         return "\(Int(r.lowerBound.rounded()))–\(Int(r.upperBound.rounded())) bpm"
     }
 }
@@ -280,7 +280,7 @@ struct AdvancedSettingsView: View {
         @Bindable var health = health
         Form {
             Section {
-                    ResetRow(changed: health.showComparison != D.showComparison, info: "Viser træningsringsminutterne (den grønne træningsring på Apple Watch) som en grøn linje i Heart Minutes-grafen, så du kan se forskellen. Beregningen bruger altid dine pulszoner.") {
+                    ResetRow(changed: health.showComparison != D.showComparison, info: String(localized: "Viser træningsringsminutterne (den grønne træningsring på Apple Watch) som en grøn linje i Heart Minutes-grafen, så du kan se forskellen. Beregningen bruger altid dine pulszoner.")) {
                         health.showComparison = D.showComparison
                     } content: {
                         Toggle("Sammenlign med træningsringsminutter", isOn: $health.showComparison)
@@ -305,7 +305,7 @@ struct AdvancedSettingsView: View {
                 }
 
                 Section {
-                    ResetRow(changed: health.maxGapSeconds != D.maxGapSeconds, info: "Er der længere tid mellem to målinger uden for en workout end dette, tæller tiden imellem ikke med – der er ikke målt. Fra 1 til \(D.maxGapLimit) s. Standard: \(D.maxGapSeconds) s (5 min).") {
+                    ResetRow(changed: health.maxGapSeconds != D.maxGapSeconds, info: String(localized: "Er der længere tid mellem to målinger uden for en workout end dette, tæller tiden imellem ikke med – der er ikke målt. Fra 1 til \(D.maxGapLimit) s. Standard: \(D.maxGapSeconds) s (5 min).")) {
                         health.maxGapSeconds = D.maxGapSeconds
                     } content: {
                         // Skriv selv antal sekunder (1–600).
