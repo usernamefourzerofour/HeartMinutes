@@ -202,15 +202,26 @@ struct WidgetRing: View {
 struct WidgetCaption: View {
     let entry: ConfigEntry
     var alignment: HorizontalAlignment = .center
+    /// Teksten på flere korte linjer (lille widget, ved siden af ringen).
+    var stacked = false
 
     var body: some View {
         let d = entry.data
         VStack(alignment: alignment, spacing: 1) {
-            Text(entry.display == .percent
-                 ? "% · \(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
-                 : "af \(Int(d.goal.rounded())) min")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            if stacked && entry.display == .percent {
+                // Lille widget: smal plads ved siden af ringen, så minutterne får deres egen linje.
+                Text("\(Int(d.minutes.rounded())) min")
+                    .font(.caption2.weight(.semibold))
+                Text("af \(Int(d.goal.rounded())) min")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text(entry.display == .percent
+                     ? "% · \(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
+                     : "af \(Int(d.goal.rounded())) min")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
             Text(entry.period.title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(Brand.accent)
@@ -245,7 +256,7 @@ struct HomeWidgetView: View {
                 HStack(spacing: 8) {
                     WidgetRing(entry: entry)
                         .frame(width: 62, height: 62)
-                    WidgetCaption(entry: entry, alignment: .leading)
+                    WidgetCaption(entry: entry, alignment: .leading, stacked: true)
                     Spacer(minLength: 0)
                 }
                 PeriodChart(entry: entry, compact: true)
