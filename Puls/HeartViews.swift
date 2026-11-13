@@ -265,6 +265,23 @@ struct HeartChart: View {
                         legendBar(Self.bridgedColor, "Udfyldt")
                     }
                 }
+                // Målingerne: antal, sampling i visningen og om der er tyndet ud.
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Målinger").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                    if let hz = visible.samplingRateHz {
+                        Text("\(samples.count) målinger · sampling i visning: \(hz, format: .number.precision(.significantDigits(2))) Hz · ca. 1 måling pr. \(Self.interval(1 / hz))")
+                    } else {
+                        Text("\(samples.count) målinger")
+                    }
+                    if thinning > 1 {
+                        Text("Viser hver \(thinning). måling – zoom ind for alle")
+                    } else if showDots {
+                        Text("Tryk på et punkt")
+                    } else {
+                        Text("Zoom ind for at se målepunkter")
+                    }
+                }
+                .foregroundStyle(.secondary)
               }
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.top, 4)
@@ -272,29 +289,6 @@ struct HeartChart: View {
                 Label("Forklaring", systemImage: "info.circle")
             }
             .font(.caption)
-
-            Group {
-                if thinning > 1 {
-                    Text("Viser hver \(thinning). måling – zoom ind for alle")
-                } else if showDots {
-                    Text("Tryk på et punkt")
-                } else {
-                    Text("Zoom ind for at se målepunkter")
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-            // Antal målinger i perioden sammen med samplingen i visningen.
-            Group {
-                if let hz = visible.samplingRateHz {
-                    Text("\(samples.count) målinger · sampling i visning: \(hz, format: .number.precision(.significantDigits(2))) Hz · ca. 1 måling pr. \(Self.interval(1 / hz))")
-                } else {
-                    Text("\(samples.count) målinger")
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
         .onAppear { reset() }
         .onChange(of: samplesKey) { reset() }

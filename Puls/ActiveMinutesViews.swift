@@ -335,15 +335,22 @@ struct ZoneBreakdown: View {
 struct HeroRing: View {
     let total: Double
     let goal: Double
+    /// Andelen, ringen viser lige nu (tælles op fra 0 eller fra den forrige værdi).
     @State private var shown = 0.0
+    /// Øges, når appen åbnes igen, så ringen fyldes op forfra.
+    @State private var run = 0
+    @State private var wasInBackground = false
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase
 
     private var fraction: Double { goal > 0 ? max(0, total / goal) : 0 }
     private var reached: Bool { goal > 0 && total >= goal }
+    /// Tallet i midten tæller med op, så det passer til ringen undervejs.
+    private var shownMinutes: Int { goal > 0 ? Int((shown * goal).rounded()) : Int(total.rounded()) }
 
     var body: some View {
         VStack(spacing: 6) {
-            AnimatedHeartRing(fraction: shown, value: "\(Int(total.rounded()))")
+            AnimatedHeartRing(fraction: shown, value: "\(shownMinutes)")
                 .frame(width: 170, height: 170)
                 // Mørk tilstand: ringen lyser lidt, som på uret.
                 .shadow(color: colorScheme == .dark ? Brand.accent.opacity(0.4) : .clear, radius: 14)
@@ -358,14 +365,29 @@ struct HeroRing: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
-        .onAppear { fill() }
-        .onChange(of: fraction) { fill() }
+        // Ved visning, ny periode/nye data og når appen åbnes igen. Animeres trin for trin (i stedet
+        // for withAnimation), så det virker pålideligt inde i en liste.
+        .task(id: "\(fraction)-\(run)") { await fill(to: fraction) }
+        .onChange(of: scenePhase) { _, phase in
+            // Kun efter baggrunden – ikke fx når Kontrolcenter lukkes.
+            if phase == .background { wasInBackground = true }
+            if phase == .active && wasInBackground { wasInBackground = false; shown = 0; run += 1 }
+        }
         // Et lille "dunk", når målet nås.
         .sensoryFeedback(trigger: reached) { _, now in now ? .success : nil }
         .accessibilityElement(children: .combine)
     }
 
-    private func fill() {
-        withAnimation(.easeOut(duration: 0.9)) { shown = fraction }
+    private func fill(to target: Double) async {
+        let start = shown
+        let duration = 0.9
+        let begin = Date.now
+        while !Task.isCancelled {
+            let t = min(Date.now.timeIntervalSince(begin) / duration, 1)
+            let eased = 1 - pow(1 - t, 3)   // easeOut
+            shown = start + (target - start) * eased
+            if t >= 1 { break }
+            try? await Task.sleep(for: .milliseconds(16))
+        }
     }
 }

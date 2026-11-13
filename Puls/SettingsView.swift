@@ -197,7 +197,7 @@ struct SettingsView: View {
         ResetRow(changed: changed) {
             setZone(i, percent: model.defaultPercents[i], weight: model.defaultWeights[i])
         } content: {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 8) {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(z.color(i).opacity(0.5))
@@ -221,27 +221,13 @@ struct SettingsView: View {
                 miniStepper("Tæller × \(w.formatted(.number.precision(.fractionLength(0...1))))",
                             minus: wMinus, plus: wPlus)
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
         }
     }
 
-    /// Kompakt −/+ (runde ikoner) i stedet for Stepper – de store Stepper-knapper lå for tæt.
+    /// Samme Stepper som ved alder; en knap er slået fra, når grænsen er nået.
     private func miniStepper(_ label: String, minus: (() -> Void)?, plus: (() -> Void)?) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            HStack(spacing: 14) {
-                Button { minus?() } label: { Image(systemName: "minus.circle.fill") }
-                    .disabled(minus == nil)
-                    .accessibilityLabel("Mindre")
-                Button { plus?() } label: { Image(systemName: "plus.circle.fill") }
-                    .disabled(plus == nil)
-                    .accessibilityLabel("Større")
-            }
-            .font(.title2)
-            .symbolRenderingMode(.hierarchical)
-            .buttonStyle(.borderless)
-        }
+        Stepper(label, onIncrement: plus, onDecrement: minus)
     }
 
     private func setZone(_ i: Int, percent: Double? = nil, weight: Double? = nil) {

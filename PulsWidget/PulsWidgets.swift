@@ -240,11 +240,15 @@ struct HomeWidgetView: View {
         let d = entry.data
         switch family {
         case .systemSmall:
-            // Helt ren: ringen med tallet og perioden under.
-            VStack(spacing: 4) {
-                WidgetRing(entry: entry)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                WidgetCaption(entry: entry)
+            // Ringen med teksten ved siden af og grafen under.
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    WidgetRing(entry: entry)
+                        .frame(width: 62, height: 62)
+                    WidgetCaption(entry: entry, alignment: .leading)
+                    Spacer(minLength: 0)
+                }
+                PeriodChart(entry: entry, compact: true)
             }
         case .systemMedium:
             HStack(spacing: 14) {
