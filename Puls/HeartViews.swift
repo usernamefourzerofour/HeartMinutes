@@ -3,17 +3,10 @@ import Charts
 import HealthKit
 
 extension HeartZones {
-    /// Farve pr. zone. Zoner, der ikke tæller (× 0), er grå.
+    /// Farve pr. zone (se `rgb`). Zoner, der ikke tæller (× 0), er grå.
     func color(_ i: Int) -> Color {
-        if weights[i] == 0 { return .gray }
-        // Mere matte udgaver af de gængse zonefarver: blå, olivengrøn, sennepsgul, orange, mørkerød.
-        let blue = Color(red: 0.42, green: 0.65, blue: 0.95)
-        let green = Color(red: 0.47, green: 0.62, blue: 0.24)
-        let yellow = Color(red: 0.84, green: 0.71, blue: 0.24)
-        let orange = Color(red: 0.92, green: 0.53, blue: 0.22)
-        let red = Color(red: 0.66, green: 0.17, blue: 0.17)
-        let palette: [Color] = model == .two ? [.gray, green, orange] : [.gray, blue, green, yellow, orange, red]
-        return palette[min(i, palette.count - 1)]
+        let c = rgb(i)
+        return Color(red: c[0], green: c[1], blue: c[2])
     }
 }
 
@@ -42,6 +35,7 @@ struct HeartChart: View {
     @State private var selectedDate: Date?
     @State private var dragStart: Date?
     @State private var chartWidth: CGFloat = 300
+    @State private var showLegend = false
 
     private static let minLength: TimeInterval = 120
 
@@ -144,7 +138,7 @@ struct HeartChart: View {
                         xStart: .value("Start", from), xEnd: .value("Slut", to),
                         yStart: .value("Fra", i == 0 ? min(0, y.lowerBound) : range.lowerBound),
                         yEnd: .value("Til", min(range.upperBound, max(y.upperBound, zones.maxHR) + 50)))
-                        .foregroundStyle(zones.color(i).opacity(0.15))
+                        .foregroundStyle(zones.color(i).opacity(0.12))
                 }
                 // Bånd i bunden: Apples vurdering af aktiv / i ro.
                 let bandTop = y.lowerBound + (y.upperBound - y.lowerBound) * 0.04
@@ -246,8 +240,9 @@ struct HeartChart: View {
                     }
                     .onEnded { _ in pinchBase = nil })
 
-            // Forklaring, delt op efter hvad den forklarer: kurven, baggrunden og båndene i bunden.
-            VStack(alignment: .leading, spacing: 8) {
+            // Forklaringen er foldet sammen, så grafen får ro: kurven, baggrunden og båndene i bunden.
+            DisclosureGroup(isExpanded: $showLegend) {
+              VStack(alignment: .leading, spacing: 8) {
                 legendGroup("Kurven") {
                     legendDot(Self.backgroundColor, "Baggrundsaktivitet")
                     legendDot(Self.workoutColor, "Workout")
@@ -270,6 +265,11 @@ struct HeartChart: View {
                         legendBar(Self.bridgedColor, "Udfyldt")
                     }
                 }
+              }
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(.top, 4)
+            } label: {
+                Label("Forklaring", systemImage: "info.circle")
             }
             .font(.caption)
 
@@ -532,12 +532,20 @@ struct OverviewView: View {
             List {
                 // Tre "vinduer" (sektioner) oven på baggrunden: Heart Minutes, pulsmålinger og workouts.
                 let stats = HeartStats(health.shownSamples)
+                let result = ActiveMinutes(health.minuteSamples, config: health.minutesConfig)
+                let total = health.minutesSource == .appleExercise
+                    ? (health.applePoints.last?.total ?? 0) : result.total
+                let goal = ActiveMinutes.scaledGoal(weekly: Double(health.weeklyGoal), duration: interval.duration)
                 Section {
                     PeriodHeader(interval: $interval)
                         .id("top")
+                    // Hero: den store hjerte-ring med periodens tal.
+                    HeroRing(total: total, goal: goal)
+                        .listRowSeparator(.hidden)
                     if stats != nil || health.minutesSource == .appleExercise {
                         ActiveMinutesChart(
-                            result: ActiveMinutes(health.minuteSamples, config: health.minutesConfig),
+                            result: result,
+                            showHeader: false,
                             period: interval.start...interval.end,
                             zones: health.zones,
                             weeklyGoal: Double(health.weeklyGoal),
@@ -586,6 +594,7 @@ struct OverviewView: View {
                     }
                 }
             }
+            .fontDesign(.rounded)
             .onChange(of: showMinutes) { withAnimation { proxy.scrollTo("top", anchor: .top) } }
             }
             // Ingen stor titel: perioden starter helt oppe.

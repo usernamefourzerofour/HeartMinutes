@@ -40,34 +40,6 @@ enum WidgetStyle: String, AppEnum {
     ]
 }
 
-/// Hjertet ved tallet på hjemmeskærmen: det fyldte hjerte eller hjerte-ringen fra uret.
-enum HomeStyle: String, AppEnum {
-    case filled, ring
-
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Hjerte")
-    static let caseDisplayRepresentations: [HomeStyle: DisplayRepresentation] = [
-        .filled: "Fyldt",
-        .ring: "Ring",
-    ]
-}
-
-/// Hjerte-ikonet ved tallet (fyldt eller ring).
-struct HomeHeartIcon: View {
-    let entry: ConfigEntry
-
-    var body: some View {
-        if entry.homeStyle == .ring {
-            // Præcis som hjerte-komplikationen på uret (samme tykkelse og kløft), bare uden tal.
-            // Kvadratisk felt, så proportionerne bliver de samme som komplikationens.
-            ShapeProgressRing(shape: HeartOutlineShape(), fraction: entry.data.fraction, value: "",
-                              thickness: 0.13)
-                .aspectRatio(1, contentMode: .fit)
-        } else {
-            HeartProgress(fraction: entry.data.fraction, color: .pink)
-        }
-    }
-}
-
 /// Fælles for widget-indstillingerne, så samme data/visning kan bruges af begge widgets.
 protocol HeartMinutesIntent: WidgetConfigurationIntent {
     var period: SummaryPeriod { get }
@@ -85,9 +57,6 @@ struct HeartMinutesHomeConfig: HeartMinutesIntent {
 
     @Parameter(title: "Vis", default: .minutes)
     var display: WidgetDisplay
-
-    @Parameter(title: "Hjerte", default: .ring)
-    var homeStyle: HomeStyle
 
     var style: WidgetStyle { .heart }
 }
@@ -115,7 +84,6 @@ struct ConfigEntry: TimelineEntry {
     let period: SummaryPeriod
     let display: WidgetDisplay
     var style: WidgetStyle = .heart
-    var homeStyle: HomeStyle = .ring
 }
 
 struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
@@ -136,8 +104,7 @@ struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
         let stored = ComplicationStore.load(for: c.period)
             ?? ComplicationData(minutes: 0, goal: c.period.goal(weekly: 150), updated: .now)
         return ConfigEntry(date: .now, data: stored.current(for: c.period), period: c.period,
-                           display: c.display, style: c.style,
-                           homeStyle: (c as? HeartMinutesHomeConfig)?.homeStyle ?? .ring)
+                           display: c.display, style: c.style)
     }
 }
 
@@ -150,7 +117,7 @@ struct PeriodChart: View {
     var compact = false
 
     /// Lodrette skillelinjer mellem dage/datoer – tydelige, men stadig diskrete.
-    private var gridStyle: Color { .gray.opacity(0.45) }
+    private var gridStyle: Color { .gray.opacity(0.3) }
 
     var body: some View {
         let data = entry.data
@@ -161,9 +128,10 @@ struct PeriodChart: View {
         Chart {
             ForEach(Array(points.enumerated()), id: \.offset) { _, p in
                 AreaMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
-                    .foregroundStyle(.pink.opacity(0.25))
+                    .foregroundStyle(Brand.area())
                 LineMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
-                    .foregroundStyle(.pink)
+                    .foregroundStyle(Brand.accent)
+                    .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
             RuleMark(y: .value("Mål", data.goal))
                 .foregroundStyle(Color.gray)
@@ -217,82 +185,50 @@ struct PeriodChart: View {
     }
 }
 
-/// Hjertet med tallet – venstre side af hjemmeskærm-widgetten.
-struct HeartSummary: View {
+/// Hjerte-ringen med tallet i midten – widgettens ansigt (samme som komplikationen på uret).
+struct WidgetRing: View {
     let entry: ConfigEntry
 
     var body: some View {
         let d = entry.data
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top) {
-                HomeHeartIcon(entry: entry)
-                    .frame(width: 58, height: 58)
-                Spacer(minLength: 0)
-            }
-            Spacer(minLength: 0)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(entry.display == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))")
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
-                if entry.display == .minutes {
-                    Text("min")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .minimumScaleFactor(0.6)
-            .lineLimit(1)
-            Text(entry.display == .percent
-                 ? "\(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
-                 : "af \(Int(d.goal.rounded())) min · \(d.percent) %")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(entry.period.title)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.pink)
-                .lineLimit(1)
-        }
+        ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
+                          value: entry.display == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))",
+                          thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+            .aspectRatio(1, contentMode: .fit)
     }
 }
 
-/// Lille hjemmeskærm-widget: hjerte og tal på én linje, så der er plads til kurven nedenunder.
-struct SmallHomeView: View {
+/// De to små linjer under ringen: enhed/mål og perioden.
+struct WidgetCaption: View {
     let entry: ConfigEntry
+    var alignment: HorizontalAlignment = .center
 
     var body: some View {
         let d = entry.data
-        VStack(alignment: .leading, spacing: 2) {
-            // Stort hjerte til venstre, tal og "af målet" til højre for det.
-            HStack(alignment: .center, spacing: 8) {
-                HomeHeartIcon(entry: entry)
-                    .frame(width: 50, height: 50)
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(entry.display == .percent ? "\(d.percent) %" : "\(Int(d.minutes.rounded()))")
-                            .font(.system(size: 26, weight: .bold, design: .rounded))
-                        if entry.display == .minutes {
-                            Text("min")
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    Text(entry.display == .percent
-                         ? "\(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
-                         : "af \(Int(d.goal.rounded())) min · \(d.percent) %")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-            }
-            PeriodChart(entry: entry, compact: true)
-                .padding(.vertical, 2)
+        VStack(alignment: alignment, spacing: 1) {
+            Text(entry.display == .percent
+                 ? "% · \(Int(d.minutes.rounded())) af \(Int(d.goal.rounded())) min"
+                 : "af \(Int(d.goal.rounded())) min")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             Text(entry.period.title)
                 .font(.caption2.weight(.semibold))
-                .foregroundStyle(.pink)
-                .lineLimit(1)
+                .foregroundStyle(Brand.accent)
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+    }
+}
+
+/// Svag farveovergang bag hjemmeskærm-widgets: varm hvid → sart rosa (mørk: dyb rødbrun → sort).
+struct WidgetBackground: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        LinearGradient(colors: colorScheme == .dark
+                       ? [Color(red: 0.15, green: 0.07, blue: 0.09), .black]
+                       : [.white, Color(red: 1.0, green: 0.93, blue: 0.94)],
+                       startPoint: .top, endPoint: .bottom)
     }
 }
 
@@ -301,24 +237,57 @@ struct HomeWidgetView: View {
     let entry: ConfigEntry
 
     var body: some View {
+        let d = entry.data
         switch family {
         case .systemSmall:
-            SmallHomeView(entry: entry)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            // Helt ren: ringen med tallet og perioden under.
+            VStack(spacing: 4) {
+                WidgetRing(entry: entry)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                WidgetCaption(entry: entry)
+            }
         case .systemMedium:
             HStack(spacing: 14) {
-                HeartSummary(entry: entry).frame(width: 110, alignment: .leading)
+                VStack(spacing: 4) {
+                    WidgetRing(entry: entry)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    WidgetCaption(entry: entry)
+                }
+                .frame(width: 112)
                 PeriodChart(entry: entry)
             }
         default:
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .bottom) {
-                    HeartSummary(entry: entry)
-                    Spacer()
-                    Text("Heart Minutes").font(.headline).foregroundStyle(.pink)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 14) {
+                    WidgetRing(entry: entry)
+                        .frame(width: 96, height: 96)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Heart Minutes")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Brand.accent)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text("\(Int(d.minutes.rounded()))")
+                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                            Text("min")
+                                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.secondary)
+                        }
+                        Text("af \(Int(d.goal.rounded())) min · \(d.percent) %")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(entry.period.title)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    Spacer(minLength: 0)
                 }
-                .frame(height: 120)
                 PeriodChart(entry: entry)
+                // Fordelingen på pulszoner (ikke ved Træningsring eller ældre data).
+                if let zones = d.zones, !zones.isEmpty {
+                    ZoneBar(slices: zones)
+                }
             }
         }
     }
@@ -350,11 +319,11 @@ struct HeartMinutesHomeWidget: Widget {
         AppIntentConfiguration(kind: "HeartMinutesHome", intent: HeartMinutesHomeConfig.self,
                                provider: ConfigProvider<HeartMinutesHomeConfig>()) { entry in
             HomeWidgetView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(for: .widget) { WidgetBackground() }
                 .widgetURL(URL(string: "heartminutes://minutes"))
         }
         .configurationDisplayName("Heart Minutes")
-        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent. Hjertet kan være fyldt eller en ring.")
+        .description("Heart Minutes mod dit mål – vælg periode og minutter eller procent.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

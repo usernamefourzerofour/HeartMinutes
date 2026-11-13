@@ -81,6 +81,15 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
     var storageKey: String { self == .thisWeek ? "complicationData" : "complicationData.\(rawValue)" }
 }
 
+/// Minutter i én pulszone med zonens farve (til zone-bjælken i app og widgets).
+struct ZoneSlice: Codable, Equatable, Sendable {
+    var name: String
+    var minutes: Double
+    var r: Double
+    var g: Double
+    var b: Double
+}
+
 /// Ugens Heart Minutes, delt mellem ur-appen og komplikationen (App Group).
 struct ComplicationData: Codable, Equatable {
     var minutes: Double
@@ -88,6 +97,8 @@ struct ComplicationData: Codable, Equatable {
     var updated: Date
     /// Kumulativ kurve over ugen (til grafen i hjemmeskærm-widgetten). Mangler i ældre data.
     var points: [Point]? = nil
+    /// Fordelingen på pulszoner (kun zoner, der tæller). Mangler i ældre data og ved Træningsring.
+    var zones: [ZoneSlice]? = nil
 
     struct Point: Codable, Equatable {
         let t: Date

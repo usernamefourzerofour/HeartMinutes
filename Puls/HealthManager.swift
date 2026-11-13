@@ -614,17 +614,21 @@ extension HealthManager {
         var result: [SummaryPeriod: ComplicationData] = [:]
         for (period, interval) in intervals {
             let points: [ActiveMinutes.Point]
+            var zoneSlices: [ZoneSlice]? = nil
             if health.minutesSource == .appleExercise {
                 points = ActiveMinutes.rebased(health.applePoints, to: interval)
             } else {
                 let slice = Array(health.minuteSamples.slice(from: interval.start, to: interval.end))
-                points = ActiveMinutes(slice, config: health.minutesConfig).points
+                let r = ActiveMinutes(slice, config: health.minutesConfig)
+                points = r.points
+                zoneSlices = health.zones.slices(r.zoneMinutes)
             }
             result[period] = ComplicationData(
                 minutes: points.last?.total ?? 0,
                 goal: period.goal(weekly: Double(health.weeklyGoal), now: now),
                 updated: now,
-                points: ComplicationData.reduced(points.map { .init(t: $0.date, v: $0.total) }))
+                points: ComplicationData.reduced(points.map { .init(t: $0.date, v: $0.total) }),
+                zones: zoneSlices)
         }
         return result
     }

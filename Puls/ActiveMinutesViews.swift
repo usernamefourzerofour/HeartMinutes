@@ -5,6 +5,8 @@ import Charts
 /// Graf over de kumulative aktive minutter i perioden, med målet som vandret linje.
 struct ActiveMinutesChart: View {
     let result: ActiveMinutes
+    /// Overskrift med tallet (slås fra, når den store hjerte-ring står ovenover).
+    var showHeader = true
     let period: ClosedRange<Date>
     /// Zonerne med navne og faktorer (til regnestykket under grafen).
     let zones: HeartZones
@@ -42,13 +44,15 @@ struct ActiveMinutesChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Heart Minutes").font(.headline)
-                Spacer()
-                Text("\(Int(shownTotal.rounded()))").font(.title2.bold())
-                Text("/ \(Int(goal.rounded()))").foregroundStyle(.secondary)
-                if shownTotal >= goal && goal > 0 {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            if showHeader {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Heart Minutes").font(.headline)
+                    Spacer()
+                    Text("\(Int(shownTotal.rounded()))").font(.title2.bold())
+                    Text("/ \(Int(goal.rounded()))").foregroundStyle(.secondary)
+                    if shownTotal >= goal && goal > 0 {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    }
                 }
             }
             Chart {
@@ -75,7 +79,7 @@ struct ActiveMinutesChart: View {
                     ForEach(shownApplePoints) { p in
                         AreaMark(x: .value("Tid", p.date), y: .value("Minutter", p.total))
                             .interpolationMethod(.stepEnd)
-                            .foregroundStyle(Self.appleColor.opacity(0.3))
+                            .foregroundStyle(Brand.area(Self.appleColor))
                         LineMark(x: .value("Tid", p.date), y: .value("Apple", p.total),
                                  series: .value("Serie", "Apple"))
                             .interpolationMethod(.stepEnd)
@@ -101,9 +105,16 @@ struct ActiveMinutesChart: View {
             .chartXScale(domain: period)
             .chartYScale(domain: 0...yMax)
             .chartForegroundStyleScale([
-                "Baggrund": HeartChart.backgroundColor.opacity(0.35),
-                "Workout": HeartChart.workoutColor.opacity(0.45),
+                "Baggrund": Brand.area(HeartChart.backgroundColor, top: 0.5),
+                "Workout": Brand.area(HeartChart.workoutColor, top: 0.55),
             ])
+            // Rolig y-akse: få, svage linjer.
+            .chartYAxis {
+                AxisMarks(values: .automatic(desiredCount: 3)) { _ in
+                    AxisGridLine().foregroundStyle(Color.gray.opacity(0.18))
+                    AxisValueLabel()
+                }
+            }
             .chartLegend(.hidden)
             .frame(height: 160)
 
@@ -126,9 +137,7 @@ struct ActiveMinutesChart: View {
 
             if source == .heartRate && showBreakdown {
             // Med én decimal, så regnestykket går op (afrundede hele minutter kan give 1 for lidt).
-            Text(Self.breakdown(result, zones: zones))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            ZoneBreakdown(result: result, zones: zones)
             }
             Text("Mål: \(Int(weeklyGoal)) min pr. uge, tilpasset den valgte periode")
                 .font(.caption)
@@ -298,5 +307,65 @@ extension HKWorkoutActivityType {
         case .mindAndBody: "figure.mind.and.body"
         default: "figure.mixed.cardio"
         }
+    }
+}
+
+/// Zone-bjælken under minutgrafen. Tryk for at se regnestykket ("Z1 … × 1 + Z3 … × 2 = N min").
+struct ZoneBreakdown: View {
+    let result: ActiveMinutes
+    let zones: HeartZones
+    @State private var showMath = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ZoneBar(slices: zones.slices(result.zoneMinutes))
+            if showMath {
+                Text(ActiveMinutesChart.breakdown(result, zones: zones))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { withAnimation { showMath.toggle() } }
+        .accessibilityHint("Tryk for at se regnestykket")
+    }
+}
+
+/// Den store hjerte-ring øverst i Overblik: periodens Heart Minutes mod målet.
+struct HeroRing: View {
+    let total: Double
+    let goal: Double
+    @State private var shown = 0.0
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var fraction: Double { goal > 0 ? max(0, total / goal) : 0 }
+    private var reached: Bool { goal > 0 && total >= goal }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            AnimatedHeartRing(fraction: shown, value: "\(Int(total.rounded()))")
+                .frame(width: 170, height: 170)
+                // Mørk tilstand: ringen lyser lidt, som på uret.
+                .shadow(color: colorScheme == .dark ? Brand.accent.opacity(0.4) : .clear, radius: 14)
+            HStack(spacing: 6) {
+                Text("af \(Int(goal.rounded())) min · \(Int((fraction * 100).rounded())) %")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if reached {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 4)
+        .onAppear { fill() }
+        .onChange(of: fraction) { fill() }
+        // Et lille "dunk", når målet nås.
+        .sensoryFeedback(trigger: reached) { _, now in now ? .success : nil }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func fill() {
+        withAnimation(.easeOut(duration: 0.9)) { shown = fraction }
     }
 }

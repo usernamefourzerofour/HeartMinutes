@@ -9,18 +9,16 @@ struct WatchContentView: View {
         let d = model.data.current(for: model.period)
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    // Præcis som hjerte-komplikationen (kvadratisk felt, samme tykkelse), bare uden tal –
-                    // tallene står ved siden af.
-                    ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction, value: "",
-                                      thickness: 0.13)
-                        .frame(width: 44, height: 44)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("\(Int(d.minutes.rounded())) min").font(.headline)
-                        Text("af \(Int(d.goal)) · \(d.percent) %")
-                            .font(.caption2).foregroundStyle(.secondary)
-                    }
+                // Hero: den store hjerte-ring med tallet i midten (som komplikationen).
+                VStack(spacing: 2) {
+                    ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
+                                      value: "\(Int(d.minutes.rounded()))",
+                                      thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                        .frame(width: 96, height: 96)
+                    Text("af \(Int(d.goal.rounded())) min · \(d.percent) %")
+                        .font(.caption2).foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity)
                 WatchMinutesChart(data: d, period: model.period)
                     .frame(height: 90)
                 HStack {
@@ -54,9 +52,9 @@ struct WatchMinutesChart: View {
         Chart {
             ForEach(Array(points.enumerated()), id: \.offset) { _, p in
                 AreaMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
-                    .foregroundStyle(Color.pink.opacity(0.25))
+                    .foregroundStyle(Brand.area())
                 LineMark(x: .value("Tid", p.t), y: .value("Minutter", p.v))
-                    .foregroundStyle(Color.pink)
+                    .foregroundStyle(Brand.accent)
                     .lineStyle(StrokeStyle(lineWidth: 2))
             }
             RuleMark(y: .value("Mål", data.goal))

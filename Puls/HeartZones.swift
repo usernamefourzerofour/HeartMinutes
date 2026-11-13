@@ -113,6 +113,27 @@ struct HeartZones: Equatable, Sendable {
         indices.last { bpm >= lowerBound($0) } ?? 0
     }
 
+    /// Zonens farve som rød/grøn/blå (0…1). Zoner, der ikke tæller (× 0), er grå.
+    /// Matte udgaver af de gængse zonefarver: blå, olivengrøn, sennepsgul, orange, mørkerød.
+    func rgb(_ i: Int) -> [Double] {
+        let gray = [0.56, 0.56, 0.58]
+        if weights[i] == 0 { return gray }
+        let blue = [0.42, 0.65, 0.95], green = [0.47, 0.62, 0.24], yellow = [0.84, 0.71, 0.24]
+        let orange = [0.92, 0.53, 0.22], red = [0.66, 0.17, 0.17]
+        let palette = model == .two ? [gray, green, orange] : [gray, blue, green, yellow, orange, red]
+        return palette[min(i, palette.count - 1)]
+    }
+
+    /// Minutterne pr. zone som stykker til zone-bjælken (kun zoner, der tæller og har minutter).
+    func slices(_ minutes: [Double]) -> [ZoneSlice] {
+        indices.compactMap { i in
+            let m = i < minutes.count ? minutes[i] : 0
+            guard weights[i] > 0, m > 0 else { return nil }
+            let c = rgb(i)
+            return ZoneSlice(name: name(i), minutes: m, r: c[0], g: c[1], b: c[2])
+        }
+    }
+
     /// Grænserne mellem zonerne (bpm).
     var thresholds: [Double] { (1..<count).map(lowerBound) }
 

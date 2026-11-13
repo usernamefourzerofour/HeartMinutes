@@ -27,6 +27,7 @@ struct ContentView: View {
                 ProgressView("Forbinder til Sundhed…")
             }
         }
+        .tint(Brand.accent)
         .onOpenURL { url in
             // Tryk på en widget/komplikation: vis minutgrafen.
             guard url.scheme == "heartminutes" else { return }
