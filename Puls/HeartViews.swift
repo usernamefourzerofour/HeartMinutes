@@ -599,7 +599,7 @@ struct NoDataView: View {
     var body: some View {
         if !health.includeBackground && !health.includeWorkouts {
             ContentUnavailableView("Ingen målinger valgt", systemImage: "line.3.horizontal.decrease.circle",
-                description: Text("Slå baggrundsmålinger eller workouts til under Indstillinger → Avanceret."))
+                description: Text("Slå baggrundsmålinger eller workouts til øverst i Indstillinger."))
         } else {
             ContentUnavailableView("Ingen pulsdata", systemImage: "heart.slash",
                 description: Text("Tjek at Heart Minutes har adgang i Sundhed-appen."))
