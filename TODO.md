@@ -8,8 +8,8 @@
       faktor pr. zone redigeres under "Dine zoner"; nederste zone × 0 som udgangspunkt.
       Maks-puls ud fra alder eller indtastet. "Manuelt" (bpm) og vægte under Avanceret er fjernet.
 
-- [x] **Aktive minutter baseret på træningsringsminutter** (`HKQuantityType(.appleExerciseTime)`,
-      den grønne træningsring): "Beregn ud fra: Pulszoner / Træningsring" i Indstillinger.
+- [x] ~~**Aktive minutter baseret på træningsringsminutter**~~ – fjernet igen i build 63; Heart Minutes
+      bruger altid pulszonerne. Træningsringen kan stadig vises som sammenligning under Avanceret.
 
 - [ ] **Mål for minutter i en bestemt zone** (fx "60 min i Z2 pr. uge" til grundtræning).
   - Kan delvist laves i dag med faktorerne: sæt den ønskede zone til × 1 og resten til × 0.
@@ -24,13 +24,22 @@
   - **To ringe** i komplikation/widgets (fx yderring = moderat, inderring = hård, som Aktivitet-ringene).
   - **Minutgrafen splittet i to**: fx to kurver/flader (moderat og hård) hver med sin egen mållinje,
     eller to små grafer under hinanden. Skal afklares, hvordan det bliver tydeligst.
-  - Overvej hvordan det spiller sammen med "Træningsring" som kilde (den har kun ét tal).
 
 - [x] **Apple Watch-komplikation** (build 18): ur-app + WidgetKit-komplikation (rund, hjørne, rektangulær,
       linje). Uret regner selv ugens minutter fra Sundhed hver ~30 min; indstillinger synkroniseres fra iPhone.
       Mangler måske: test på rigtigt ur, evt. valg af procent/minutter i én komplikation.
 
+## App Store (1.0)
+- [ ] Privatlivs-manifest (PrivacyInfo.xcprivacy) – appen bruger UserDefaults/App Group
+- [ ] Privatlivspolitik (URL) – kræves af Apple, især for HealthKit-apps
+- [ ] Support-URL
+- [ ] Tekster: navn, undertitel, beskrivelse, nøgleord (dansk, evt. engelsk)
+- [ ] Skærmbilleder: iPhone 6,9" og Apple Watch
+- [ ] Kategori (Sundhed og fitness), aldersgrænse, pris
+- [ ] Ikke-medicinsk forbehold i beskrivelsen ("ikke medicinsk udstyr")
+
 ## Idéer til senere
+- Hurtigere opdatering af komplikationer (HKObserverQuery / skub fra telefonen)
 - "Uge"-visning: minutter i moderat/hård mod AHA's 150/75 min pr. uge
   (https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/aha-recs-for-physical-activity-in-adults)
 - Debug-knap der lægger testdata i HealthKit på simulatoren (kræver skriveadgang)
