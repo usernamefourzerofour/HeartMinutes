@@ -251,7 +251,8 @@ struct WorkoutScoresView: View {
                 .buttonStyle(.plain)
                 .accessibilityHint("Zoom pulsgrafen ind på denne workout")
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                // Lidt mere luft under det sidste kort, så det ikke rører kanten.
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: w.id == scores.last?.id ? 16 : 4, trailing: 16))
             }
             if scores.isEmpty {
                 Text("Ingen workouts i perioden").font(.caption).foregroundStyle(.secondary)
