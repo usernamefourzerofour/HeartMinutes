@@ -11,9 +11,8 @@ struct WatchContentView: View {
             VStack(alignment: .leading, spacing: 6) {
                 // Hero: den store hjerte-ring med tallet i midten (som komplikationen).
                 VStack(spacing: 2) {
-                    ShapeProgressRing(shape: HeartOutlineShape(), fraction: d.fraction,
-                                      value: "\(Int(d.minutes.rounded()))",
-                                      thickness: 0.13, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+                    // Tæller op ligesom på iPhone (fra 0 ved åbning og ny periode).
+                    CountingHeartRing(total: d.minutes, goal: d.goal, resetKey: model.period.rawValue)
                         .frame(width: 96, height: 96)
                     Text("af \(Int(d.goal.rounded())) min · \(d.percent) %")
                         .font(.caption2).foregroundStyle(.secondary)

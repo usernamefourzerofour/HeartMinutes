@@ -26,6 +26,51 @@ struct AnimatedHeartRing: View, Animatable {
     }
 }
 
+/// Hjerte-ringen, der tæller op: fra 0, når den vises, når appen åbnes igen fra baggrunden, og
+/// når `resetKey` skifter (ny periode); ellers fra det viste tal til det nye. Konstant fart: én hel
+/// omgang (100 %) pr. sekund. Bruges i iPhone-appen og på uret.
+struct CountingHeartRing: View {
+    let total: Double
+    let goal: Double
+    var resetKey: String = ""
+    @State private var shown = 0.0
+    @State private var run = 0
+    @State private var wasInBackground = false
+    @State private var countedKey: String?
+    @Environment(\.scenePhase) private var scenePhase
+
+    private var fraction: Double { goal > 0 ? max(0, total / goal) : 0 }
+    /// Tallet i midten tæller med op, så det passer til ringen undervejs.
+    private var shownMinutes: Int { goal > 0 ? Int((shown * goal).rounded()) : Int(total.rounded()) }
+
+    var body: some View {
+        AnimatedHeartRing(fraction: shown, value: "\(shownMinutes)")
+            // Animeres trin for trin (i stedet for withAnimation), så det virker pålideligt i lister.
+            .task(id: "\(fraction)-\(run)-\(resetKey)") {
+                if resetKey != countedKey { countedKey = resetKey; shown = 0 }
+                await fill(to: fraction)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Kun efter baggrunden – ikke fx når Kontrolcenter lukkes.
+                if phase == .background { wasInBackground = true }
+                if phase == .active && wasInBackground { wasInBackground = false; shown = 0; run += 1 }
+            }
+    }
+
+    private func fill(to target: Double) async {
+        let start = shown
+        let lapsPerSecond = 1.0
+        let duration = max(abs(target - start) / lapsPerSecond, 0.01)
+        let begin = Date.now
+        while !Task.isCancelled {
+            let t = min(Date.now.timeIntervalSince(begin) / duration, 1)
+            shown = start + (target - start) * t
+            if t >= 1 { break }
+            try? await Task.sleep(for: .milliseconds(16))
+        }
+    }
+}
+
 extension ZoneSlice {
     var color: Color { Color(red: r, green: g, blue: b) }
 }

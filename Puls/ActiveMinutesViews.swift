@@ -304,23 +304,15 @@ struct HeroRing: View {
     let goal: Double
     /// Ny periode: ringen tæller op fra 0 igen.
     var period: DateInterval? = nil
-    @State private var countedPeriod: DateInterval?
-    /// Andelen, ringen viser lige nu (tælles op fra 0 eller fra den forrige værdi).
-    @State private var shown = 0.0
-    /// Øges, når appen åbnes igen, så ringen fyldes op forfra.
-    @State private var run = 0
-    @State private var wasInBackground = false
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.scenePhase) private var scenePhase
 
     private var fraction: Double { goal > 0 ? max(0, total / goal) : 0 }
     private var reached: Bool { goal > 0 && total >= goal }
-    /// Tallet i midten tæller med op, så det passer til ringen undervejs.
-    private var shownMinutes: Int { goal > 0 ? Int((shown * goal).rounded()) : Int(total.rounded()) }
 
     var body: some View {
         VStack(spacing: 6) {
-            AnimatedHeartRing(fraction: shown, value: "\(shownMinutes)")
+            CountingHeartRing(total: total, goal: goal,
+                              resetKey: period.map { "\($0.start.timeIntervalSince1970)-\($0.end.timeIntervalSince1970)" } ?? "")
                 .frame(width: 170, height: 170)
                 // Mørk tilstand: ringen lyser lidt, som på uret.
                 .shadow(color: colorScheme == .dark ? Brand.accent.opacity(0.4) : .clear, radius: 14)
@@ -335,31 +327,6 @@ struct HeroRing: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
-        // Ved visning, ny periode/nye data og når appen åbnes igen. Animeres trin for trin (i stedet
-        // for withAnimation), så det virker pålideligt inde i en liste.
-        .task(id: "\(fraction)-\(run)-\(period?.start.timeIntervalSince1970 ?? 0)-\(period?.end.timeIntervalSince1970 ?? 0)") {
-            if period != countedPeriod { countedPeriod = period; shown = 0 }
-            await fill(to: fraction)
-        }
-        .onChange(of: scenePhase) { _, phase in
-            // Kun efter baggrunden – ikke fx når Kontrolcenter lukkes.
-            if phase == .background { wasInBackground = true }
-            if phase == .active && wasInBackground { wasInBackground = false; shown = 0; run += 1 }
-        }
         .accessibilityElement(children: .combine)
-    }
-
-    /// Konstant fart: én hel omgang (100 %) pr. sekund, så 300 % tager 3 sekunder – ikke en fast tid.
-    private func fill(to target: Double) async {
-        let start = shown
-        let lapsPerSecond = 1.0
-        let duration = max(abs(target - start) / lapsPerSecond, 0.01)
-        let begin = Date.now
-        while !Task.isCancelled {
-            let t = min(Date.now.timeIntervalSince(begin) / duration, 1)
-            shown = start + (target - start) * t
-            if t >= 1 { break }
-            try? await Task.sleep(for: .milliseconds(16))
-        }
     }
 }
