@@ -1,6 +1,6 @@
 import Foundation
 
-/// Perioder, widgets kan vise.
+/// Periods widgets can show.
 enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
     case today, thisWeek, thisMonth, last3Days, last7Days, last14Days, last30Days
 
@@ -16,7 +16,7 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Antal dage for de glidende perioder ("seneste N dage").
+    /// Number of days for the rolling periods ("last N days").
     var rollingDays: Int? {
         switch self {
         case .last3Days: 3
@@ -27,7 +27,7 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Tidsrummet, der regnes på.
+    /// The time range that is calculated.
     func interval(now: Date = .now, calendar: Calendar = .current) -> DateInterval {
         if let days = rollingDays {
             return DateInterval(start: now.addingTimeInterval(-Double(days) * 86_400), end: now)
@@ -41,7 +41,7 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Hele grafens tidsakse (fx hele ugen mandag–søndag, selvom ugen ikke er slut).
+    /// The chart's whole time axis (e.g. the whole week Monday–Sunday, even if the week isn't over).
     func chartDomain(now: Date = .now, calendar: Calendar = .current) -> ClosedRange<Date> {
         let i = interval(now: now, calendar: calendar)
         switch self {
@@ -55,7 +55,7 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Længden i dage, som målet skaleres efter.
+    /// The length in days the goal is scaled by.
     func goalDays(now: Date = .now, calendar: Calendar = .current) -> Double {
         if let days = rollingDays { return Double(days) }
         switch self {
@@ -65,7 +65,7 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Målet for perioden ud fra ugemålet (én dag = 1/7 af ugemålet).
+    /// The goal for the period from the weekly goal (one day = 1/7 of the weekly goal).
     func goal(weekly: Double, now: Date = .now) -> Double { weekly * goalDays(now: now) / 7 }
 
     var goalLabel: String {
@@ -77,11 +77,11 @@ enum SummaryPeriod: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Ugen bruger den oprindelige nøgle, så ur-komplikationen og ældre data stadig virker.
+    /// The week uses the original key, so the watch complication and older data still work.
     var storageKey: String { self == .thisWeek ? "complicationData" : "complicationData.\(rawValue)" }
 }
 
-/// Minutter i én pulszone med zonens farve (til zone-bjælken i app og widgets).
+/// Minutes in one heart rate zone with the zone's colour (for the zone bar in the app and widgets).
 struct ZoneSlice: Codable, Equatable, Sendable {
     var name: String
     var minutes: Double
@@ -90,14 +90,14 @@ struct ZoneSlice: Codable, Equatable, Sendable {
     var b: Double
 }
 
-/// Ugens Heart Minutes, delt mellem ur-appen og komplikationen (App Group).
+/// This week's Heart Minutes, shared between the watch app and the complication (App Group).
 struct ComplicationData: Codable, Equatable {
     var minutes: Double
     var goal: Double
     var updated: Date
-    /// Kumulativ kurve over ugen (til grafen i hjemmeskærm-widgetten). Mangler i ældre data.
+    /// Cumulative curve over the week (for the chart in the Home Screen widget). Missing in older data.
     var points: [Point]? = nil
-    /// Fordelingen på pulszoner (kun zoner, der tæller). Mangler i ældre data og ved Træningsring.
+    /// The split across heart rate zones (only zones that count). Missing in older data.
     var zones: [ZoneSlice]? = nil
 
     struct Point: Codable, Equatable {
@@ -105,21 +105,21 @@ struct ComplicationData: Codable, Equatable {
         let v: Double
     }
 
-    /// Højst `max` punkter (jævnt fordelt, sidste punkt beholdes) – widgets har lidt hukommelse.
+    /// At most `max` points (evenly spread, the last point kept) – widgets have little memory.
     static func reduced(_ points: [Point], max: Int = 120) -> [Point] {
         guard points.count > max, max > 1 else { return points }
         let step = Double(points.count - 1) / Double(max - 1)
         return (0..<max).map { points[Int((Double($0) * step).rounded())] }
     }
 
-    /// Forlænger kurven vandret til `end`, så den fortsætter gennem dage uden nye minutter.
+    /// Extends the curve horizontally to `end` so it continues through days without new minutes.
     static func extended(_ points: [Point], to end: Date) -> [Point] {
         guard let last = points.last, end > last.t else { return points }
         return points + [Point(t: end, v: last.v)]
     }
 
-    /// Hele kurven til grafen: starter i 0 ved periodens start (hvis første minut kommer senere)
-    /// og fortsætter vandret til `end`.
+    /// The whole curve for the chart: starts at 0 at the start of the period (if the first minute comes later) and
+    /// continues horizontally to `end`.
     static func spanning(_ points: [Point], from start: Date, to end: Date) -> [Point] {
         var p = points
         if let first = p.first, first.t > start { p.insert(Point(t: start, v: 0), at: 0) }
@@ -132,9 +132,9 @@ struct ComplicationData: Codable, Equatable {
 
     static let placeholder = ComplicationData(minutes: 93, goal: 150, updated: .now)
 
-    /// Data fra en tidligere uge/dag vises som 0 (ny periode = start forfra).
+    /// Data from an earlier week/day is shown as 0 (new period = start over).
     func current(for period: SummaryPeriod = .thisWeek, now: Date = .now) -> ComplicationData {
-        // Glidende perioder nulstilles ikke; uge, dag og måned starter forfra.
+        // Rolling periods aren't reset; week, day and month start over.
         if period.rollingDays != nil || updated >= period.interval(now: now).start { return self }
         return ComplicationData(minutes: 0, goal: goal, updated: now, points: [])
     }
@@ -149,7 +149,7 @@ enum ComplicationStore {
         defaults.set(encoded, forKey: period.storageKey)
     }
 
-    /// Gemmer kun, hvis `shouldReplace` siger ja. Returnerer, om der blev gemt.
+    /// Only saves if `shouldReplace` says yes. Returns whether it saved.
     @discardableResult
     static func saveIfValid(_ data: ComplicationData, for period: SummaryPeriod = .thisWeek,
                             allowDecrease: Bool) -> Bool {
@@ -159,10 +159,10 @@ enum ComplicationStore {
         return true
     }
 
-    /// Inden for samme dag/uge/måned kan minutterne kun stige. Et lavere tal i baggrunden er
-    /// derfor en ufuldstændig læsning af Sundhed og må ikke overskrive det gemte tal.
-    /// Med appen åben (`allowDecrease`) må tallet godt falde, fx efter ændrede indstillinger.
-    /// Glidende perioder ("seneste N dage") kan falde naturligt og tjekkes ikke.
+    /// Within the same day/week/month the minutes can only go up. A lower number in the background is therefore an
+    /// incomplete read of Health and must not overwrite the saved number. With the app open (`allowDecrease`) the
+    /// number may drop, e.g. after changed settings. Rolling periods ("last N days") can drop naturally and aren't
+    /// checked.
     static func shouldReplace(_ old: ComplicationData?, with new: ComplicationData, for period: SummaryPeriod,
                               allowDecrease: Bool, now: Date = .now) -> Bool {
         guard !allowDecrease, let old, period.rollingDays == nil,
@@ -170,8 +170,8 @@ enum ComplicationStore {
         return new.minutes >= old.minutes
     }
 
-    /// Perioden, som uret (komplikationer og ur-app) viser. Vælges i iPhone-appen og synkroniseres;
-    /// ligger i App Group, så komplikationen også kan læse den.
+    /// The period the watch (complications and watch app) shows. Chosen in the iPhone app and synced; stored in the App
+    /// Group so the complication can read it too.
     static var watchPeriod: SummaryPeriod {
         get {
             UserDefaults(suiteName: appGroup)?.string(forKey: "watchPeriod")

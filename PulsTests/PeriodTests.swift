@@ -13,7 +13,7 @@ struct PeriodTests {
     }
 
     @Test func thisWeekIsTheWholeWeek() {
-        // Lørdag 7. nov. 2026 kl. 12 → mandag 2. nov. 00:00 til mandag 9. nov. 00:00 (hele ugen)
+        // Saturday 7 Nov 2026 at 12 → Monday 2 Nov 00:00 to Monday 9 Nov 00:00 (the whole week)
         let i = Period.thisWeek(now: date(2026, 11, 7, 12), calendar: cal)
         #expect(i.start == date(2026, 11, 2))
         #expect(i.end == date(2026, 11, 9))
@@ -25,9 +25,9 @@ struct PeriodTests {
         let thisWeek = Period.thisWeek(now: now, calendar: cal)
         let prev = Period.shifted(thisWeek, by: -1, calendar: cal, now: now)
         #expect(prev.start == date(2026, 10, 26))
-        #expect(prev.end == date(2026, 11, 2))          // hele forrige uge
+        #expect(prev.end == date(2026, 11, 2))          // the whole previous week
         let back = Period.shifted(prev, by: 1, calendar: cal, now: now)
-        #expect(back == thisWeek)                        // tilbage til hele denne uge
+        #expect(back == thisWeek)                        // back to the whole current week
     }
 
     @Test func singleMondayIsADayNotAWeek() {
@@ -44,7 +44,7 @@ struct PeriodTests {
     }
 
     @Test func shiftsWholeDaysAcrossDST() {
-        // Sommertid slutter 25. okt. 2026 i Danmark: dagen er 25 timer.
+        // Daylight saving time ends 25 Oct 2026 in Denmark: the day is 25 hours long.
         let i = DateInterval(start: date(2026, 10, 26), end: date(2026, 10, 27))
         let prev = Period.shifted(i, by: -1, calendar: cal)
         #expect(prev.start == date(2026, 10, 25))
@@ -121,11 +121,11 @@ struct MotionStripTests {
         let strips = HeartChart.motionStrips(s)
         #expect(strips.map(\.motion) == [.sedentary, .active, .active])
         #expect(strips[0].start == t0 && strips[0].end == t0.addingTimeInterval(120))
-        #expect(strips.last?.end == t0.addingTimeInterval(300))   // sidste: + 1 min
+        #expect(strips.last?.end == t0.addingTimeInterval(300))   // last: + 1 min
     }
 }
 
-/// Korte etiketter, så periodeknappen ikke bryder over to linjer.
+/// Short labels so the period button doesn't wrap onto two lines.
 struct PeriodLabelTests {
     let now = Date(timeIntervalSince1970: 1_794_250_000)
 
@@ -148,7 +148,7 @@ struct PeriodLabelTests {
     }
 }
 
-/// Perioder, der følger "nu", flyttes med, når appen kommer frem igen.
+/// Periods that follow "now" move along when the app comes back.
 struct PeriodRefreshTests {
     let cal: Calendar = {
         var c = Calendar(identifier: .gregorian)
@@ -164,7 +164,7 @@ struct PeriodRefreshTests {
     }
 
     @Test func thisWeekMovesToNewWeek() {
-        let then = date(8, 20), now = date(10, 7)   // søndag → mandag i ny uge
+        let then = date(8, 20), now = date(10, 7)   // Sunday → Monday in a new week
         let r = Period.refreshed(Period.thisWeek(now: then, calendar: cal), from: then, to: now, calendar: cal)
         #expect(r == Period.thisWeek(now: now, calendar: cal))
     }

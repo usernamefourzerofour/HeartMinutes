@@ -1,16 +1,15 @@
 import Foundation
 
-/// Kilde for maks-puls og zonegrænser (American Heart Association, "Target Heart Rates Chart"):
-/// "Target heart rate during moderate-intensity activities is about 50-70% of maximum heart rate.
-///  During vigorous physical activity, it's about 70-85% of maximum."  Maks-puls ≈ 220 − alder.
-/// Siden definerer kun moderate og vigorous, så kun de to farves; "Let" vises gråt.
-/// Valg i appen: hård (vigorous) fortsætter opad uden 85 %-loft.
+/// Source for max heart rate and zone limits (American Heart Association, "Target Heart Rates Chart"): "Target heart
+/// rate during moderate-intensity activities is about 50-70% of maximum heart rate. During vigorous physical activity,
+/// it's about 70-85% of maximum." Max heart rate ≈ 220 − age. The page only defines moderate and vigorous, so only
+/// those two are coloured; "Light" is grey. Choice in the app: vigorous continues upward without the 85 % ceiling.
 enum AHA {
     static let targetHeartRatesURL =
         URL(string: "https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates")!
 }
 
-/// Zonemodel: AHA's to zoner (moderat/hård) eller de gængse fem zoner (Garmin/Polar m.fl.).
+/// Zone model: AHA's two zones (moderate/vigorous) or the common five zones (Garmin/Polar and others).
 enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
     case two, five
     var id: String { rawValue }
@@ -22,7 +21,7 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Navne på zonerne, nederst først. Den nederste tæller som udgangspunkt ikke (× 0).
+    /// Names of the zones, lowest first. The lowest doesn't count by default (× 0).
     var names: [String] {
         switch self {
         case .two: [String(localized: "Light"), String(localized: "Moderate"), String(localized: "Vigorous")]
@@ -30,8 +29,8 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Nedre grænse for hver zone som andel af maks-puls (første er altid 0).
-    /// To zoner: AHA (moderat 50 %, hård 70 %). Fem zoner: Z1–Z5 fra 50/60/70/80/90 %; Z0 er under 50 %.
+    /// Lower limit of each zone as a fraction of max heart rate (the first is always 0). Two zones: AHA (moderate 50 %,
+    /// vigorous 70 %). Five zones: Z1–Z5 from 50/60/70/80/90 %; Z0 is below 50 %.
     var defaultPercents: [Double] {
         switch self {
         case .two: [0, 0.50, 0.70]
@@ -39,7 +38,7 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Hvor meget ét minut i hver zone tæller. AHA: moderat × 1, hård × 2.
+    /// How much one minute in each zone counts. AHA: moderate × 1, vigorous × 2.
     var defaultWeights: [Double] {
         switch self {
         case .two: [0, 1, 2]
@@ -48,7 +47,7 @@ enum ZoneModel: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Hvordan maks-pulsen findes.
+/// How the max heart rate is determined.
 enum MaxHRSource: String, CaseIterable, Identifiable, Sendable {
     case age, manual
     var id: String { rawValue }
@@ -60,13 +59,14 @@ enum MaxHRSource: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Pulszonerne: nedre grænser i procent af maks-puls og en faktor pr. zone. Den øverste zone har intet loft.
+/// The heart rate zones: lower limits as a percentage of max heart rate and a factor per zone. The top zone has no
+/// ceiling.
 struct HeartZones: Equatable, Sendable {
     let maxHR: Double
     let model: ZoneModel
-    /// Nedre grænse pr. zone som andel af maks-puls (første er 0).
+    /// Lower limit per zone as a fraction of max heart rate (the first is 0).
     let percents: [Double]
-    /// Faktor pr. zone.
+    /// Factor per zone.
     let weights: [Double]
 
     init(maxHR: Double, model: ZoneModel = .two, percents: [Double]? = nil, weights: [Double]? = nil) {
@@ -81,18 +81,18 @@ struct HeartZones: Equatable, Sendable {
 
     init(age: Int) { self.init(maxHR: Self.maxHR(age: age)) }
 
-    /// To zoner med faste grænser i bpm (bruges i testene).
+    /// Two zones with fixed limits in bpm (used in the tests).
     init(moderate: Double, vigorous: Double, maxHR: Double? = nil) {
         let m = maxHR ?? vigorous / 0.70
         self.init(maxHR: m, model: .two, percents: [0, moderate / m, vigorous / m])
     }
 
-    /// Samme zoner med andre faktorer.
+    /// The same zones with other factors.
     func withWeights(_ weights: [Double]) -> HeartZones {
         HeartZones(maxHR: maxHR, model: model, percents: percents, weights: weights)
     }
 
-    /// Maks-puls ud fra alder: 220 − alder (det AHA's tabel bygger på; den mest udbredte formel).
+    /// Max heart rate from age: 220 − age (what AHA's table is based on; the most widely used formula).
     static func maxHR(age: Int) -> Double { Double(220 - age) }
 
     var count: Int { percents.count }
@@ -101,20 +101,20 @@ struct HeartZones: Equatable, Sendable {
 
     func lowerBound(_ i: Int) -> Double { i == 0 ? 0 : percents[i] * maxHR }
 
-    /// Den øverste zone har intet loft (.infinity).
+    /// The top zone has no ceiling (.infinity).
     func bpmRange(_ i: Int) -> ClosedRange<Double> {
         let lo = lowerBound(i)
         let hi = i + 1 < count ? lowerBound(i + 1) : .infinity
         return lo...max(lo, hi)
     }
 
-    /// Zonen (indeks) for en puls.
+    /// The zone (index) for a heart rate.
     func zone(for bpm: Double) -> Int {
         indices.last { bpm >= lowerBound($0) } ?? 0
     }
 
-    /// Zonens farve som rød/grøn/blå (0…1). Zoner, der ikke tæller (× 0), er grå.
-    /// Matte udgaver af de gængse zonefarver: blå, olivengrøn, sennepsgul, orange, mørkerød.
+    /// The zone's colour as red/green/blue (0…1). Zones that don't count (× 0) are grey. Muted versions of the common
+    /// zone colours: blue, olive green, mustard yellow, orange, dark red.
     func rgb(_ i: Int) -> [Double] {
         let gray = [0.56, 0.56, 0.58]
         if weights[i] == 0 { return gray }
@@ -124,7 +124,7 @@ struct HeartZones: Equatable, Sendable {
         return palette[min(i, palette.count - 1)]
     }
 
-    /// Minutterne pr. zone som stykker til zone-bjælken (kun zoner, der tæller og har minutter).
+    /// The minutes per zone as pieces for the zone bar (only zones that count and have minutes).
     func slices(_ minutes: [Double]) -> [ZoneSlice] {
         indices.compactMap { i in
             let m = i < minutes.count ? minutes[i] : 0
@@ -134,10 +134,10 @@ struct HeartZones: Equatable, Sendable {
         }
     }
 
-    /// Grænserne mellem zonerne (bpm).
+    /// The limits between the zones (bpm).
     var thresholds: [Double] { (1..<count).map(lowerBound) }
 
-    /// To zoner: hvor moderat og hård starter.
+    /// Two zones: where moderate and vigorous start.
     var moderate: Double { lowerBound(1) }
     var vigorous: Double { lowerBound(min(2, count - 1)) }
 }

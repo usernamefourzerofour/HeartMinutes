@@ -3,13 +3,13 @@ import SwiftUI
 struct ContentView: View {
     @Environment(HealthManager.self) private var health
     @Environment(\.scenePhase) private var scenePhase
-    /// Hvornår perioden sidst blev indlæst (til at flytte "denne uge"/"i dag" med, når appen kommer frem igen).
+    /// When the period was last loaded (to move "this week"/"today" along when the app comes back).
     @State private var loadedAt = Date.now
     @State private var ready = false
-    /// Den valgte periode (huskes, når man skifter til Indstillinger og tilbage).
+    /// The selected period (remembered when switching to Settings and back).
     @State private var interval = Period.thisWeek()
     @State private var tab = AppTab.overview
-    /// Sættes, når appen åbnes fra en widget, så Overblik ruller op til minutgrafen.
+    /// Set when the app is opened from a widget, so Overview scrolls up to the minutes chart.
     @State private var showMinutes = 0
 
     enum AppTab: Hashable { case overview, settings }
@@ -29,7 +29,7 @@ struct ContentView: View {
         }
         .tint(Brand.accent)
         .onOpenURL { url in
-            // Tryk på en widget/komplikation: vis minutgrafen.
+            // Tap on a widget/complication: show the minutes chart.
             guard url.scheme == "heartminutes" else { return }
             tab = .overview
             showMinutes += 1
@@ -43,12 +43,12 @@ struct ContentView: View {
             loadedAt = .now
             await health.loadPeriod(interval)
         }
-        // Appen kommer frem igen: hent nye målinger, og flyt en "nu"-periode med (fx til en ny dag).
+        // The app comes back: fetch new measurements and move a "now" period along (e.g. to a new day).
         .onChange(of: scenePhase) { _, phase in
             guard ready, phase == .active else { return }
             let updated = Period.refreshed(interval, from: loadedAt)
             if updated != interval {
-                interval = updated          // .task(id:) indlæser
+                interval = updated          // .task(id:) loads
             } else {
                 loadedAt = .now
                 Task { await health.loadPeriod(interval) }

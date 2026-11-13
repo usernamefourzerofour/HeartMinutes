@@ -1,40 +1,38 @@
 import Foundation
 
-/// Kumulative aktive minutter: tid i moderat zone × moderatvægt + tid i hård zone × hårdvægt.
-///
-/// Mellem to målinger antages pulsen at ændre sig lineært. Krydser den en zonegrænse, deles
-/// tiden præcis ved grænsen (fx 85 → 105 bpm over 2 min med grænse 90: kun tiden over 90 tæller).
-/// Er hullet større end `maxGap` (der er ikke målt), tælles det ikke med – undtagen inden for
-/// samme workout, når `fillWorkoutGaps` er slået til.
-/// `maxGap` = nil: alle huller tæller, lige meget hvor lange.
+/// Cumulative active minutes: time in the moderate zone × moderate weight + time in the vigorous zone × vigorous
+/// weight.
+/// Between two measurements the heart rate is assumed to change linearly. If it crosses a zone limit, the time is split
+/// exactly at the limit (e.g. 85 → 105 bpm over 2 min with limit 90: only the time above 90 counts). A gap longer than
+/// `maxGap` (nothing was measured) doesn't count – except within the same workout when `fillWorkoutGaps` is on.
+/// `maxGap` = nil: all gaps count, however long.
 struct ActiveMinutes: Equatable {
     struct Point: Identifiable, Equatable {
         let id: Int
         let date: Date
         let total: Double
-        /// Den del af total, der kommer fra workouts (resten er baggrundsmålinger).
+        /// The part of the total that comes from workouts (the rest is background measurements).
         var workout: Double = 0
         var background: Double { total - workout }
     }
 
-    /// Standard: højst så lang tid mellem to målinger, før tiden ikke tælles med.
+    /// Default: the longest time between two measurements before the time no longer counts.
     static let maxGap: TimeInterval = 300
     static let maxPoints = 1000
 
     var points: [Point] = []
-    /// Minutter (uvægtede) i hver zone, nederste zone først.
+    /// Minutes (unweighted) in each zone, lowest zone first.
     var zoneMinutes: [Double] = []
-    /// To zoner: minutter i moderat og hård zone.
+    /// Two zones: minutes in the moderate and vigorous zone.
     var moderateMinutes: Double { zoneMinutes.count > 1 ? zoneMinutes[1] : 0 }
     var vigorousMinutes: Double { zoneMinutes.count > 2 ? zoneMinutes[2...].reduce(0, +) : 0 }
     var total: Double = 0
-    /// Minutter (vægtede) fra workouts; resten af total er fra baggrundsmålinger.
+    /// Minutes (weighted) from workouts; the rest of the total is from background measurements.
     var workoutTotal: Double = 0
     var backgroundTotal: Double { total - workoutTotal }
 
-    /// Hvad der afgør, om man er "aktiv" (bruges med "Kun når aktiv").
-    /// Én samlet, letforståelig indstilling for, hvornår baggrundspuls tæller.
-    /// Styrer de underliggende indstillinger (kun når aktiv, aktiv ifølge, udfyld pauser).
+    /// What decides whether you are "active" (used with "Only when active"). One simple setting for when background
+    /// heart rate counts. It drives the underlying settings (only when active, active according to, fill pauses).
     enum ActivityMode: String, CaseIterable, Identifiable {
         case always, watch, watchWithPauses, watchOrRing, withPauses
         var id: String { rawValue }
@@ -47,7 +45,7 @@ struct ActiveMinutes: Equatable {
             case .withPauses: String(localized: "Active, Exercise ring and short pauses")
             }
         }
-        /// Kort tekst til rækken i Indstillinger.
+        /// Short text for the row in Settings.
         var shortTitle: String {
             switch self {
             case .always: String(localized: "All heart rate")
@@ -87,10 +85,9 @@ struct ActiveMinutes: Equatable {
         }
     }
 
-    /// Tæller en måling med, når "Kun når aktiv" er slået til?
-    /// Under en workout tæller målingen altid (man træner jo – Apple Watch markerer tit workout-målinger
-    /// som "i ro", fx ved styrketræning). Ellers afgør `source`: Apple Watchs markering, træningsringen
-    /// (træningsringsminutter i samme minut) eller én af dem.
+    /// Does a measurement count when "Only when active" is on? During a workout it always counts (you are exercising –
+    /// Apple Watch often marks workout measurements as "resting", e.g. during strength training). Otherwise `source`
+    /// decides: Apple Watch's marking, the Exercise ring (Exercise minutes in the same minute) or either.
     static func countsAsActive(_ s: HRSample, source: ActivitySource = .watchMotion) -> Bool {
         if s.inWorkout || s.bridgedActive { return true }
         let marked = s.motion == .active
@@ -101,19 +98,19 @@ struct ActiveMinutes: Equatable {
         }
     }
 
-    /// Indstillingerne beregningen afhænger af.
+    /// The settings the calculation depends on.
     struct Config: Equatable {
-        /// Zonerne med grænser og faktor pr. zone.
+        /// The zones with limits and a factor per zone.
         var zones: HeartZones
         var requireActive: Bool
         var fillWorkoutGaps: Bool = true
-        /// Længste hul der tælles med (nil = ingen grænse).
+        /// Longest gap that counts (nil = no limit).
         var maxGap: TimeInterval? = ActiveMinutes.maxGap
-        /// Hvordan pulsen mellem to målinger regnes.
+        /// How the heart rate between two measurements is calculated.
         var interpolation: Interpolation = .linear
-        /// Hvad der afgør "aktiv" (med requireActive).
+        /// What decides "active" (with requireActive).
         var activitySource: ActivitySource = .watchMotion
-        /// Huller på højst så lang tid mellem to aktive målinger tæller som aktive (0 = fra).
+        /// Gaps of at most this long between two active measurements count as active (0 = off).
         var activeBridge: TimeInterval = 0
 
         init(zones: HeartZones, requireActive: Bool, fillWorkoutGaps: Bool = true,
@@ -128,7 +125,7 @@ struct ActiveMinutes: Equatable {
             self.activeBridge = activeBridge
         }
 
-        /// To zoner med faktor for moderat og hård (bruges i testene).
+        /// Two zones with factors for moderate and vigorous (used in the tests).
         init(zones: HeartZones, moderateWeight: Double, vigorousWeight: Double, requireActive: Bool,
              fillWorkoutGaps: Bool = true, maxGap: TimeInterval? = ActiveMinutes.maxGap,
              interpolation: Interpolation = .linear, activitySource: ActivitySource = .watchMotion,
@@ -139,8 +136,8 @@ struct ActiveMinutes: Equatable {
         }
     }
 
-    /// "Udfyld korte huller": målinger mellem to aktive målinger tæller som aktive, når der højst er
-    /// `maxBridge` mellem de to aktive målinger (fx havearbejde, hvor Apple kun markerer stykker som aktive).
+    /// "Fill short gaps": measurements between two active measurements count as active when there is at most
+    /// `maxBridge` between the two active measurements (e.g. gardening, where Apple only marks parts as active).
     static func bridgingActive(_ samples: [HRSample], config: Config) -> [HRSample] {
         guard config.requireActive, config.activeBridge > 0 else { return samples }
         var out = samples
@@ -155,7 +152,7 @@ struct ActiveMinutes: Equatable {
         return out
     }
 
-    /// Hvordan pulsen mellem to målinger antages at være.
+    /// What the heart rate between two measurements is assumed to be.
     enum Interpolation: String, CaseIterable, Identifiable {
         case linear, previous, next, nearest, lowest
         var id: String { rawValue }
@@ -177,14 +174,14 @@ struct ActiveMinutes: Equatable {
             case .lowest: String(localized: "Cautious: the time only counts in the zone both measurements reach at least.")
             }
         }
-        /// Alle metoder med forklaring (til ⓘ i Indstillinger).
+        /// All methods with explanations (for ⓘ in Settings).
         static var allExplained: String {
             String(localized: "Heart rate is only measured now and then. Here you choose what the heart rate is assumed to be between two measurements:") + "\n\n"
                 + allCases.map { "• \($0.title): \($0.explanation)" }.joined(separator: "\n")
         }
     }
 
-    /// Kumulative minutter fra træningsringsminutter (den grønne ring), en værdi pr. sample.
+    /// Cumulative minutes from Exercise minutes (the green ring), one value per sample.
     static func cumulativeExercise(_ samples: [(end: Date, minutes: Double)], start: Date) -> [Point] {
         var total = 0.0
         var points = [Point(id: 0, date: start, total: 0)]
@@ -195,16 +192,16 @@ struct ActiveMinutes: Equatable {
         return points
     }
 
-    /// Forlænger en kumulativ kurve vandret til `end` (fx nu), så den fortsætter gennem dage uden
-    /// nye minutter – summen står bare stille.
+    /// Extends a cumulative curve horizontally to `end` (e.g. now) so it continues through days without new minutes –
+    /// the sum just stays flat.
     static func extended(_ points: [Point], to end: Date) -> [Point] {
         guard let last = points.last, end > last.date else { return points }
         let id = (points.map(\.id).max() ?? 0) + 1
         return points + [Point(id: id, date: end, total: last.total, workout: last.workout)]
     }
 
-    /// Kurven fra periodens start (0) til `end`: starter i 0 ved `start`, hvis første måling kommer
-    /// senere (fx kun workouts), og fortsætter vandret til `end`.
+    /// The curve from the start of the period (0) to `end`: starts at 0 at `start` if the first measurement comes later
+    /// (e.g. workouts only), and continues horizontally to `end`.
     static func spanning(_ points: [Point], from start: Date, to end: Date) -> [Point] {
         var p = points
         if let first = p.first, first.date > start {
@@ -216,7 +213,7 @@ struct ActiveMinutes: Equatable {
         return extended(p, to: end)
     }
 
-    /// Kumulative punkter skåret til et tidsrum og talt fra 0 ved dets start.
+    /// Cumulative points cut to a time range and counted from 0 at its start.
     static func rebased(_ points: [Point], to interval: DateInterval) -> [Point] {
         let base = points.last(where: { $0.date <= interval.start })?.total ?? 0
         let inside = points.filter { $0.date > interval.start && $0.date <= interval.end }
@@ -224,7 +221,7 @@ struct ActiveMinutes: Equatable {
             + inside.enumerated().map { Point(id: $0.offset + 1, date: $0.element.date, total: $0.element.total - base) }
     }
 
-    /// Hvordan huller i målingerne behandles under en workout.
+    /// How gaps in the measurements are handled during a workout.
     enum WorkoutGaps: String, CaseIterable, Identifiable {
         case sameLimit, betweenMeasurements, wholeWorkout
         var id: String { rawValue }
@@ -235,7 +232,7 @@ struct ActiveMinutes: Equatable {
             case .wholeWorkout: String(localized: "Whole workout")
             }
         }
-        /// Fortsættelse af "Under workouts …" i forklaringen.
+        /// Continuation of "During workouts …" in the explanation.
         var summary: String {
             switch self {
             case .sameLimit: String(localized: "the same limit applies.")
@@ -249,24 +246,24 @@ struct ActiveMinutes: Equatable {
         }
     }
 
-    /// Hører begge målinger til samme workout?
+    /// Do both measurements belong to the same workout?
     static func sameWorkout(_ a: HRSample, _ b: HRSample) -> Bool {
         a.workoutStart != nil && a.workoutStart == b.workoutStart
     }
 
-    /// Hvad der skete med tiden mellem to målinger.
+    /// What happened to the time between two measurements.
     enum Kind: Equatable {
-        case zone(Int)            // tiden i en zone (tæller med zonens faktor; × 0 tæller ikke)
-        case notActive            // Apple Watch vurderede "i ro" (kun med "Kun når aktiv")
-        case gap                  // mere end maxGap uden måling (uden for workouts)
+        case zone(Int)            // time in a zone (counts with the zone's factor; × 0 doesn't count)
+        case notActive            // Apple Watch judged "resting" (only with "Only when active")
+        case gap                  // more than maxGap without a measurement (outside workouts)
 
-        /// To zoner: let (under moderat), moderat og hård.
+        /// Two zones: light (below moderate), moderate and vigorous.
         static let belowZone = Kind.zone(0)
         static let moderate = Kind.zone(1)
         static let vigorous = Kind.zone(2)
     }
 
-    /// Et stykke af intervallet a→b med én slags.
+    /// A piece of the interval a→b with one kind.
     struct Piece: Equatable {
         let start: Date
         let end: Date
@@ -274,13 +271,13 @@ struct ActiveMinutes: Equatable {
         var minutes: Double { end.timeIntervalSince(start) / 60 }
     }
 
-    /// Deler intervallet a→b op ved zonegrænserne (lineær puls imellem). Bruges af både tallet
-    /// og intervallerne, så de altid er enige.
+    /// Splits the interval a→b at the zone limits (linear heart rate in between). Used by both the number and the
+    /// intervals, so they always agree.
     static func pieces(_ a: HRSample, _ b: HRSample, config: Config) -> [Piece] {
         let dt = b.date.timeIntervalSince(a.date)
         guard dt > 0 else { return [] }
         guard (config.maxGap.map { dt <= $0 } ?? true) || (config.fillWorkoutGaps && sameWorkout(a, b)) else { return [Piece(start: a.date, end: b.date, kind: .gap)] }
-        // Stykker af intervallet (andel fra–til) med den puls, der gælder dér.
+        // Pieces of the interval (fraction from–to) with the heart rate that applies there.
         let segments: [(u: Double, v: Double, bpm: Double)]
         switch config.interpolation {
         case .previous: segments = [(0, 1, a.bpm)]
@@ -301,7 +298,7 @@ struct ActiveMinutes: Equatable {
         var result: [Piece] = []
         for (u, v, bpm) in segments {
             let zone = config.zones.zone(for: bpm)
-            // Zoner med × 0 tæller aldrig, så "i ro" er kun interessant for zoner, der tæller.
+            // Zones with × 0 never count, so "resting" only matters for zones that count.
             let kind: Kind = active || config.zones.weights[zone] == 0 ? .zone(zone) : .notActive
             result.append(Piece(start: a.date.addingTimeInterval(u * dt),
                                 end: a.date.addingTimeInterval(v * dt), kind: kind))
@@ -338,7 +335,7 @@ struct ActiveMinutes: Equatable {
             }
             all.append(Point(id: all.count, date: b.date, total: total, workout: workoutTotal))
         }
-        // Tynd ud til en håndterbar mængde punkter, men behold altid det sidste.
+        // Thin out to a manageable number of points, but always keep the last one.
         if all.count > Self.maxPoints {
             let step = Int((Double(all.count) / Double(Self.maxPoints)).rounded(.up))
             var thinned = stride(from: 0, to: all.count, by: step).map { all[$0] }
@@ -350,7 +347,7 @@ struct ActiveMinutes: Equatable {
 }
 
 extension ActiveMinutes {
-    /// Et stykke tid i beregningen (sammenhængende intervaller af samme slags er slået sammen).
+    /// A stretch of time in the calculation (adjacent intervals of the same kind are merged).
     struct Interval: Identifiable, Equatable {
         let id: Int
         let start: Date
@@ -360,7 +357,7 @@ extension ActiveMinutes {
         var credit: Double
     }
 
-    /// Intervallerne mellem målingerne (bruges af testene til at tjekke beregningen).
+    /// The intervals between the measurements (used by the tests to check the calculation).
     static func intervals<C: RandomAccessCollection>(_ samples: C, config: Config) -> [Interval]
     where C.Element == HRSample {
         var result: [Interval] = []
@@ -382,11 +379,11 @@ extension ActiveMinutes {
         return result
     }
 
-    /// Heart Minutes optjent i tidsrummet [from, to] (stykker, der krydser kanten, tæller med den
-    /// del, der ligger indenfor). Regner kun på målingerne omkring tidsrummet, så det er hurtigt.
+    /// Heart Minutes earned in the time range [from, to] (pieces crossing the edge count with the part inside). Only
+    /// looks at the measurements around the range, so it is fast.
     static func credit(in samples: [HRSample], from: Date, to: Date, config: Config) -> Double {
         guard to > from, !samples.isEmpty else { return 0 }
-        // Lidt margin (bl.a. til "korte pauser", der kigger på nabomålinger).
+        // A little margin (e.g. for "short pauses", which look at neighbouring measurements).
         let margin = max(config.activeBridge, config.maxGap ?? 0, 600)
         let lo = max(samples.firstIndex(atOrAfter: from.addingTimeInterval(-margin)) - 1, 0)
         let hi = min(samples.firstIndex(atOrAfter: to.addingTimeInterval(margin)) + 1, samples.count)
@@ -399,8 +396,8 @@ extension ActiveMinutes {
         }
     }
 
-    /// Strækker hver workouts målinger ud til hele workouten: første måling gælder fra workoutens
-    /// start, sidste måling til dens slut.
+    /// Stretches each workout's measurements to the whole workout: the first measurement applies from the workout's
+    /// start, the last one until its end.
     static func extendingWorkouts(_ samples: [HRSample], _ workouts: [DateInterval]) -> [HRSample] {
         guard !workouts.isEmpty else { return samples }
         var first: [Date: HRSample] = [:], last: [Date: HRSample] = [:]
@@ -419,7 +416,7 @@ extension ActiveMinutes {
         return (samples + extra).sorted { $0.date < $1.date }
     }
 
-    /// Point for én workout (til sammenligning workout for workout).
+    /// Points for one workout (to compare workout by workout).
     struct WorkoutScore: Identifiable, Equatable {
         var id: Date { interval.start }
         let interval: DateInterval
@@ -427,7 +424,7 @@ extension ActiveMinutes {
         let sampleCount: Int
     }
 
-    /// Regner hver workout for sig ud fra målingerne, der hører til den.
+    /// Calculates each workout separately from the measurements that belong to it.
     static func perWorkout(_ samples: [HRSample], workouts: [DateInterval], config: Config) -> [WorkoutScore] {
         var byWorkout: [Date: [HRSample]] = [:]
         for s in samples { if let w = s.workoutStart { byWorkout[w, default: []].append(s) } }
@@ -437,7 +434,7 @@ extension ActiveMinutes {
         }
     }
 
-    /// Ugemålet skaleret til periodens længde (fx 150 min/uge → ca. 21 min for én dag).
+    /// The weekly goal scaled to the length of the period (e.g. 150 min/week → about 21 min for one day).
     static func scaledGoal(weekly: Double, duration: TimeInterval) -> Double {
         weekly * duration / (7 * 86_400)
     }

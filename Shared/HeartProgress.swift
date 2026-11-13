@@ -1,9 +1,9 @@
 import SwiftUI
 import WidgetKit
 
-/// Hjerteformen fra app-ikonet (tegnet i et 220×220-koordinatsystem, skaleret ind i rammen).
+/// The heart shape from the app icon (drawn in a 220×220 coordinate system, scaled into the frame).
 struct HeartShape: Shape {
-    /// Hjertets omsluttende kasse i ikonets koordinater.
+    /// The heart's bounding box in the icon's coordinates.
     static let box = CGRect(x: 34, y: 46, width: 152, height: 132)
 
     static func transform(for rect: CGRect) -> CGAffineTransform {
@@ -25,7 +25,7 @@ struct HeartShape: Shape {
     }
 }
 
-/// Et "fejet" stykke fra kl. 12 og med uret – andelen af ugens mål.
+/// A "swept" piece from 12 o'clock, clockwise – the fraction of the weekly goal.
 struct SweepShape: Shape {
     var fraction: Double
 
@@ -44,7 +44,7 @@ struct SweepShape: Shape {
     }
 }
 
-/// Hjertet fejes op mod ugens mål: svagt hjerte bagved, fyldt stykke ovenpå.
+/// The heart is swept toward the weekly goal: a faint heart behind, the filled piece on top.
 struct HeartProgress: View {
     var fraction: Double
     var color: Color = .pink
@@ -57,7 +57,7 @@ struct HeartProgress: View {
     }
 }
 
-/// Hjertets omrids tegnet fra kløften øverst og med uret – så det kan "trimmes" som en ring.
+/// The heart's outline drawn from the cleft at the top, clockwise – so it can be trimmed like a ring.
 struct HeartOutlineShape: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
@@ -66,12 +66,12 @@ struct HeartOutlineShape: Shape {
         p.addCurve(to: CGPoint(x: 110, y: 178), control1: CGPoint(x: 186, y: 82), control2: CGPoint(x: 180, y: 128))
         p.addCurve(to: CGPoint(x: 62, y: 62), control1: CGPoint(x: 40, y: 128), control2: CGPoint(x: 34, y: 82))
         p.addCurve(to: CGPoint(x: 110, y: 74), control1: CGPoint(x: 84, y: 46), control2: CGPoint(x: 104, y: 58))
-        p.closeSubpath()   // pæn samling i kløften, når hele hjertet tegnes
+        p.closeSubpath()   // neat join in the cleft when the whole heart is drawn
         return p.applying(HeartShape.transform(for: rect))
     }
 }
 
-/// "Hjerte-ring": omridset fyldes med uret mod målet, ligesom en ring – men formet som et hjerte.
+/// "Heart ring": the outline fills clockwise toward the goal, like a ring – but shaped like a heart.
 struct HeartRingProgress: View {
     var fraction: Double
     var color: Color = .pink

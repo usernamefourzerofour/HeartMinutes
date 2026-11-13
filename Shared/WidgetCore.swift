@@ -1,4 +1,4 @@
-// Fælles for komplikationen på Apple Watch og widgets på iPhone.
+// Shared by the Apple Watch complication and the iPhone widgets.
 import SwiftUI
 import WidgetKit
 import Charts
@@ -18,7 +18,7 @@ struct HeartMinutesProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<HeartMinutesEntry>) -> Void) {
-        // Ur-appen opdaterer data og genindlæser; kig selv igen om 30 min (og ved ugeskift).
+        // The watch app updates the data and reloads; check again in 30 min (and when the week changes).
         completion(Timeline(entries: [entry()], policy: .after(.now.addingTimeInterval(30 * 60))))
     }
 
@@ -30,10 +30,10 @@ struct HeartMinutesProvider: TimelineProvider {
     }
 }
 
-/// Hvad der står i midten af hjertet (rund komplikation / låseskærm).
+/// What is shown in the middle of the heart (round complication / Lock Screen).
 enum CenterValue { case percent, minutes }
 
-/// Små widgets til urskive og låseskærm (rund, rektangulær, linje – og hjørne på uret).
+/// Small widgets for the watch face and Lock Screen (round, rectangular, inline – and corner on the watch).
 struct HeartMinutesView: View {
     @Environment(\.widgetFamily) private var family
     @Environment(\.widgetRenderingMode) private var renderingMode
@@ -47,11 +47,11 @@ struct HeartMinutesView: View {
     var body: some View {
         switch family {
         case .accessoryRectangular:
-            // Kort tekst øverst og en lille kurve over perioden – siger mere end det runde widget.
+            // Short text at the top and a small curve over the period – says more than the round widget.
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Image(systemName: "heart.fill").font(.caption2).widgetAccentable()
-                    // Minutter skrives som antal / mål, fx "207/150 min".
+                    // Minutes are written as count / goal, e.g. "207/150 min".
                     (center == .percent ? Text("\(d.percent) %") : Text("\(minutesText)/\(Int(d.goal.rounded())) min")).font(.headline)
                     (center == .percent ? Text("\(minutesText)/\(Int(d.goal.rounded())) min") : Text("\(d.percent) %"))
                         .font(.caption2).foregroundStyle(.secondary)
@@ -73,17 +73,17 @@ struct HeartMinutesView: View {
         #endif
         default:
             if renderingMode == .vibrant {
-                // iPhone-låseskærm: et udstanset tal viser baggrundsbilledet igennem og drukner.
-                // Her dæmpes hjertet i stedet, og tallet står massivt hvidt ovenpå.
+                // iPhone Lock Screen: a knocked-out number shows the wallpaper through and gets lost. Here the heart is
+                // dimmed instead and the number sits solid white on top.
                 ZStack {
                     AccessoryWidgetBackground()
-                    // Svagt hjerte (også når det er fyldt), så det hvide tal altid står tydeligt.
+                    // Faint heart (also when filled) so the white number always stands out.
                     ZStack {
                         HeartShape().fill(.white.opacity(0.18))
                         SweepShape(fraction: d.fraction).fill(.white.opacity(0.38)).clipShape(HeartShape())
                     }
                     .padding(2)
-                    // Tallet holdes helt inde i hjertets bredeste del (øverst-midt), aldrig ud over kanten.
+                    // The number is kept fully inside the widest part of the heart (top middle), never past the edge.
                     GeometryReader { geo in
                         Text(center == .percent ? "\(d.percent)%" : minutesText)
                             .font(.system(size: 22, weight: .black, design: .rounded))
@@ -100,15 +100,15 @@ struct HeartMinutesView: View {
         }
     }
 
-    /// Ur og farvevisning: tallet "stanses ud" af hjertet.
+    /// Watch and full colour: the number is "knocked out" of the heart.
     private var heartWithKnockout: some View {
             ZStack {
                 AccessoryWidgetBackground()
-                // Tallet "stanses ud" af hjertet, så det kan læses i alle visninger – også når
-                // uret er i dvale (dæmpet/ensfarvet), hvor hvid tekst på hjertet ellers forsvinder.
+                // The number is "knocked out" of the heart so it can be read in every mode – also when the watch is
+                // dimmed (low power/monochrome), where white text on the heart would otherwise disappear.
                 ZStack {
                     HeartProgress(fraction: d.fraction, color: .pink)
-                    // Stort tal (uden "min"), så det kan læses på urskiven – også i dvale.
+                    // Big number (without "min") so it can be read on the watch face – also when dimmed.
                     Text(center == .percent ? "\(d.percent)%" : minutesText)
                         .font(.system(size: center == .percent ? 19 : 23, weight: .black, design: .rounded))
                         .minimumScaleFactor(0.5)
@@ -124,7 +124,7 @@ struct HeartMinutesView: View {
     }
 }
 
-/// Traditionel ring-komplikation (Apple-stil): en ring, der fyldes mod målet, med tallet i midten.
+/// Traditional ring complication (Apple style): a ring that fills toward the goal, with the number in the middle.
 struct HeartMinutesRingView: View {
     @Environment(\.widgetFamily) private var family
     let entry: HeartMinutesEntry
@@ -137,7 +137,7 @@ struct HeartMinutesRingView: View {
     var body: some View {
         switch family {
         case .accessoryRectangular:
-            // En rigtig ring til venstre og tallene til højre (ikke en streg).
+            // A real ring on the left and the numbers on the right (not a line).
             HStack(spacing: 8) {
                 ZStack {
                     Circle().stroke(.primary.opacity(0.25), lineWidth: 5)
@@ -174,7 +174,7 @@ struct HeartMinutesRingView: View {
                 }
         #endif
         default:
-            // Egen ring i stedet for Gauge, så tallet i midten kan være stort og tydeligt.
+            // Own ring instead of Gauge, so the number in the middle can be big and clear.
             ZStack {
                 AccessoryWidgetBackground()
                 Circle()
@@ -196,22 +196,22 @@ struct HeartMinutesRingView: View {
     }
 }
 
-/// Cirkel, der tegnes fra kl. 12 og med uret (så den kan trimmes som en ring).
+/// Circle drawn from 12 o'clock, clockwise (so it can be trimmed like a ring).
 struct TopCircle: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
         let r = min(rect.width, rect.height) / 2
         p.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: r,
                  startAngle: .degrees(-90), endAngle: .degrees(270), clockwise: false)
-        p.closeSubpath()   // ingen samling (hårfin streg) ved kl. 12
+        p.closeSubpath()   // no join (hairline) at 12 o'clock
         return p
     }
 }
 
-/// Hele formen som én udfyldt streg, med en rund samling i startpunktet (hjertets kløft).
-/// Uden den blev kløften skåret lige af, når hele hjertet tegnes (over målet). Med den ser kløften
-/// ud som under målet, hvor stregens runde start ligger der. Én samlet figur (union), så der ikke
-/// opstår en mørkere plet på tonet urskive, hvor to lag overlapper.
+/// The whole shape as one filled stroke, with a round join at the start point (the heart's cleft). Without it the cleft
+/// was cut off straight when the whole heart is drawn (above the goal). With it the cleft looks like below the goal,
+/// where the stroke's round start sits. One combined shape (union), so no darker spot appears on a tinted watch face
+/// where two layers overlap.
 struct RoundStartStroke<S: Shape>: Shape {
     let shape: S
     let lineWidth: CGFloat
@@ -227,8 +227,8 @@ struct RoundStartStroke<S: Shape>: Shape {
     }
 }
 
-/// Den nye omgang over målet som ÉN figur: stregen fra start til `to` plus den runde kløft ved
-/// start (samme rundede start som `RoundStartStroke`).
+/// The new lap above the goal as ONE shape: the stroke from the start to `to` plus the round cleft at the start (the
+/// same rounded start as `RoundStartStroke`).
 struct NewLapStroke<S: Shape>: Shape {
     let shape: S
     let to: Double
@@ -247,7 +247,7 @@ struct NewLapStroke<S: Shape>: Shape {
     }
 }
 
-/// En prik (cirkel) på formens kant ved `fraction` af vejen rundt.
+/// A dot (circle) on the shape's edge at `fraction` of the way round.
 struct EndDot<S: Shape>: Shape {
     let shape: S
     let fraction: Double
@@ -262,34 +262,34 @@ struct EndDot<S: Shape>: Shape {
     }
 }
 
-/// Fremskridt som en ring i Aktivitet-stil langs en vilkårlig form (cirkel eller hjerte):
-/// mørkt spor, farveforløb, ny omgang over målet (glidende fra kl. 12), mørk kant (kun fuld farve),
-/// hvid prik ved nuværende position og kun tallet i midten.
+/// Progress as an Activity-style ring along any shape (circle or heart): dark track, gradient, a new lap above the goal
+/// (continuing from 12 o'clock), dark edge (full colour only), a white dot at the current position and only the number
+/// in the middle.
 struct ShapeProgressRing<S: Shape>: View {
     @Environment(\.widgetRenderingMode) private var renderingMode
     @Environment(\.colorScheme) private var colorScheme
     let shape: S
     let fraction: Double
     let value: String
-    /// Ringens tykkelse som andel af størrelsen.
+    /// The ring's thickness as a fraction of the size.
     var thickness: CGFloat = 0.14
-    /// Tallets lodrette placering (0,5 = midten) og bredde som andel af størrelsen.
+    /// The number's vertical position (0.5 = middle) and width as a fraction of the size.
     var textY: CGFloat = 0.5
     var textWidth: CGFloat = 0.68
     var textSize: CGFloat = 0.36
-    /// Over denne grænse bliver hjertets kløft skåret lige af (skrå samling). Højere = spids
-    /// nedad i hullet (mere hjerte-agtigt), men den kan ramme tallet i midten.
+    /// Above this limit the heart's cleft is cut off straight (bevelled join). Higher = a point down into the hollow
+    /// (more heart-like), but it can hit the number in the middle.
     var miterLimit: CGFloat = 2
 
     static var start: Color { Color(red: 0.88, green: 0.02, blue: 0.27) }
     static var end: Color { Color(red: 1.0, green: 0.36, blue: 0.62) }
 
-    /// Farven ved `x` (0…1) af hele vejen: fra lys/svag i starten til dyb/fuld ved målet du er nået.
-    /// Fuld farve: lys pink → dyb rødpink. Tonet urskive: svag → fuld (gennemsigtighed).
+    /// The colour at `x` (0…1) of the whole way: from light/faint at the start to deep/full where you have reached.
+    /// Full colour: light pink → deep red-pink. Tinted watch face: faint → full (opacity).
     private func tone(_ x: Double) -> Color {
         let t = min(max(x, 0), 1)
         if renderingMode == .fullColor {
-            // Lys pink (1,0 · 0,70 · 0,82) → dyb rødpink (0,82 · 0,0 · 0,24)
+            // Light pink (1.0 · 0.70 · 0.82) → deep red-pink (0.82 · 0.0 · 0.24)
             return Color(red: 1.0 - 0.18 * t, green: 0.70 - 0.70 * t, blue: 0.82 - 0.58 * t)
         }
         return Self.start.opacity(0.22 + 0.78 * t)
@@ -300,26 +300,26 @@ struct ShapeProgressRing<S: Shape>: View {
         GeometryReader { geo in
             let size = min(geo.size.width, geo.size.height)
             let lw = size * thickness
-            // Hvor på den nuværende omgang enden er – også efter 2., 3., … omgang.
+            // Where on the current lap the end is – also after the 2nd, 3rd, … lap.
             let laps = f > 1 ? (f - 0.0005).rounded(.down) : 0
             let pos = f > 1 ? min(max(f - laps, 0.001), 0.999) : f
-            // Spids i hjertets bund, men ingen lang pil ind i kløften (miterLimit).
+            // A point at the bottom of the heart, but no long arrow into the cleft (miterLimit).
             let style = { (cap: CGLineCap) in
                 StrokeStyle(lineWidth: lw, lineCap: cap, lineJoin: .miter, miterLimit: miterLimit)
             }
             ZStack {
-                // Sporet: samme farve, men meget mørkt (svagere på tonet urskive).
+                // The track: the same colour but very dark (fainter on a tinted watch face).
                 RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
                     .fill(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12))
                 if f <= 1 {
-                    // Bliver gradvist mere intens hele vejen hen til, hvor du er nået.
+                    // Gets gradually more intense all the way to where you have reached.
                     segment(from: 0, to: f, style: style(.round), colors: [tone(0), tone(1)])
                 } else {
-                    // Over målet: hele formen tegnes som ÉN lukket streg (ingen samling ved kl. 12, som
-                    // gav en hvid streg på tonet urskive). Farven er én sammenhængende skala over hele
-                    // forløbet: ny omgang tone(k) → tone(1) fra kl. 12 til enden, derefter resten af
-                    // omgangen før (laps − 1 + p)/f → tone(k).
-                    let k = laps / f   // hvor langt på skalaen de hele omgange når
+                    // Above the goal: the whole shape is drawn as ONE closed stroke (no join at 12 o'clock, which gave
+                    // a white line on a tinted watch face). The colour is one continuous scale over the whole way: the
+                    // new lap tone(k) → tone(1) from 12 o'clock to the end, then the rest of the previous lap (laps − 1
+                    // + p)/f → tone(k).
+                    let k = laps / f   // how far along the scale the whole laps reach
                     let rect = CGRect(x: 0, y: 0, width: geo.size.width - lw, height: geo.size.height - lw)
                     let p = angleFraction(of: pos, in: rect)
                     let lap = AngularGradient(stops: [
@@ -331,13 +331,13 @@ struct ShapeProgressRing<S: Shape>: View {
                     RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
                         .fill(lap).widgetAccentable()
                     if renderingMode == .fullColor {
-                        // Mørk kant under enden, så den nye omgang tydeligt ligger ovenpå. På lys baggrund
-                        // (hjemmeskærm) blev den en synlig sort ring – der bruges en skygge i stedet.
+                        // Dark edge below the end so the new lap clearly lies on top. On a light background (Home
+                        // Screen) it became a visible black ring – a shadow is used instead.
                         if colorScheme == .dark {
                             EndDot(shape: shape, fraction: pos, radius: lw / 2 + 2).fill(.black)
                         }
-                        // Den nye omgang ovenpå – inkl. den runde kløft ved start, så farveskiftet til
-                        // omgangen før (ved enden) ikke skærer gennem kløften, når enden er tæt på den.
+                        // The new lap on top – including the round cleft at the start, so the colour change to the
+                        // previous lap (at the end) doesn't cut through the cleft when the end is close to it.
                         let newLap = AngularGradient(stops: [
                             .init(color: tone(k), location: 0),
                             .init(color: tone(1), location: p),
@@ -352,7 +352,7 @@ struct ShapeProgressRing<S: Shape>: View {
                                 ? .black.opacity(0.35) : .clear, radius: lw * 0.15)
                         .widgetAccentable()
                 }
-                // Lille hvid prik ved, hvor langt du er nået.
+                // Small white dot where you have reached.
                 EndDot(shape: shape, fraction: pos, radius: lw * 0.19).fill(.white)
             }
             .padding(lw / 2)
@@ -377,8 +377,8 @@ struct ShapeProgressRing<S: Shape>: View {
             .widgetAccentable()
     }
 
-    /// Vinklen (0…1 fra kl. 12, med uret) til punktet `fraction` langs formen. For et hjerte er den
-    /// ikke den samme som andelen af vejen, så farveskiftet skal lægges ved den rigtige vinkel.
+    /// The angle (0…1 from 12 o'clock, clockwise) to the point `fraction` along the shape. For a heart it isn't the
+    /// same as the fraction of the way, so the colour change must be placed at the right angle.
     private func angleFraction(of fraction: Double, in rect: CGRect) -> Double {
         guard let pt = shape.path(in: rect).trimmedPath(from: 0, to: max(fraction, 0.001)).currentPoint
         else { return fraction }
@@ -387,7 +387,7 @@ struct ShapeProgressRing<S: Shape>: View {
     }
 }
 
-/// Tyk ring i Aktivitet-stil med procent eller minutter i midten.
+/// Thick Activity-style ring with percent or minutes in the middle.
 struct HeartMinutesBigRingView: View {
     let entry: HeartMinutesEntry
     let center: CenterValue
@@ -396,12 +396,12 @@ struct HeartMinutesBigRingView: View {
         let d = entry.data
         ShapeProgressRing(shape: TopCircle(), fraction: d.fraction,
                           value: center == .percent ? "\(d.percent)" : "\(Int(d.minutes.rounded()))")
-            // Lidt mindre end hele feltet, så yderkanten ikke skæres af i urskivens hjørner.
+            // Slightly smaller than the whole area so the outer edge isn't cut off in the watch face's corners.
             .scaleEffect(0.95)
     }
 }
 
-/// Hjerte-ring: samme look som den tykke ring, men formet som et hjerte.
+/// Heart ring: the same look as the thick ring, but shaped like a heart.
 struct HeartMinutesHeartRingView: View {
     let entry: HeartMinutesEntry
     var center: CenterValue = .percent
@@ -414,7 +414,7 @@ struct HeartMinutesHeartRingView: View {
     }
 }
 
-/// Lille kurve til rektangulære widgets: kumulative minutter over perioden og målet som stiplet linje.
+/// Small curve for rectangular widgets: cumulative minutes over the period and the goal as a dashed line.
 struct MiniChart: View {
     let data: ComplicationData
     let period: SummaryPeriod

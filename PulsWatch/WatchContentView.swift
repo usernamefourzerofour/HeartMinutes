@@ -1,7 +1,7 @@
 import Charts
 import SwiftUI
 
-/// Ur-appen (åbnes også ved tryk på komplikationen): ugens minutgraf med målet.
+/// The watch app (also opened by tapping the complication): the minutes chart with the goal.
 struct WatchContentView: View {
     @Environment(WatchModel.self) private var model
 
@@ -9,9 +9,9 @@ struct WatchContentView: View {
         let d = model.data.current(for: model.period)
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
-                // Hero: den store hjerte-ring med tallet i midten (som komplikationen).
+                // Hero: the big heart ring with the number in the middle (like the complication).
                 VStack(spacing: 2) {
-                    // Tæller op ligesom på iPhone (fra 0 ved åbning og ny periode).
+                    // Counts up like on iPhone (from 0 when opened and for a new period).
                     CountingHeartRing(total: d.minutes, goal: d.goal, resetKey: model.period.rawValue)
                         .frame(width: 96, height: 96)
                     Text("of \(Int(d.goal.rounded())) min · \(d.percent) %")
@@ -31,7 +31,7 @@ struct WatchContentView: View {
                 }
                 .font(.caption2).foregroundStyle(.secondary)
             }
-            // Luft til skærmens runde hjørner, så teksten nederst ikke skæres af.
+            // Room for the screen's round corners so the text at the bottom isn't cut off.
             .padding(.horizontal, 10)
             .padding(.bottom, 14)
         }
@@ -39,7 +39,7 @@ struct WatchContentView: View {
     }
 }
 
-/// Kumulative Heart Minutes over urets periode med målet som grå stiplet linje.
+/// Cumulative Heart Minutes over the watch's period with the goal as a grey dashed line.
 struct WatchMinutesChart: View {
     let data: ComplicationData
     let period: SummaryPeriod
@@ -78,7 +78,7 @@ struct WatchMinutesChart: View {
         }
     }
 
-    /// Streger på x-aksen: hver 6. time (I dag), hver dag (op til en uge) eller hver uge.
+    /// Ticks on the x axis: every 6 hours (Today), every day (up to a week) or every week.
     static func ticks(for period: SummaryPeriod, in domain: ClosedRange<Date>) -> [Date] {
         let cal = Calendar.current
         let (unit, step): (Calendar.Component, Int) =

@@ -18,7 +18,8 @@ struct PulsWatchApp: App {
     }
 }
 
-/// Regner ugens Heart Minutes på uret (samme beregning som på iPhone) og gemmer dem til komplikationen.
+/// Calculates this week's Heart Minutes on the watch (the same calculation as on iPhone) and saves them for the
+/// complication.
 @Observable @MainActor
 final class WatchModel {
     static let shared = WatchModel()
@@ -33,11 +34,11 @@ final class WatchModel {
     func refresh(askForAccess: Bool) async {
         isLoading = true
         defer { isLoading = false }
-        // Ny HealthManager hver gang, så indstillinger synkroniseret fra iPhone bliver brugt.
+        // A new HealthManager each time, so settings synced from iPhone are used.
         if askForAccess { await HealthManager().requestAuthorization() }
-        // Ingen data (fejl) eller et lavere tal i baggrunden: behold det gemte tal.
-        // Med appen åben (askForAccess) må tallet godt falde, fx efter ændrede indstillinger.
-        // Perioden vælges i iPhone-appen (fx I dag, Denne uge, Seneste 7 dage).
+        // No data (error) or a lower number in the background: keep the saved number. With the app open (askForAccess)
+        // the number may drop, e.g. after changed settings. The period is chosen in the iPhone app (e.g. Today, This
+        // week, Last 7 days).
         let period = ComplicationStore.watchPeriod
         if let new = await HealthManager.summary(for: period) {
             ComplicationStore.saveIfValid(new, for: period, allowDecrease: askForAccess)

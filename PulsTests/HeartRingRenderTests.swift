@@ -2,7 +2,7 @@ import SwiftUI
 import Testing
 @testable import Puls
 
-/// Tegner hjerte-ringen og tjekker, at intet males uden for hjertet (fx en firkant over målet).
+/// Draws the heart ring and checks that nothing is painted outside the heart (e.g. a square above the goal).
 @MainActor
 struct HeartRingRenderTests {
     private func alpha(at point: CGPoint, in image: CGImage) -> UInt8 {
@@ -23,7 +23,7 @@ struct HeartRingRenderTests {
         let renderer = ImageRenderer(content: view)
         renderer.scale = 1
         let image = try #require(renderer.cgImage)
-        // Hjørnerne nederst ligger altid uden for hjertet.
+        // The bottom corners are always outside the heart.
         #expect(alpha(at: CGPoint(x: 195, y: 195), in: image) == 0)
         #expect(alpha(at: CGPoint(x: 4, y: 195), in: image) == 0)
         #expect(alpha(at: CGPoint(x: 195, y: 150), in: image) == 0)

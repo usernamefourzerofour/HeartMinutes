@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import Puls
 
-/// Zoner i testene: moderat fra 100, hård fra 130 bpm. Pulsen er lineær mellem målinger.
+/// Zones in the tests: moderate from 100, vigorous from 130 bpm. Heart rate is linear between measurements.
 @MainActor
 struct ActiveMinutesTests {
     let t0 = Date(timeIntervalSince1970: 0)
@@ -15,7 +15,7 @@ struct ActiveMinutesTests {
     func close(_ a: Double, _ b: Double) -> Bool { abs(a - b) < 0.0001 }
 
     @Test func splitsAtThresholds() {
-        // 80→110: 1/3 min moderat · 110→110: 1 · 110→140: 2/3 moderat + 1/3 hård · 140→140: 1 hård
+        // 80→110: 1/3 min moderate · 110→110: 1 · 110→140: 2/3 moderate + 1/3 vigorous · 140→140: 1 vigorous
         let r = ActiveMinutes(samples([80, 110, 110, 140, 140]), zones: zones,
                               moderateWeight: 1, vigorousWeight: 2)
         #expect(close(r.moderateMinutes, 2))
@@ -101,7 +101,7 @@ struct PiecesTests {
     }
 
     @Test func interpolationModes() {
-        // 85 → 105 over 120 s, grænse 100. Lige linje: 30 s moderat.
+        // 85 → 105 over 120 s, limit 100. Straight line: 30 s moderate.
         func moderateSeconds(_ m: ActiveMinutes.Interpolation) -> Double {
             var c = config; c.interpolation = m
             return ActiveMinutes.pieces(s(0, 85), s(120, 105), config: c)
@@ -126,14 +126,14 @@ struct PiecesTests {
     }
 
     @Test func crossingIsSplitAtThreshold() {
-        // 85 → 105 over 120 s, grænse 100: krydser efter 90 s → 30 s moderat
+        // 85 → 105 over 120 s, limit 100: crosses after 90 s → 30 s moderate
         let p = ActiveMinutes.pieces(s(0, 85), s(120, 105), config: config)
         #expect(p.map(\.kind) == [.belowZone, .moderate])
         #expect(abs(p[1].minutes - 0.5) < 0.0001)
     }
 
     @Test func spikeCountsOnlyTimeAboveThreshold() {
-        // 80 → 140 → 80, 3 min hver vej: pr. halvdel 1,5 min moderat + 0,5 min hård
+        // 80 → 140 → 80, 3 min each way: per half 1.5 min moderate + 0.5 min vigorous
         let samples = [s(0, 80), s(180, 140), s(360, 80)]
         let r = ActiveMinutes(samples, zones: config.zones, moderateWeight: 1, vigorousWeight: 2,
                               maxGap: 600)
@@ -163,7 +163,7 @@ struct WorkoutGapTests {
     }
 
     @Test func gapInsideWorkoutCounts() {
-        // 10 min mellem to målinger i samme workout, begge 110 bpm → 10 min moderat
+        // 10 min between two measurements in the same workout, both 110 bpm → 10 min moderate
         let s = [w(0, 110), w(600, 110)]
         #expect(ActiveMinutes(s, zones: zones, moderateWeight: 1, vigorousWeight: 2).total == 10)
         #expect(ActiveMinutes(s, zones: zones, moderateWeight: 1, vigorousWeight: 2,
@@ -185,7 +185,7 @@ struct WorkoutGapTests {
     }
 
     @Test func extendsToWholeWorkout() {
-        // Workout 0–600 s, men kun målinger ved 420 og 540 s (110 bpm) → hele 10 min tæller
+        // Workout 0–600 s, but only measurements at 420 and 540 s (110 bpm) → the whole 10 min counts
         let workout = DateInterval(start: t0, duration: 600)
         let s = ActiveMinutes.extendingWorkouts([w(420, 110), w(540, 110)], [workout])
         #expect(s.map(\.date) == [0, 420, 540, 600].map { t0.addingTimeInterval($0) })
@@ -213,7 +213,7 @@ struct UnmarkedTests {
     let t0 = Date(timeIntervalSince1970: 0)
 
     @Test func countsUnmarkedBackgroundBySource() {
-        var w = HRSample(date: t0, bpm: 120); w.inWorkout = true          // workout: tæller ikke med
+        var w = HRSample(date: t0, bpm: 120); w.inWorkout = true          // workout: doesn't count
         let s = [
             w,
             HRSample(date: t0.addingTimeInterval(60), bpm: 70, motion: .sedentary, source: "Watch"),
@@ -234,7 +234,7 @@ struct SourceSplitTests {
     let t0 = Date(timeIntervalSince1970: 0)
 
     @Test func splitsWorkoutAndBackgroundMinutes() {
-        // 2 min workout (110) og 1 min baggrund (110), moderat fra 100
+        // 2 min workout (110) and 1 min background (110), moderate from 100
         func s(_ sec: Double, workout: Bool) -> HRSample {
             var x = HRSample(date: t0.addingTimeInterval(sec), bpm: 110)
             x.inWorkout = workout
@@ -322,7 +322,7 @@ struct ActivitySourceTests {
     let t0 = Date(timeIntervalSince1970: 0)
 
     @Test func exerciseRingCountsAsActive() {
-        // Havearbejde: Apple Watch siger "i ro", men minutterne tæller i træningsringen.
+        // Gardening: Apple Watch says "resting", but the minutes count in the Exercise ring.
         let raw = (0..<4).map { HRSample(date: t0.addingTimeInterval(Double($0) * 60), bpm: 140, motion: .sedentary) }
         let ring = [DateInterval(start: t0, duration: 60), DateInterval(start: t0.addingTimeInterval(60), duration: 60)]
         let s = HRSample.markingExercise(raw, ring)
@@ -333,7 +333,7 @@ struct ActivitySourceTests {
                                            requireActive: true, activitySource: src)).total
         }
         #expect(total(.watchMotion) == 0)
-        #expect(total(.exerciseRing) == 4)   // 2 min i hård zone × 2
+        #expect(total(.exerciseRing) == 4)   // 2 min in the vigorous zone × 2
         #expect(total(.either) == 4)
     }
 
@@ -343,9 +343,10 @@ struct ActivitySourceTests {
         let e = ActiveMinutes.extended(p, to: t0.addingTimeInterval(86_400))
         #expect(e.count == 3)
         #expect(e.last?.total == 30 && e.last?.workout == 10)
-        #expect(ActiveMinutes.extended(p, to: t0).count == 2)   // ikke bagud
+        #expect(ActiveMinutes.extended(p, to: t0).count == 2)   // not backward
         #expect(Set(e.map(\.id)).count == 3)
-        // Kun workouts: første måling midt i perioden → kurven starter i 0 ved periodens start.
+        // Workouts only: first measurement in the middle of the period → the curve starts at 0 at the start of the
+        // period.
         let s = ActiveMinutes.spanning(Array(p.dropFirst()), from: t0, to: t0.addingTimeInterval(86_400))
         #expect(s.first?.date == t0 && s.first?.total == 0)
         #expect(s.last?.total == 30)
@@ -361,7 +362,7 @@ struct ActivitySourceTests {
     }
 
     @Test func bridgingFillsShortGaps() {
-        // Aktiv, to målinger i ro, aktiv igen 3 min senere, så i ro til sidst.
+        // Active, two resting measurements, active again 3 min later, then resting at the end.
         let motions: [MotionContext] = [.active, .sedentary, .sedentary, .active, .sedentary, .sedentary]
         let s = motions.enumerated().map { HRSample(date: t0.addingTimeInterval(Double($0.offset) * 60), bpm: 110, motion: $0.element) }
         let zones = HeartZones(moderate: 100, vigorous: 130)
@@ -369,9 +370,9 @@ struct ActivitySourceTests {
             .init(zones: zones, moderateWeight: 1, vigorousWeight: 2, requireActive: true,
                   activitySource: .watchMotion, activeBridge: bridge)
         }
-        #expect(ActiveMinutes(s, config: config(0)).total == 2)        // kun minuttet efter hver aktiv måling
-        #expect(ActiveMinutes(s, config: config(180)).total == 4)      // hullet på 3 min udfyldes
-        #expect(ActiveMinutes(s, config: config(120)).total == 2)      // for kort grænse
+        #expect(ActiveMinutes(s, config: config(0)).total == 2)        // only the minute after each active measurement
+        #expect(ActiveMinutes(s, config: config(180)).total == 4)      // the 3 min gap is filled
+        #expect(ActiveMinutes(s, config: config(120)).total == 2)      // limit too short
         #expect(ActiveMinutes.bridgingActive(s, config: config(180)).map(\.bridgedActive)
                 == [false, true, true, false, false, false])
     }
@@ -379,7 +380,7 @@ struct ActivitySourceTests {
 
 struct CreditInRangeTests {
     @Test func creditOnlyInsideRange() {
-        // 20 min konstant moderat (× 1): de midterste 10 min giver 10 Heart Minutes.
+        // 20 min constant moderate (× 1): the middle 10 min give 10 Heart Minutes.
         let t0 = Date(timeIntervalSince1970: 0)
         let s = (0...20).map { HRSample(date: t0.addingTimeInterval(Double($0) * 60), bpm: 110) }
         let config = ActiveMinutes.Config(zones: HeartZones(moderate: 100, vigorous: 130), requireActive: false)

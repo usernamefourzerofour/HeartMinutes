@@ -10,13 +10,13 @@ struct HeartZonesTests {
     }
 
     @Test func twoZonesFollowAHA() {
-        let z = HeartZones(age: 40)   // maks 180: moderat fra 90, hård fra 126
+        let z = HeartZones(age: 40)   // max 180: moderate from 90, vigorous from 126
         #expect(z.count == 3)
         #expect(z.zone(for: 80) == 0)
         #expect(z.zone(for: 90) == 1)
         #expect(z.zone(for: 125) == 1)
         #expect(z.zone(for: 127) == 2)
-        #expect(z.zone(for: 200) == 2)              // øverste zone har intet loft
+        #expect(z.zone(for: 200) == 2)              // the top zone has no ceiling
         #expect(z.bpmRange(2).upperBound == .infinity)
         #expect(z.weights == [0, 1, 2])
         #expect(abs(z.maxHR - 180) < 0.001)
@@ -26,7 +26,7 @@ struct HeartZonesTests {
         let z = HeartZones(maxHR: 200, model: .five)
         #expect(z.count == 6)                            // Z0 + Z1–Z5
         #expect(z.thresholds == [100, 120, 140, 160, 180])   // 50/60/70/80/90 %
-        #expect(z.zone(for: 90) == 0)                    // Z0: under 50 %
+        #expect(z.zone(for: 90) == 0)                    // Z0: below 50 %
         #expect(z.zone(for: 110) == 1)                   // Z1
         #expect(z.zone(for: 150) == 3)                   // Z3
         #expect(z.zone(for: 195) == 5)                   // Z5
@@ -44,7 +44,7 @@ struct HeartZonesTests {
     }
 
     @Test func fiveZoneWeightsAreUsed() {
-        // 10 min konstant i Z4 (× 2) = 20 Heart Minutes; i Z0 (× 0) = 0.
+        // 10 min constant in Z4 (× 2) = 20 Heart Minutes; in Z0 (× 0) = 0.
         let t0 = Date(timeIntervalSince1970: 0)
         let z = HeartZones(maxHR: 200, model: .five)
         func run(_ bpm: Double) -> Double {
@@ -58,15 +58,15 @@ struct HeartZonesTests {
 
 struct YAxisTickTests {
     @Test func zoneBoundsAlwaysShown() {
-        let z = HeartZones(maxHR: 200)   // grænser 100 og 140
+        let z = HeartZones(maxHR: 200)   // limits 100 and 140
         #expect(HeartChart.yTicks(zones: z, in: 40...200) == [100, 140])
     }
 
     @Test func moreTicksWhenZoomedIn() {
         let z = HeartZones(maxHR: 200)
-        // Spænd 30: hver 5. bpm, men ikke tæt på grænsen 100.
+        // Span 30: every 5 bpm, but not close to the limit 100.
         #expect(HeartChart.yTicks(zones: z, in: 85...115) == [85, 90, 95, 100, 105, 110, 115])
-        // Spænd 60: hver 10. bpm.
+        // Span 60: every 10 bpm.
         #expect(HeartChart.yTicks(zones: z, in: 60...120) == [60, 70, 80, 90, 100, 110, 120])
     }
 }

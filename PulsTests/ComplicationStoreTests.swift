@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import Puls
 
-/// Et lavere tal fra en afbrudt baggrundsopdatering må ikke overskrive det gemte tal.
+/// A lower number from an interrupted background refresh must not overwrite the saved number.
 struct ComplicationStoreTests {
     let now = Date.now
     func data(_ minutes: Double, updated: Date) -> ComplicationData {
@@ -22,14 +22,14 @@ struct ComplicationStoreTests {
     }
 
     @Test func appOpenMayDecrease() {
-        // Fx efter ændrede indstillinger.
+        // E.g. after changed settings.
         let old = data(42, updated: now.addingTimeInterval(-60))
         #expect(ComplicationStore.shouldReplace(old, with: data(10, updated: now), for: .today,
                                                 allowDecrease: true, now: now))
     }
 
     @Test func newPeriodStartsOver() {
-        // Gemt i går: i dag må gerne starte forfra på 0.
+        // Saved yesterday: today may start over at 0.
         let old = data(42, updated: now.addingTimeInterval(-2 * 86_400))
         #expect(ComplicationStore.shouldReplace(old, with: data(0, updated: now), for: .today,
                                                 allowDecrease: false, now: now))

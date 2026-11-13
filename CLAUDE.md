@@ -4,8 +4,7 @@ Guidance for Claude working on Heart Minutes, an iPhone + Apple Watch app (Swift
 
 ## Working with Erik
 
-- Talk to Erik in Danish unless he writes in English. Code, commit messages, README and docs stay in English.
-  (Older code comments are still Danish; translate them when you touch the code.)
+- Talk to Erik in Danish unless he writes in English. Code, code comments, commit messages, README and docs are always in English.
 - Keep answers short and clear. Say what an action costs before doing it (see NoMac below).
 - Plan and write code first. Only start a Mac when there is something to build, and ask Erik first.
 - Never put keys or passwords in the code or the repo.

@@ -13,7 +13,7 @@ struct HeartStatsTests {
     @Test func samplingRate() {
         let t0 = Date(timeIntervalSince1970: 0)
         let s = (0..<11).map { HRSample(date: t0.addingTimeInterval(Double($0) * 5), bpm: 70) }
-        #expect(s.samplingRateHz == 0.2)          // 10 intervaller over 50 s
+        #expect(s.samplingRateHz == 0.2)          // 10 intervals over 50 s
         #expect([HRSample]().samplingRateHz == nil)
         #expect(Array(s.prefix(1)).samplingRateHz == nil)
     }

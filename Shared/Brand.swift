@@ -1,16 +1,16 @@
 import SwiftUI
 
-/// Appens fælles udtryk: én accentfarve (den røde fra app-ikonet) og bløde farveovergange.
+/// The app's shared look: one accent colour (the red from the app icon) and soft gradients.
 enum Brand {
     static let accent = Color(red: 0.89, green: 0.17, blue: 0.31)
 
-    /// Blød flade under en kurve: farven foroven, næsten gennemsigtig forneden.
+    /// Soft area below a curve: the colour at the top, almost transparent at the bottom.
     static func area(_ color: Color = accent, top: Double = 0.38) -> LinearGradient {
         LinearGradient(colors: [color.opacity(top), color.opacity(0.04)], startPoint: .top, endPoint: .bottom)
     }
 }
 
-/// Hjerte-ringen, der kan animeres (fyldes blødt op, når tallet ændrer sig).
+/// The heart ring that can be animated (fills smoothly when the number changes).
 struct AnimatedHeartRing: View, Animatable {
     var fraction: Double
     var value: String
@@ -26,9 +26,9 @@ struct AnimatedHeartRing: View, Animatable {
     }
 }
 
-/// Hjerte-ringen, der tæller op: fra 0, når den vises, når appen åbnes igen fra baggrunden, og
-/// når `resetKey` skifter (ny periode); ellers fra det viste tal til det nye. Konstant fart: én hel
-/// omgang (100 %) pr. sekund. Bruges i iPhone-appen og på uret.
+/// The heart ring that counts up: from 0 when it appears, when the app comes back from the background and when
+/// `resetKey` changes (new period); otherwise from the shown number to the new one. Constant speed: one full lap (100
+/// %) per second. Used in the iPhone app and on the watch.
 struct CountingHeartRing: View {
     let total: Double
     let goal: Double
@@ -40,18 +40,18 @@ struct CountingHeartRing: View {
     @Environment(\.scenePhase) private var scenePhase
 
     private var fraction: Double { goal > 0 ? max(0, total / goal) : 0 }
-    /// Tallet i midten tæller med op, så det passer til ringen undervejs.
+    /// The number in the middle counts up along with the ring.
     private var shownMinutes: Int { goal > 0 ? Int((shown * goal).rounded()) : Int(total.rounded()) }
 
     var body: some View {
         AnimatedHeartRing(fraction: shown, value: "\(shownMinutes)")
-            // Animeres trin for trin (i stedet for withAnimation), så det virker pålideligt i lister.
+            // Animated step by step (instead of withAnimation) so it works reliably in lists.
             .task(id: "\(fraction)-\(run)-\(resetKey)") {
                 if resetKey != countedKey { countedKey = resetKey; shown = 0 }
                 await fill(to: fraction)
             }
             .onChange(of: scenePhase) { _, phase in
-                // Kun efter baggrunden – ikke fx når Kontrolcenter lukkes.
+                // Only after the background – not e.g. when Control Center closes.
                 if phase == .background { wasInBackground = true }
                 if phase == .active && wasInBackground { wasInBackground = false; shown = 0; run += 1 }
             }
@@ -75,7 +75,7 @@ extension ZoneSlice {
     var color: Color { Color(red: r, green: g, blue: b) }
 }
 
-/// Én vandret bjælke i zonefarverne: hvor minutterne er optjent.
+/// One horizontal bar in the zone colours: where the minutes were earned.
 struct ZoneBar: View {
     let slices: [ZoneSlice]
     var showLabels = true

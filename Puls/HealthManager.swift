@@ -1,8 +1,8 @@
 import HealthKit
 import Observation
 
-/// Apples egen vurdering af, om man bevægede sig, da pulsen blev målt
-/// (HKMetadataKeyHeartRateMotionContext på Apple Watch-målinger).
+/// Apple's own judgement of whether you were moving when the heart rate was measured
+/// (HKMetadataKeyHeartRateMotionContext on Apple Watch measurements).
 enum MotionContext: Equatable {
     case unknown, sedentary, active
 
@@ -29,20 +29,20 @@ struct HRSample: Identifiable, Equatable {
     let id = UUID()
     let date: Date
     let bpm: Double
-    /// Målt under en workout (ellers en baggrundsmåling).
+    /// Measured during a workout (otherwise a background measurement).
     var inWorkout = false
-    /// Om Apple vurderede, at man var aktiv eller i ro.
+    /// Whether Apple judged you active or resting.
     var motion: MotionContext = .unknown
-    /// Start på den workout, målingen hører til (så to målinger kan genkendes som samme workout).
+    /// Start of the workout the measurement belongs to (so two measurements can be recognised as the same workout).
     var workoutStart: Date? = nil
-    /// Kilden i Sundhed (fx "min Apple Watch" eller en anden app/enhed).
+    /// The source in Health (e.g. "my Apple Watch" or another app/device).
     var source: String? = nil
-    /// Målt i et minut, der tæller i træningsringen (den grønne ring).
+    /// Measured in a minute that counts in the Exercise ring (the green ring).
     var inExercise = false
-    /// Ligger i et kort hul mellem to aktive målinger og tæller derfor som aktiv ("Udfyld korte huller").
+    /// Lies in a short gap between two active measurements and therefore counts as active ("Fill short gaps").
     var bridgedActive = false
 
-    /// Samme måling på et andet tidspunkt (bruges til at strække en workouts målinger ud).
+    /// The same measurement at another time (used to stretch a workout's measurements).
     func copy(at date: Date) -> HRSample {
         var s = HRSample(date: date, bpm: bpm, inWorkout: inWorkout, motion: motion)
         s.workoutStart = workoutStart
@@ -52,11 +52,11 @@ struct HRSample: Identifiable, Equatable {
         return s
     }
 
-    /// Baggrundsmålinger uden markering for aktiv/i ro (den kommer kun fra Apple Watch).
+    /// Background measurements without an active/resting marking (it only comes from Apple Watch).
     struct UnmarkedInfo: Equatable {
         let count: Int
         let backgroundCount: Int
-        /// Kilderne, flest målinger først.
+        /// The sources, most measurements first.
         let sources: [String]
         var fraction: Double { backgroundCount == 0 ? 0 : Double(count) / Double(backgroundCount) }
     }
@@ -75,10 +75,10 @@ struct HRSample: Identifiable, Equatable {
         return UnmarkedInfo(count: unmarked, backgroundCount: background, sources: sources)
     }
 
-    /// Markerer de målinger, der falder inden for en af workout-perioderne.
+    /// Marks the measurements that fall within one of the workout periods.
     static func markingWorkouts(_ samples: [HRSample], _ workouts: [DateInterval]) -> [HRSample] {
         guard !workouts.isEmpty else { return samples }
-        // Begge er sorteret efter tid: gå igennem én gang i stedet for at tjekke alle workouts pr. måling.
+        // Both are sorted by time: walk through once instead of checking every workout for each measurement.
         let sorted = workouts.sorted { $0.start < $1.start }
         var w = 0
         return samples.map { s in
@@ -93,25 +93,25 @@ struct HRSample: Identifiable, Equatable {
         }
     }
 
-    /// Markerer målinger, der ligger i et minut der tæller i træningsringen (den grønne ring).
+    /// Marks measurements that lie in a minute that counts in the Exercise ring (the green ring).
     static func markingExercise(_ samples: [HRSample], _ minutes: [DateInterval]) -> [HRSample] {
         guard !minutes.isEmpty else { return samples }
         let sorted = minutes.sorted { $0.start < $1.start }
         var i = 0
         return samples.map { s in
             var s = s
-            // Halvåbne minutter [start, slut), så en måling præcis på et minutskift kun hører til ét.
+            // Half-open minutes [start, end), so a measurement exactly on a minute boundary belongs to only one.
             while i < sorted.count && sorted[i].end <= s.date { i += 1 }
             if i < sorted.count && sorted[i].start <= s.date { s.inExercise = true }
             return s
         }
     }
 
-    /// Pause, hvor linjen brydes (fx mellem to workouts, når baggrund er slået fra).
+    /// A pause where the line breaks (e.g. between two workouts when background is off).
     static let lineBreakGap: TimeInterval = 3600
 
-    /// Serienummer pr. sammenhængende stykke af samme type, så linjen skifter farve
-    /// uden at forbinde baggrund og workout – og brydes ved huller over en time.
+    /// Series number per continuous stretch of the same type, so the line changes colour without connecting background
+    /// and workout – and breaks at gaps over an hour.
     static func segments(_ samples: [HRSample]) -> [Int] {
         var segment = 0
         return samples.indices.map { i in
@@ -123,7 +123,7 @@ struct HRSample: Identifiable, Equatable {
         }
     }
 
-    /// Filtrerer efter indstillingerne for baggrunds- og workout-målinger.
+    /// Filters by the settings for background and workout measurements.
     static func filtered(_ samples: [HRSample], background: Bool, workouts: Bool) -> [HRSample] {
         if background && workouts { return samples }
         return samples.filter { $0.inWorkout ? workouts : background }
@@ -131,7 +131,7 @@ struct HRSample: Identifiable, Equatable {
 }
 
 extension RandomAccessCollection where Element == HRSample {
-    /// Gennemsnitlig samplingfrekvens i Hz: antal intervaller / tidsspænd (kræver sorterede målinger).
+    /// Average sampling rate in Hz: number of intervals / time span (requires sorted measurements).
     var samplingRateHz: Double? {
         guard count >= 2, let first = self.first, let last = self.last, last.date > first.date else { return nil }
         return Double(count - 1) / last.date.timeIntervalSince(first.date)
@@ -139,7 +139,7 @@ extension RandomAccessCollection where Element == HRSample {
 }
 
 extension Array where Element == HRSample {
-    /// Første indeks med dato ≥ `date` (binær søgning; målingerne er sorteret).
+    /// First index with date ≥ `date` (binary search; the measurements are sorted).
     func firstIndex(atOrAfter date: Date) -> Int {
         var lo = 0, hi = count
         while lo < hi {
@@ -149,7 +149,7 @@ extension Array where Element == HRSample {
         return lo
     }
 
-    /// Målingerne i [from, to] uden at gennemløbe hele arrayet.
+    /// The measurements in [from, to] without walking the whole array.
     func slice(from: Date, to: Date) -> ArraySlice<HRSample> {
         let a = firstIndex(atOrAfter: from)
         var b = firstIndex(atOrAfter: to)
@@ -174,7 +174,7 @@ struct HeartStats: Equatable {
     }
 }
 
-/// Samler værdier fra en serie-forespørgsel (HealthKit kalder tilbage fra en baggrundstråd).
+/// Collects values from a series query (HealthKit calls back from a background thread).
 private final class SeriesBox: @unchecked Sendable {
     private let lock = NSLock()
     private var finished = false
@@ -184,7 +184,7 @@ private final class SeriesBox: @unchecked Sendable {
         lock.lock(); values.append((date, bpm)); lock.unlock()
     }
 
-    /// Kører kun første gang (så fortsættelsen aldrig genoptages to gange).
+    /// Only runs the first time (so the continuation is never resumed twice).
     func finish(_ body: () -> Void) {
         lock.lock(); let first = !finished; finished = true; lock.unlock()
         if first { body() }
@@ -200,7 +200,7 @@ final class HealthManager {
 
     var periodSamples: [HRSample] = [] { didSet { refreshShown() } }
 
-    /// Standardværdier for alle indstillinger (bruges ved nulstilling).
+    /// Default values for all settings (used when resetting).
     enum Defaults {
         static let includeBackground = true
         static let includeWorkouts = true
@@ -208,16 +208,16 @@ final class HealthManager {
         static let maxHRSource = MaxHRSource.age
         static let onlyWhenActive = true
         static let maxGapSeconds = 300
-        /// Højeste tilladte hul uden for workouts (længere giver ikke mening).
+        /// Highest allowed gap outside workouts (longer makes no sense).
         static let maxGapLimit = 600
         static let workoutGaps = ActiveMinutes.WorkoutGaps.betweenMeasurements
         static let interpolation = ActiveMinutes.Interpolation.linear
         static let showComparison = false
         static let activitySource = ActiveMinutes.ActivitySource.either
-        /// Korte huller mellem aktive målinger, der udfyldes (sekunder; 0 = fra).
-        /// Standard: »Aktiv, træningsring og korte pauser« på 300 s (5 min).
+        /// Short gaps between active measurements that are filled (seconds; 0 = off). Default: »Active, Exercise ring
+        /// and short pauses« at 300 s (5 min).
         static let activeBridgeSeconds = 300
-        /// Længste pause, der udfyldes med »Aktiv, træningsring og korte pauser«.
+        /// Longest pause that is filled with »Active, Exercise ring and short pauses«.
         static let pauseSeconds = 300
         static let watchPeriod = SummaryPeriod.thisWeek
         static let pauseLimit = 600
@@ -226,18 +226,18 @@ final class HealthManager {
         static let age = 40
     }
 
-    /// Globale indstillinger: hvilke målinger der tæller og vises i pulsgrafen.
+    /// Global settings: which measurements count and are shown in the heart rate chart.
     var includeBackground: Bool = UserDefaults.standard.object(forKey: "includeBackground") as? Bool ?? Defaults.includeBackground {
         didSet { UserDefaults.standard.set(includeBackground, forKey: "includeBackground"); refreshShown() }
     }
     var includeWorkouts: Bool = UserDefaults.standard.object(forKey: "includeWorkouts") as? Bool ?? Defaults.includeWorkouts {
         didSet { UserDefaults.standard.set(includeWorkouts, forKey: "includeWorkouts"); refreshShown() }
     }
-    /// 2 zoner (AHA) eller 5 zoner.
+    /// 2 zones (AHA) or 5 zones.
     var zoneModel: ZoneModel = ZoneModel(rawValue: UserDefaults.standard.string(forKey: "zoneModel") ?? "") ?? Defaults.zoneModel {
         didSet { UserDefaults.standard.set(zoneModel.rawValue, forKey: "zoneModel") }
     }
-    /// Grænser (andel af maks-puls) og faktorer pr. zone – gemt for hver model for sig.
+    /// Limits (fraction of max heart rate) and factors per zone – stored separately for each model.
     var zonePercents: [Double] {
         get { stored("zonePercents.\(zoneModel.rawValue)", count: zoneModel.names.count) ?? zoneModel.defaultPercents }
         set { UserDefaults.standard.set(newValue, forKey: "zonePercents.\(zoneModel.rawValue)"); zonesVersion += 1 }
@@ -246,7 +246,7 @@ final class HealthManager {
         get { stored("zoneWeights.\(zoneModel.rawValue)", count: zoneModel.names.count) ?? zoneModel.defaultWeights }
         set { UserDefaults.standard.set(newValue, forKey: "zoneWeights.\(zoneModel.rawValue)"); zonesVersion += 1 }
     }
-    /// Får SwiftUI til at opdatere, når grænser/faktorer ændres (de ligger i UserDefaults).
+    /// Makes SwiftUI update when limits/factors change (they live in UserDefaults).
     private var zonesVersion = 0
     private func stored(_ key: String, count: Int) -> [Double]? {
         _ = zonesVersion
@@ -254,28 +254,28 @@ final class HealthManager {
         return a
     }
 
-    /// Perioden, som komplikationer og ur-app viser (synkroniseres til uret).
+    /// The period shown by the complications and the watch app (synced to the watch).
     var watchPeriod: SummaryPeriod = UserDefaults.standard.string(forKey: "watchPeriod")
         .flatMap(SummaryPeriod.init(rawValue:)) ?? Defaults.watchPeriod {
         didSet { UserDefaults.standard.set(watchPeriod.rawValue, forKey: "watchPeriod") }
     }
 
-    /// Mål for aktive minutter pr. uge (AHA: 150). Skaleres til den valgte periode.
+    /// Goal for active minutes per week (AHA: 150). Scaled to the selected period.
     var weeklyGoal: Int = UserDefaults.standard.object(forKey: "weeklyGoal") as? Int ?? Defaults.weeklyGoal {
         didSet { UserDefaults.standard.set(weeklyGoal, forKey: "weeklyGoal") }
     }
 
-    /// Aktive minutter tæller kun, når Apple Watch vurderer, at man bevæger sig.
+    /// Active minutes only count when Apple Watch judges that you are moving.
     var onlyWhenActive: Bool = UserDefaults.standard.object(forKey: "onlyWhenActive") as? Bool ?? Defaults.onlyWhenActive {
         didSet { UserDefaults.standard.set(onlyWhenActive, forKey: "onlyWhenActive") }
     }
 
-    /// Hvordan huller i målingerne behandles under workouts.
+    /// How gaps in the measurements are handled during workouts.
     var workoutGaps: ActiveMinutes.WorkoutGaps = HealthManager.storedWorkoutGaps() {
         didSet { UserDefaults.standard.set(workoutGaps.rawValue, forKey: "workoutGaps"); refreshShown() }
     }
 
-    /// Læser valget – og oversætter de gamle kontakter ("Tæl hele workouten med" / "Stræk").
+    /// Reads the choice – and translates the old switches ("Count the whole workout" / "Stretch").
     nonisolated private static func storedWorkoutGaps() -> ActiveMinutes.WorkoutGaps {
         let d = UserDefaults.standard
         if let raw = d.string(forKey: "workoutGaps"), let v = ActiveMinutes.WorkoutGaps(rawValue: raw) { return v }
@@ -284,42 +284,42 @@ final class HealthManager {
         return Defaults.workoutGaps
     }
 
-    /// Hvordan pulsen mellem to målinger regnes.
+    /// How the heart rate between two measurements is calculated.
     var interpolation: ActiveMinutes.Interpolation =
         ActiveMinutes.Interpolation(rawValue: UserDefaults.standard.string(forKey: "interpolation") ?? "")
         ?? Defaults.interpolation {
         didSet { UserDefaults.standard.set(interpolation.rawValue, forKey: "interpolation") }
     }
 
-    /// Hvad der afgør "aktiv" med "Kun når aktiv".
+    /// What decides "active" with "Only when active".
     var activitySource: ActiveMinutes.ActivitySource =
         ActiveMinutes.ActivitySource(rawValue: UserDefaults.standard.string(forKey: "activitySource") ?? "")
         ?? Defaults.activitySource {
         didSet { UserDefaults.standard.set(activitySource.rawValue, forKey: "activitySource") }
     }
 
-    /// Huller på højst så mange sekunder mellem to aktive målinger tæller som aktive (0 = fra).
-    /// (Sekunder; tidligere gemt i minutter under "activeBridgeMinutes".)
+    /// Gaps of at most this many seconds between two active measurements count as active (0 = off). (Seconds;
+    /// previously stored in minutes as "activeBridgeMinutes".)
     var activeBridgeSeconds: Int = UserDefaults.standard.object(forKey: "activeBridgeSeconds") as? Int
         ?? (UserDefaults.standard.object(forKey: "activeBridgeMinutes") as? Int).map { $0 * 60 }
         ?? Defaults.activeBridgeSeconds {
         didSet { UserDefaults.standard.set(activeBridgeSeconds, forKey: "activeBridgeSeconds") }
     }
 
-    /// Længste pause for »med pauser« (huskes, også når en anden tilstand er valgt).
+    /// Longest pause for »with pauses« (remembered even when another mode is selected).
     var pauseSeconds: Int = UserDefaults.standard.object(forKey: "pauseSeconds") as? Int
         ?? (UserDefaults.standard.object(forKey: "pauseMinutes") as? Int).map { $0 * 60 }
         ?? (UserDefaults.standard.object(forKey: "activeBridgeMinutes") as? Int).flatMap { $0 > 0 ? $0 * 60 : nil }
         ?? Defaults.pauseSeconds {
         didSet {
             let clamped = min(max(pauseSeconds, 1), Defaults.pauseLimit)
-            if clamped != pauseSeconds { pauseSeconds = clamped }   // (kalder ikke didSet igen)
+            if clamped != pauseSeconds { pauseSeconds = clamped }   // (doesn't call didSet again)
             UserDefaults.standard.set(pauseSeconds, forKey: "pauseSeconds")
             if activeBridgeSeconds > 0 { activeBridgeSeconds = pauseSeconds }
         }
     }
 
-    /// Den samlede indstilling for, hvornår baggrundspuls tæller.
+    /// The combined setting for when background heart rate counts.
     var activityMode: ActiveMinutes.ActivityMode {
         get {
             if !onlyWhenActive { return .always }
@@ -342,48 +342,48 @@ final class HealthManager {
         }
     }
 
-    /// Indstillingerne for aktive minutter samlet ét sted.
+    /// The settings for active minutes in one place.
     var minutesConfig: ActiveMinutes.Config {
         ActiveMinutes.Config(zones: zones, requireActive: onlyWhenActive, fillWorkoutGaps: workoutGaps != .sameLimit,
                              maxGap: maxGap, interpolation: interpolation, activitySource: activitySource,
                              activeBridge: TimeInterval(max(activeBridgeSeconds, 0)))
     }
 
-    /// Længste hul mellem to målinger uden for workouts, der tælles med (1–600 sekunder).
+    /// Longest gap between two measurements outside workouts that counts (1–600 seconds).
     var maxGapSeconds: Int = min(max(UserDefaults.standard.object(forKey: "maxGapSeconds") as? Int ?? Defaults.maxGapSeconds, 1), Defaults.maxGapLimit) {
         didSet { UserDefaults.standard.set(maxGapSeconds, forKey: "maxGapSeconds") }
     }
     var maxGap: TimeInterval { TimeInterval(min(max(maxGapSeconds, 1), Defaults.maxGapLimit)) }
 
-    /// Vis træningsringsminutterne som linje i minut-grafen til sammenligning.
+    /// Show the Exercise minutes as a line in the minutes chart for comparison.
     var showComparison: Bool = UserDefaults.standard.object(forKey: "showComparison") as? Bool ?? Defaults.showComparison {
         didSet { UserDefaults.standard.set(showComparison, forKey: "showComparison") }
     }
-    /// træningsringsminutter i perioden, kumulativt.
+    /// Exercise minutes in the period, cumulative.
     private(set) var applePoints: [ActiveMinutes.Point] = []
 
 
-    /// Periodens målinger efter indstillingerne (gemt, så de ikke filtreres igen ved hver visning).
+    /// The period's measurements after the settings (stored so they aren't filtered again on every render).
     private(set) var shownSamples: [HRSample] = []
-    /// Målingerne aktive minutter regnes på: de viste, evt. strakt ud til hele workouten.
+    /// The measurements active minutes are calculated from: the shown ones, possibly stretched to the whole workout.
     private(set) var minuteSamples: [HRSample] = []
-    /// Periodens workouts.
+    /// The period's workouts.
     private(set) var periodWorkouts: [DateInterval] = []
-    /// Den periode, de viste data hører til. Skiftes samtidig med data, så tal, mål og grafer
-    /// ikke blander den gamle periodes målinger med den nyes tidsakse.
+    /// The period the shown data belongs to. Changes together with the data, so numbers, goal and charts don't mix the
+    /// old period's measurements with the new time axis.
     private(set) var loadedInterval: DateInterval?
-    /// Workout-typen (fra Sundhed) for hver workout i perioden, efter starttidspunkt.
+    /// The workout type (from Health) for each workout in the period, by start time.
     private(set) var workoutTypes: [Date: HKWorkoutActivityType] = [:]
-    /// Baggrundsmålinger i perioden uden aktiv/i ro-markering.
+    /// Background measurements in the period without an active/resting marking.
     private(set) var unmarked = HRSample.UnmarkedInfo(count: 0, backgroundCount: 0, sources: [])
 
-    /// Kilder, brugeren har valgt at ignorere i beskeden om manglende markering.
+    /// Sources the user chose to ignore in the message about the missing marking.
     var ignoredUnmarkedSources: [String] = UserDefaults.standard.stringArray(forKey: "ignoredUnmarkedSources") ?? [] {
         didSet { UserDefaults.standard.set(ignoredUnmarkedSources, forKey: "ignoredUnmarkedSources") }
     }
 
-    /// Vis beskeden, når "Kun når aktiv" sorterer en betydelig del af baggrundsmålingerne fra,
-    /// fordi de ikke kommer fra Apple Watch.
+    /// Show the message when "Only when active" filters out a significant part of the background measurements because
+    /// they don't come from Apple Watch.
     var showUnmarkedHint: Bool {
         onlyWhenActive && activitySource == .watchMotion && includeBackground
             && unmarked.count >= 50 && unmarked.fraction >= 0.2
@@ -402,32 +402,32 @@ final class HealthManager {
             ? ActiveMinutes.extendingWorkouts(shownSamples, periodWorkouts) : shownSamples
     }
     var errorMessage: String?
-    /// Sidste hentning fra Sundhed fejlede eller blev afbrudt (data er ufuldstændige).
+    /// The last fetch from Health failed or was interrupted (the data is incomplete).
     private(set) var loadFailed = false
 
-    /// Alder bruges til maks-puls (220 − alder). Gemmes; hentes fra Sundhed første gang.
+    /// Age is used for max heart rate (220 − age). Stored; read from Health the first time.
     var age: Int = UserDefaults.standard.object(forKey: "age") as? Int ?? Defaults.age {
         didSet { UserDefaults.standard.set(age, forKey: "age") }
     }
 
-    /// Maks-puls ud fra alder (220 − alder) eller indtastet.
+    /// Max heart rate from age (220 − age) or entered.
     var maxHRSource: MaxHRSource = MaxHRSource(rawValue: UserDefaults.standard.string(forKey: "maxHRSource") ?? "") ?? Defaults.maxHRSource {
         didSet { UserDefaults.standard.set(maxHRSource.rawValue, forKey: "maxHRSource") }
     }
-    /// Indtastet maks-puls (fx målt ved en test).
+    /// Entered max heart rate (e.g. measured in a test).
     var manualMaxHR: Int = UserDefaults.standard.object(forKey: "manualMaxHR") as? Int ?? 180 {
         didSet { UserDefaults.standard.set(manualMaxHR, forKey: "manualMaxHR") }
     }
-    /// Maks-pulsen, der bruges.
+    /// The max heart rate that is used.
     var maxHR: Double { maxHRSource == .age ? HeartZones.maxHR(age: age) : Double(manualMaxHR) }
 
-    /// Alder fra Sundhed (fødselsdato), hvis den kan læses – standard for "Alder".
+    /// Age from Health (date of birth) if it can be read – default for "Age".
     private(set) var healthAge: Int?
     var defaultAge: Int { healthAge ?? Defaults.age }
-    /// Standard for indtastet maks-puls: ud fra alderen.
+    /// Default for the entered max heart rate: based on age.
     var defaultMaxHR: Int { Int(HeartZones.maxHR(age: age)) }
 
-    /// Sætter alle indstillinger tilbage til standard.
+    /// Resets all settings to their defaults.
     func resetAll() {
         includeBackground = Defaults.includeBackground
         includeWorkouts = Defaults.includeWorkouts
@@ -479,7 +479,7 @@ final class HealthManager {
         if UserDefaults.standard.object(forKey: "age") == nil { age = years }
     }
 
-    /// Antal målinger i perioden, der kom fra serier (én post i Sundhed med mange pulsværdier).
+    /// Number of measurements in the period that came from series (one entry in Health with many heart rate values).
     private(set) var seriesValueCount = 0
 
     func heartRates(from start: Date, to end: Date) async -> [HRSample] {
@@ -492,8 +492,8 @@ final class HealthManager {
             var fromSeries = 0
             for sample in try await query.result(for: store) {
                 let motion = MotionContext(sample.metadata)
-                // Apple Watch gemmer tit workout-puls som en serie: én post med mange værdier.
-                // Uden at pakke den ud får man kun én værdi (og mister fx toppe).
+                // Apple Watch often stores workout heart rate as a series: one entry with many values. Without
+                // unpacking it you only get one value (and lose e.g. peaks).
                 if let discrete = sample as? HKDiscreteQuantitySample, discrete.count > 1 {
                     let values = try await seriesValues(of: sample)
                     fromSeries += values.count
@@ -514,7 +514,7 @@ final class HealthManager {
         }
     }
 
-    /// De enkelte pulsværdier i en serie-post.
+    /// The individual heart rate values in a series entry.
     private func seriesValues(of sample: HKQuantitySample) async throws -> [(date: Date, bpm: Double)] {
         try await withCheckedThrowingContinuation { continuation in
             let box = SeriesBox()
@@ -533,14 +533,14 @@ final class HealthManager {
         }
     }
 
-    /// Henter puls for perioden og markerer målinger, der ligger under en workout.
+    /// Fetches heart rate for the period and marks measurements that lie within a workout.
     func loadPeriod(_ interval: DateInterval) async {
         loadFailed = false
         let samples = await heartRates(from: interval.start, to: interval.end)
         let workoutIntervals = await workoutIntervals(from: interval.start, to: interval.end)
         let exercise = await exerciseSamples(from: interval.start, to: interval.end)
-        // Afbrudt (fx når iOS stopper en baggrundsopdatering, eller der er valgt en ny periode):
-        // data er ufuldstændige eller forældede, så de vises ikke.
+        // Interrupted (e.g. when iOS stops a background refresh, or a new period was selected): the data is incomplete
+        // or stale, so it isn't shown.
         if Task.isCancelled { loadFailed = true; return }
         loadedInterval = interval
         applePoints = ActiveMinutes.cumulativeExercise(exercise.map { (end: $0.end, minutes: $0.minutes) },
@@ -550,13 +550,13 @@ final class HealthManager {
                                                  exercise.map(\.interval))
     }
 
-    /// træningsringsminutter (den grønne ring) i perioden, lagt sammen over tid.
+    /// Exercise minutes (the green ring) in the period, added up over time.
     func exerciseMinutes(from start: Date, to end: Date) async -> [ActiveMinutes.Point] {
         ActiveMinutes.cumulativeExercise(
             await exerciseSamples(from: start, to: end).map { (end: $0.end, minutes: $0.minutes) }, start: start)
     }
 
-    /// træningsringsminutter som enkelte tidsrum (normalt ét pr. minut).
+    /// Exercise minutes as individual time ranges (usually one per minute).
     func exerciseSamples(from start: Date, to end: Date) async -> [(interval: DateInterval, end: Date, minutes: Double)] {
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
         let query = HKSampleQueryDescriptor(
@@ -570,7 +570,7 @@ final class HealthManager {
         }
     }
 
-    /// Tidsrummene for de workouts, der overlapper perioden.
+    /// The time ranges of the workouts that overlap the period.
     func workoutIntervals(from start: Date, to end: Date) async -> [DateInterval] {
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
         let query = HKSampleQueryDescriptor(
@@ -591,21 +591,21 @@ final class HealthManager {
 }
 
 extension HealthManager {
-    /// Ugens Heart Minutes til komplikation og widgets, regnet med de gemte indstillinger.
-    /// `nil`, hvis Sundhed ikke kunne læses (så de gemte tal ikke overskrives med 0).
+    /// This week's Heart Minutes for the complication and widgets, calculated with the saved settings. `nil` if Health
+    /// couldn't be read (so the saved numbers aren't overwritten with 0).
     static func weekSummary(now: Date = .now) async -> ComplicationData? {
         await summary(for: .thisWeek, now: now)
     }
 
-    /// Heart Minutes for alle widget-perioder på én gang: data hentes én gang for det samlede
-    /// tidsrum og deles derefter op (hurtigere end at hente hver periode for sig).
+    /// Heart Minutes for all widget periods at once: data is fetched once for the combined time range and then split up
+    /// (faster than fetching each period separately).
     static func summaries(now: Date = .now) async -> [SummaryPeriod: ComplicationData] {
         let intervals = Dictionary(uniqueKeysWithValues: SummaryPeriod.allCases.map { ($0, $0.interval(now: now)) })
         guard let start = intervals.values.map(\.start).min(),
               let end = intervals.values.map(\.end).max() else { return [:] }
         let health = HealthManager()
         await health.loadPeriod(DateInterval(start: start, end: end))
-        // Fejl eller afbrudt hentning: gem ingenting, hellere gamle tal end 0.
+        // Error or interrupted fetch: save nothing – better old numbers than 0.
         guard !health.loadFailed else { return [:] }
         var result: [SummaryPeriod: ComplicationData] = [:]
         for (period, interval) in intervals {
@@ -623,7 +623,7 @@ extension HealthManager {
         return result
     }
 
-    /// Heart Minutes for en periode (uge, dag, 7 dage) til widgets.
+    /// Heart Minutes for one period (week, day, 7 days) for widgets.
     static func summary(for period: SummaryPeriod, now: Date = .now) async -> ComplicationData? {
         let health = HealthManager()
         await health.loadPeriod(period.interval(now: now))

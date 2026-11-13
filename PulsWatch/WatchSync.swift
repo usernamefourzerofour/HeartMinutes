@@ -1,7 +1,7 @@
 import Foundation
 import WatchConnectivity
 
-/// Modtager indstillingerne fra iPhone-appen, så uret regner med de samme zoner og vægte.
+/// Receives the settings from the iPhone app so the watch calculates with the same zones and weights.
 final class WatchSync: NSObject, WCSessionDelegate, @unchecked Sendable {
     override init() {
         super.init()
@@ -22,7 +22,7 @@ final class WatchSync: NSObject, WCSessionDelegate, @unchecked Sendable {
 
     private func apply(_ settings: [String: Any]) {
         for (key, value) in settings { UserDefaults.standard.set(value, forKey: key) }
-        // Komplikationen kan kun læse App Group – perioden lægges også dér.
+        // The complication can only read the App Group – the period is stored there too.
         if let raw = settings["watchPeriod"] as? String, let period = SummaryPeriod(rawValue: raw) {
             ComplicationStore.watchPeriod = period
         }

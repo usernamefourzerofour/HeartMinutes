@@ -2,26 +2,27 @@ import SwiftUI
 import HealthKit
 import Charts
 
-/// Graf over de kumulative aktive minutter i perioden, med målet som vandret linje.
+/// Chart of the cumulative active minutes in the period, with the goal as a horizontal line.
 struct ActiveMinutesChart: View {
     let result: ActiveMinutes
-    /// Overskrift med tallet (slås fra, når den store hjerte-ring står ovenover).
+    /// Header with the number (turned off when the big heart ring is shown above).
     var showHeader = true
     let period: ClosedRange<Date>
-    /// Zonerne med navne og faktorer (til regnestykket under grafen).
+    /// The zones with names and factors (for the calculation below the chart).
     let zones: HeartZones
     let weeklyGoal: Double
-    /// træningsringsminutter, kumulativt (tom hvis ingen adgang/data).
+    /// Exercise minutes, cumulative (empty without access/data).
     var applePoints: [ActiveMinutes.Point] = []
-    /// Vis den anden kilde som stiplet linje til sammenligning.
+    /// Show the other source as a line for comparison.
     var showComparison: Bool = true
-    /// Vis linjen "Moderat … × 1 + hård … × 2" under grafen.
+    /// Show the line "Moderate … × 1 + vigorous … × 2" below the chart.
     var showBreakdown: Bool = true
 
     static let appleColor = Color(red: 0.55, green: 0.85, blue: 0.0)
 
     private var appleTotal: Double { applePoints.last?.total ?? 0 }
-    /// Kurverne forlænges vandret til nu (eller periodens slut), så de fortsætter gennem dage uden minutter.
+    /// The curves are extended horizontally to now (or the end of the period), so they continue through days without
+    /// minutes.
     private var curveEnd: Date { min(.now, period.upperBound) }
     private var shownPoints: [ActiveMinutes.Point] {
         ActiveMinutes.spanning(result.points, from: period.lowerBound, to: curveEnd)
@@ -52,7 +53,8 @@ struct ActiveMinutesChart: View {
                 }
             }
             Chart {
-                // Stablet: baggrundsmålinger nederst, workouts ovenpå – samme farver som pulsgrafen.
+                // Stacked: background measurements at the bottom, workouts on top – the same colours as the heart rate
+                // chart.
                 ForEach(shownPoints) { p in
                     AreaMark(x: .value("Time", p.date), y: .value("Minutes", p.background),
                              stacking: .standard)
@@ -71,7 +73,7 @@ struct ActiveMinutesChart: View {
                     }
                 }
                 RuleMark(y: .value("Goal", goal))
-                    // Grå stiplet mållinje – samme som i widgets.
+                    // Grey dashed goal line – the same as in the widgets.
                     .foregroundStyle(Color.gray)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                     .annotation(position: .top, alignment: .leading) {
@@ -84,7 +86,7 @@ struct ActiveMinutesChart: View {
                 "Background": Brand.area(HeartChart.backgroundColor, top: 0.5),
                 "Workout": Brand.area(HeartChart.workoutColor, top: 0.55),
             ])
-            // Rolig y-akse: få, svage linjer.
+            // Calm y axis: few, faint lines.
             .chartYAxis {
                 AxisMarks(values: .automatic(desiredCount: 3)) { _ in
                     AxisGridLine().foregroundStyle(Color.gray.opacity(0.18))
@@ -94,7 +96,7 @@ struct ActiveMinutesChart: View {
             .chartLegend(.hidden)
             .frame(height: 160)
 
-            // Fuld skriftstørrelse: på én linje, hvis der er plads – ellers én pr. linje.
+            // Full font size: on one line if there is room – otherwise one per line.
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 12) { heartRateLegends }
                 VStack(alignment: .leading, spacing: 4) { heartRateLegends }
@@ -102,7 +104,7 @@ struct ActiveMinutesChart: View {
             .font(.caption)
 
             if showBreakdown {
-            // Med én decimal, så regnestykket går op (afrundede hele minutter kan give 1 for lidt).
+            // With one decimal so the sum adds up (rounded whole minutes can be 1 short).
             ZoneBreakdown(result: result, zones: zones)
             }
             Text("Goal: \(Int(weeklyGoal)) min per week, adjusted to the selected period")
@@ -111,8 +113,8 @@ struct ActiveMinutesChart: View {
         }
     }
 
-    /// "Moderat 12,3 min × 1 + hård 4,0 min × 2 = 20 min" – zoner, der tæller (× 0 udelades;
-    /// ved 5 zoner også zoner uden minutter).
+    /// "Moderate 12.3 min × 1 + vigorous 4.0 min × 2 = 20 min" – zones that count (× 0 is left out; with 5 zones also
+    /// zones without minutes).
     static func breakdown(_ result: ActiveMinutes, zones: HeartZones) -> String {
         let one = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(1))
         let weight = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(0...1))
@@ -120,7 +122,7 @@ struct ActiveMinutesChart: View {
         for i in zones.indices {
             let minutes = i < result.zoneMinutes.count ? result.zoneMinutes[i] : 0
             guard zones.weights[i] > 0, minutes > 0 || zones.model == .two else { continue }
-            // To zoner: "Moderat … + hård …" (kun første med stort).
+            // Two zones: "Moderate … + vigorous …" (only the first capitalised).
             let name = zones.model == .two && !terms.isEmpty ? zones.name(i).lowercased() : zones.name(i)
             terms.append(String(localized: "\(name) \(minutes.formatted(one)) min × \(zones.weights[i].formatted(weight))"))
         }
@@ -145,7 +147,7 @@ struct ActiveMinutesChart: View {
         }
     }
 
-    /// Fuldoptrukken streg (træningsringsminutterne som linje oven på grafen).
+    /// Solid line (Exercise minutes as a line on top of the chart).
     private func line(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             Capsule().fill(color).frame(width: 14, height: 2.5)
@@ -161,15 +163,15 @@ struct ActiveMinutesChart: View {
     }
 }
 
-/// Periodens workouts med point. Tryk på en workout for at zoome pulsgrafen ind på den.
+/// The period's workouts with points. Tap a workout to zoom the heart rate chart to it.
 struct WorkoutScoresView: View {
     let scores: [ActiveMinutes.WorkoutScore]
     let zones: HeartZones
-    /// SF Symbol for workoutens type (fx løb, cykling, styrke), efter starttidspunkt.
+    /// SF Symbol for the workout's type (e.g. running, cycling, strength), by start time.
     var icon: (Date) -> String = { _ in "figure.mixed.cardio" }
     var onSelect: (DateInterval) -> Void = { _ in }
 
-    /// Minutter i de zoner, der tæller (fx "moderat 3,2", "Z4 1,0").
+    /// Minutes in the zones that count (e.g. "moderate 3.2", "Z4 1.0").
     private func zoneParts(_ r: ActiveMinutes) -> [String] {
         zones.indices.compactMap { i in
             let m = i < r.zoneMinutes.count ? r.zoneMinutes[i] : 0
@@ -179,8 +181,8 @@ struct WorkoutScoresView: View {
         }
     }
 
-    // Group (ikke VStack): i en List bliver overskriften og hver workout sin egen række.
-    // Én høj række med alle workouts fik forkert højde og blev tegnet ind over rækken ovenover.
+    // Group (not VStack): in a List the header and each workout become their own row. One tall row with all workouts
+    // got the wrong height and was drawn over the row above.
     var body: some View {
         Group {
             VStack(alignment: .leading, spacing: 2) {
@@ -195,7 +197,7 @@ struct WorkoutScoresView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             HStack {
-                                // Workout-farve og ikon, så det ses, at rækken kan trykkes på.
+                                // Workout colour and icon, so it's clear the row can be tapped.
                                 Label {
                                     Text(w.interval.start, format: .dateTime.weekday(.abbreviated).day().month().hour().minute())
                                 } icon: {
@@ -217,7 +219,7 @@ struct WorkoutScoresView: View {
                 .buttonStyle(.plain)
                 .accessibilityHint("Zoom the heart rate chart to this workout")
                 .listRowSeparator(.hidden)
-                // Lidt mere luft under det sidste kort, så det ikke rører kanten.
+                // A little more space below the last card so it doesn't touch the edge.
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: w.id == scores.last?.id ? 16 : 4, trailing: 16))
             }
             if scores.isEmpty {
@@ -230,7 +232,7 @@ struct WorkoutScoresView: View {
 
 
 extension HKWorkoutActivityType {
-    /// SF Symbol, der passer til workout-typen fra Sundhed.
+    /// SF Symbol matching the workout type from Health.
     var symbolName: String {
         switch self {
         case .running: "figure.run"
@@ -277,7 +279,7 @@ extension HKWorkoutActivityType {
     }
 }
 
-/// Zone-bjælken under minutgrafen. Tryk for at se regnestykket ("Z1 … × 1 + Z3 … × 2 = N min").
+/// The zone bar below the minutes chart. Tap to see the calculation ("Z1 … × 1 + Z3 … × 2 = N min").
 struct ZoneBreakdown: View {
     let result: ActiveMinutes
     let zones: HeartZones
@@ -298,11 +300,11 @@ struct ZoneBreakdown: View {
     }
 }
 
-/// Den store hjerte-ring øverst i Overblik: periodens Heart Minutes mod målet.
+/// The big heart ring at the top of Overview: the period's Heart Minutes against the goal.
 struct HeroRing: View {
     let total: Double
     let goal: Double
-    /// Ny periode: ringen tæller op fra 0 igen.
+    /// New period: the ring counts up from 0 again.
     var period: DateInterval? = nil
     @Environment(\.colorScheme) private var colorScheme
 
@@ -314,7 +316,7 @@ struct HeroRing: View {
             CountingHeartRing(total: total, goal: goal,
                               resetKey: period.map { "\($0.start.timeIntervalSince1970)-\($0.end.timeIntervalSince1970)" } ?? "")
                 .frame(width: 170, height: 170)
-                // Mørk tilstand: ringen lyser lidt, som på uret.
+                // Dark mode: the ring glows a little, like on the watch.
                 .shadow(color: colorScheme == .dark ? Brand.accent.opacity(0.4) : .clear, radius: 14)
             HStack(spacing: 6) {
                 Text("of \(Int(goal.rounded())) min · \(Int((fraction * 100).rounded())) %")

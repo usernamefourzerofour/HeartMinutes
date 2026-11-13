@@ -3,25 +3,25 @@ import UIKit
 import BackgroundTasks
 import WidgetKit
 
-/// Regner ugens Heart Minutes og gemmer dem til widgets (App Group), også i baggrunden.
+/// Calculates this week's Heart Minutes and saves them for the widgets (App Group), also in the background.
 enum WidgetUpdater {
     static let refreshID = "dk.erik.puls.refresh"
 
     @MainActor
-    /// `allowDecrease`: kun når appen er åben – i baggrunden må tallene ikke falde (se
+    /// `allowDecrease`: only when the app is open – in the background the numbers must not drop (see
     /// `ComplicationStore.shouldReplace`).
     static func update(allowDecrease: Bool = false) async {
-        // Når telefonen er låst, er Sundhed-data krypteret og kan ikke (helt) læses –
-        // så ville vi gemme for lave tal. Vent til næste gang i stedet.
+        // When the phone is locked, Health data is encrypted and can't (fully) be read – we would save numbers that are
+        // too low. Wait for the next time instead.
         guard UIApplication.shared.isProtectedDataAvailable else { return }
-        // Tom, hvis Sundhed ikke kunne læses – så beholdes de gemte tal.
+        // Empty if Health couldn't be read – then the saved numbers are kept.
         for (period, data) in await HealthManager.summaries() {
             ComplicationStore.saveIfValid(data, for: period, allowDecrease: allowDecrease)
         }
         WidgetCenter.shared.reloadAllTimelines()
     }
 
-    /// Beder iOS om at vække appen igen om ca. 30 min (iOS bestemmer selv det præcise tidspunkt).
+    /// Asks iOS to wake the app again in about 30 min (iOS decides the exact time).
     static func schedule() {
         let request = BGAppRefreshTaskRequest(identifier: refreshID)
         request.earliestBeginDate = .now.addingTimeInterval(30 * 60)

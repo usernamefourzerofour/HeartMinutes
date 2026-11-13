@@ -10,7 +10,7 @@ struct PulsApp: App {
     var body: some Scene {
         WindowGroup { ContentView().environment(health) }
             .onChange(of: scenePhase) { _, phase in
-                // Send indstillingerne til uret og opdatér widgets, når appen åbnes eller lægges væk.
+                // Send the settings to the watch and update widgets when the app is opened or put away.
                 PhoneSync.shared.sendSettings()
                 guard phase != .inactive else { return }
                 Task { await WidgetUpdater.update(allowDecrease: phase == .active) }

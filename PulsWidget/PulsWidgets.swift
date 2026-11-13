@@ -3,7 +3,7 @@ import WidgetKit
 import Charts
 import AppIntents
 
-// MARK: - Indstillinger for widgetten (Rediger widget)
+// MARK: - Widget settings (Edit Widget)
 
 extension SummaryPeriod: AppEnum {
     static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Period")
@@ -18,7 +18,7 @@ extension SummaryPeriod: AppEnum {
     ]
 }
 
-/// Om det store tal er minutter eller procent af målet.
+/// Whether the big number is minutes or percent of the goal.
 enum WidgetDisplay: String, AppEnum {
     case minutes, percent
 
@@ -29,7 +29,7 @@ enum WidgetDisplay: String, AppEnum {
     ]
 }
 
-/// Udseende på låseskærmen: hjertet fra app-ikonet eller en traditionel ring.
+/// Look on the Lock Screen: the heart from the app icon or a traditional ring.
 enum WidgetStyle: String, AppEnum {
     case heart, ring
 
@@ -40,14 +40,14 @@ enum WidgetStyle: String, AppEnum {
     ]
 }
 
-/// Fælles for widget-indstillingerne, så samme data/visning kan bruges af begge widgets.
+/// Shared by the widget settings so the same data/view can be used by both widgets.
 protocol HeartMinutesIntent: WidgetConfigurationIntent {
     var period: SummaryPeriod { get }
     var display: WidgetDisplay { get }
     var style: WidgetStyle { get }
 }
 
-/// Hjemmeskærm: periode og minutter/procent.
+/// Home Screen: period and minutes/percent.
 struct HeartMinutesHomeConfig: HeartMinutesIntent {
     static let title: LocalizedStringResource = "Heart Minutes"
     static let description = IntentDescription("Choose the period and whether the number is shown in minutes or percent of the goal.")
@@ -61,7 +61,7 @@ struct HeartMinutesHomeConfig: HeartMinutesIntent {
     var style: WidgetStyle { .heart }
 }
 
-/// Låseskærm: som hjemmeskærmen + stil (hjerte eller ring).
+/// Lock Screen: like the Home Screen + style (heart or ring).
 struct HeartMinutesLockConfig: HeartMinutesIntent {
     static let title: LocalizedStringResource = "Heart Minutes"
     static let description = IntentDescription("Choose the period, minutes or percent, and heart or ring.")
@@ -96,7 +96,7 @@ struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: Intent, in context: Context) async -> Timeline<ConfigEntry> {
-        // Appen gemmer nye tal og genindlæser widgets; kig selv igen om 30 min (og ved dags-/ugeskift).
+        // The app saves new numbers and reloads widgets; check again in 30 min (and when the day/week changes).
         Timeline(entries: [entry(for: configuration)], policy: .after(.now.addingTimeInterval(30 * 60)))
     }
 
@@ -108,21 +108,21 @@ struct ConfigProvider<Intent: HeartMinutesIntent>: AppIntentTimelineProvider {
     }
 }
 
-// MARK: - Visning
+// MARK: - Views
 
-/// Kurve over perioden: kumulative Heart Minutes med målet som stiplet linje.
+/// Curve over the period: cumulative Heart Minutes with the goal as a dashed line.
 struct PeriodChart: View {
     let entry: ConfigEntry
-    /// Lille widget: mindre tekst på aksen og ved mållinjen.
+    /// Small widget: smaller text on the axis and at the goal line.
     var compact = false
 
-    /// Lodrette skillelinjer mellem dage/datoer – tydelige, men stadig diskrete.
+    /// Vertical dividers between days/dates – clear but still subtle.
     private var gridStyle: Color { .gray.opacity(0.3) }
 
     var body: some View {
         let data = entry.data
         let domain = entry.period.chartDomain(now: data.updated)
-        // Kurven fortsætter vandret til nu, også gennem dage uden nye minutter.
+        // The curve continues horizontally to now, also through days without new minutes.
         let points = ComplicationData.spanning(data.points ?? [], from: domain.lowerBound,
                                               to: min(entry.date, domain.upperBound))
         Chart {
@@ -136,7 +136,7 @@ struct PeriodChart: View {
             RuleMark(y: .value("Goal", data.goal))
                 .foregroundStyle(Color.gray)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
-                // Lille widget: under stregen, så den ikke rammer teksten ovenover.
+                // Small widget: below the line so it doesn't hit the text above.
                 .annotation(position: compact ? .bottom : .top, alignment: .leading, spacing: 1) {
                     Text("Goal \(Int(data.goal.rounded())) min")
                         .font(.system(size: compact ? 8 : 9, weight: .semibold))
@@ -159,7 +159,8 @@ struct PeriodChart: View {
                         .font(.system(size: compact ? 8 : 10))
                 }
             } else {
-                // Lange perioder: datoer med faste mellemrum (hver 3. dag op til 14 dage, ellers hver uge; færre på lille widget).
+                // Long periods: dates at fixed intervals (every 3 days up to 14 days, otherwise every week; fewer on
+                // the small widget).
                 AxisMarks(values: Self.dateTicks(in: domain, stepDays: entry.period.goalDays() <= 14 ? (compact ? 5 : 3) : (compact ? 10 : 7))) { _ in
                     AxisGridLine(stroke: StrokeStyle(lineWidth: 1)).foregroundStyle(gridStyle)
                     AxisValueLabel(format: .dateTime.day().month(.defaultDigits))
@@ -170,7 +171,7 @@ struct PeriodChart: View {
         .chartYAxis(.hidden)
     }
 
-    /// Midnatsdatoer fra dagen efter periodens start og frem, med `stepDays` imellem.
+    /// Midnight dates from the day after the period's start onward, with `stepDays` between them.
     static func dateTicks(in domain: ClosedRange<Date>, stepDays: Int,
                           calendar: Calendar = .current) -> [Date] {
         var ticks: [Date] = []
@@ -185,7 +186,7 @@ struct PeriodChart: View {
     }
 }
 
-/// Hjerte-ringen med tallet i midten – widgettens ansigt (samme som komplikationen på uret).
+/// The heart ring with the number in the middle – the face of the widget (the same as the complication on the watch).
 struct WidgetRing: View {
     let entry: ConfigEntry
 
@@ -198,18 +199,18 @@ struct WidgetRing: View {
     }
 }
 
-/// De to små linjer under ringen: enhed/mål og perioden.
+/// The two small lines below the ring: unit/goal and the period.
 struct WidgetCaption: View {
     let entry: ConfigEntry
     var alignment: HorizontalAlignment = .center
-    /// Teksten på flere korte linjer (lille widget, ved siden af ringen).
+    /// The text on several short lines (small widget, next to the ring).
     var stacked = false
 
     var body: some View {
         let d = entry.data
         VStack(alignment: alignment, spacing: 1) {
             if stacked && entry.display == .percent {
-                // Lille widget: smal plads ved siden af ringen, så minutterne får deres egen linje.
+                // Small widget: little room next to the ring, so the minutes get their own line.
                 Text("\(Int(d.minutes.rounded())) min")
                     .font(.caption2.weight(.semibold))
                 Text("of \(Int(d.goal.rounded())) min")
@@ -231,7 +232,7 @@ struct WidgetCaption: View {
     }
 }
 
-/// Svag farveovergang bag hjemmeskærm-widgets: varm hvid → sart rosa (mørk: dyb rødbrun → sort).
+/// Subtle gradient behind Home Screen widgets: warm white → soft pink (dark: deep red-brown → black).
 struct WidgetBackground: View {
     @Environment(\.colorScheme) private var colorScheme
 
@@ -251,7 +252,7 @@ struct HomeWidgetView: View {
         let d = entry.data
         switch family {
         case .systemSmall:
-            // Ringen med teksten ved siden af og grafen under.
+            // The ring with the text next to it and the chart below.
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     WidgetRing(entry: entry)
@@ -299,7 +300,7 @@ struct HomeWidgetView: View {
                     Spacer(minLength: 0)
                 }
                 PeriodChart(entry: entry)
-                // Fordelingen på pulszoner (ikke ved ældre data).
+                // The split across heart rate zones (not for older data).
                 if let zones = d.zones, !zones.isEmpty {
                     ZoneBar(slices: zones)
                 }
@@ -308,8 +309,8 @@ struct HomeWidgetView: View {
     }
 }
 
-/// Låseskærm: den lille runde er de samme to ringe som på uret (ring eller hjerte);
-/// rektangulær og linje er uændrede.
+/// Lock Screen: the small round one is the same two rings as on the watch (ring or heart); rectangular and inline are
+/// unchanged.
 struct LockWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: ConfigEntry
@@ -328,7 +329,7 @@ struct LockWidgetView: View {
 
 // MARK: - Widgets
 
-/// Hjemmeskærm (lille, mellem med graf, stor med graf) og StandBy.
+/// Home Screen (small, medium with chart, large with chart) and StandBy.
 struct HeartMinutesHomeWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: "HeartMinutesHome", intent: HeartMinutesHomeConfig.self,
@@ -343,7 +344,7 @@ struct HeartMinutesHomeWidget: Widget {
     }
 }
 
-/// Låseskærm: rundt hjerte, rektangulær og linje.
+/// Lock Screen: round heart, rectangular and inline.
 struct HeartMinutesLockWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: "HeartMinutesLock", intent: HeartMinutesLockConfig.self,

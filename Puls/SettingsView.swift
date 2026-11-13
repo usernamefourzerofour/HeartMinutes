@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Indstillinger: de vigtigste her, resten under "Avanceret".
-/// En indstilling, der er ændret fra standard, får en ↺-knap, der sætter den tilbage.
+/// Settings: the most important ones here, the rest under "Advanced". A setting changed from its default gets a ↺
+/// button that resets it.
 struct SettingsView: View {
     @Environment(HealthManager.self) private var health
     @State private var confirmResetAll = false
@@ -12,7 +12,7 @@ struct SettingsView: View {
         @Bindable var health = health
         NavigationStack {
             Form {
-                // Øverst: målinger bestemmer, hvad der tæller i pulsberegningen.
+                // At the top: measurements decide what counts in the heart rate calculation.
                 Section {
                     ResetRow(changed: health.includeBackground != D.includeBackground, info: String(localized: "Heart rate measured during the day outside workouts – usually by Apple Watch, but also by other devices that save heart rate in Health. Turn off to see and count only workouts.")) {
                         health.includeBackground = D.includeBackground
@@ -126,8 +126,8 @@ struct SettingsView: View {
                     ResetRow(changed: health.watchPeriod != D.watchPeriod, info: String(localized: "The period shown by the complications and the Apple Watch app. The goal is scaled to the period, e.g. about 21 min for Today.")) {
                         health.watchPeriod = D.watchPeriod
                     } content: {
-                        // Kort etiket (sektionen hedder "Apple Watch") og menu-vælger på samme linje,
-                        // så "Seneste 7 dage" ikke får linjen til at bryde.
+                        // Short label (the section is called "Apple Watch") and a menu picker on the same line, so
+                        // "Last 7 days" doesn't wrap the line.
                         LabeledContent("Period") {
                             Picker("Period on the watch", selection: $health.watchPeriod) {
                                 ForEach(SummaryPeriod.allCases, id: \.self) { Text($0.title).tag($0) }
@@ -159,7 +159,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            // Alert midt på skærmen (en confirmationDialog vises som en boble ved Form'en øverst).
+            // Alert in the middle of the screen (a confirmationDialog shows as a bubble at the top of the Form).
             .alert("Reset all settings?", isPresented: $confirmResetAll) {
                 Button("Reset all", role: .destructive) { health.resetAll() }
                 Button("Cancel", role: .cancel) {}
@@ -169,7 +169,7 @@ struct SettingsView: View {
         }
     }
 
-    /// Én zone i "Dine zoner": navn og bpm, grænse i % (ikke den nederste) og faktor.
+    /// One zone in "Your zones": name and bpm, limit in % (not for the lowest) and factor.
     @ViewBuilder private func zoneRow(_ i: Int) -> some View {
         let z = health.zones
         let model = health.zoneModel
@@ -188,7 +188,7 @@ struct SettingsView: View {
                     Text(rangeText(i)).foregroundStyle(.secondary)
                 }
                 if i > 0 {
-                    // Grænsen skal ligge mellem nabozonernes grænser.
+                    // The limit must lie between the neighbouring zones' limits.
                     let pct = Int((z.percents[i] * 100).rounded())
                     let lo = max(Int((z.percents[i - 1] * 100).rounded()) + 1, 1)
                     let hi = i + 1 < z.count ? Int((z.percents[i + 1] * 100).rounded()) - 1 : 100
@@ -206,7 +206,7 @@ struct SettingsView: View {
         }
     }
 
-    /// Samme Stepper som ved alder; en knap er slået fra, når grænsen er nået.
+    /// The same Stepper as for age; a button is disabled when the limit is reached.
     private func miniStepper(_ label: LocalizedStringKey, minus: (() -> Void)?, plus: (() -> Void)?) -> some View {
         Stepper(label, onIncrement: plus, onDecrement: minus)
     }
@@ -216,7 +216,7 @@ struct SettingsView: View {
         if let weight { var w = health.zoneWeights; w[i] = weight; health.zoneWeights = w }
     }
 
-    /// Fx "93–130 bpm", "under 93 bpm" eller "fra 130 bpm".
+    /// E.g. "93–130 bpm", "below 93 bpm" or "from 130 bpm".
     private func rangeText(_ i: Int) -> String {
         let z = health.zones
         let r = z.bpmRange(i)
@@ -226,7 +226,7 @@ struct SettingsView: View {
     }
 }
 
-/// En indstilling med ↺ (vises kun, når værdien er ændret fra standard) og ⓘ (forklaring) yderst.
+/// A setting with ↺ (only shown when the value differs from the default) and ⓘ (explanation) at the trailing edge.
 private struct ResetRow<Content: View>: View {
     let changed: Bool
     var info: String? = nil
@@ -237,8 +237,8 @@ private struct ResetRow<Content: View>: View {
     var body: some View {
         HStack(spacing: 10) {
             content
-            // ↺ har altid sin plads (usynlig, når værdien er standard), så kontrollerne og ⓘ
-            // står på linje i alle rækker og ikke hopper, når ↺ dukker op.
+            // ↺ always keeps its place (invisible when the value is the default), so the controls and ⓘ line up in
+            // every row and don't jump when ↺ appears.
             Button(action: reset) {
                 Image(systemName: "arrow.counterclockwise")
                     .foregroundStyle(.secondary)
@@ -269,7 +269,7 @@ private struct ResetRow<Content: View>: View {
     }
 }
 
-/// Avancerede indstillinger: finjustering af beregningen og visningen.
+/// Advanced settings: fine-tuning of the calculation and the display.
 struct AdvancedSettingsView: View {
     @Environment(HealthManager.self) private var health
     @FocusState private var editingGap: Bool
@@ -308,7 +308,7 @@ struct AdvancedSettingsView: View {
                     ResetRow(changed: health.maxGapSeconds != D.maxGapSeconds, info: String(localized: "If there is more time between two measurements outside a workout than this, the time in between doesn’t count – nothing was measured. From 1 to \(D.maxGapLimit) s. Default: \(D.maxGapSeconds) s (5 min).")) {
                         health.maxGapSeconds = D.maxGapSeconds
                     } content: {
-                        // Skriv selv antal sekunder (1–600).
+                        // Type the number of seconds yourself (1–600).
                         LabeledContent("Outside workouts") {
                             HStack(spacing: 4) {
                                 TextField("s", value: $health.maxGapSeconds, format: .number)
@@ -341,7 +341,7 @@ struct AdvancedSettingsView: View {
         .navigationTitle("Advanced")
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
-            // Taltastaturet har ingen retur-tast, så der er en "Færdig"-knap over det.
+            // The number pad has no return key, so there is a "Done" button above it.
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { editingGap = false }.bold()
@@ -350,7 +350,7 @@ struct AdvancedSettingsView: View {
     }
 }
 
-/// Vælg, hvornår baggrundspuls tæller – én liste med forklaring under hvert valg.
+/// Choose when background heart rate counts – one list with an explanation below each choice.
 struct ActivityModeView: View {
     @Environment(HealthManager.self) private var health
     @FocusState private var editingPause: Bool
@@ -382,7 +382,7 @@ struct ActivityModeView: View {
 
             if health.activityMode == .withPauses || health.activityMode == .watchWithPauses {
                 Section {
-                    // Skriv selv antal sekunder (1–600).
+                    // Type the number of seconds yourself (1–600).
                     LabeledContent("Longest pause") {
                         HStack(spacing: 4) {
                             TextField("s", value: $health.pauseSeconds, format: .number)
@@ -402,7 +402,7 @@ struct ActivityModeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
-            // Taltastaturet har ingen retur-tast, så der er en "Færdig"-knap over det.
+            // The number pad has no return key, so there is a "Done" button above it.
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { editingPause = false }.bold()

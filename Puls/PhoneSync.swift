@@ -1,11 +1,11 @@
 import Foundation
 import WatchConnectivity
 
-/// Sender indstillingerne til Apple Watch-appen, så komplikationen regner som iPhone-appen.
+/// Sends the settings to the Apple Watch app so the complication calculates like the iPhone app.
 final class PhoneSync: NSObject, WCSessionDelegate, @unchecked Sendable {
     static let shared = PhoneSync()
 
-    /// De indstillinger, der påvirker beregningen af Heart Minutes.
+    /// The settings that affect the Heart Minutes calculation.
     static let keys = [
         "includeBackground", "includeWorkouts", "weeklyGoal",
         "onlyWhenActive", "age", "zoneModel", "maxHRSource", "manualMaxHR",
@@ -20,7 +20,7 @@ final class PhoneSync: NSObject, WCSessionDelegate, @unchecked Sendable {
         WCSession.default.activate()
     }
 
-    /// Sender de aktuelle indstillinger (kun den nyeste udgave leveres til uret).
+    /// Sends the current settings (only the newest version is delivered to the watch).
     func sendSettings() {
         let session = WCSession.default
         guard WCSession.isSupported(), session.activationState == .activated,

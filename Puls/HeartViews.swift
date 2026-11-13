@@ -3,33 +3,33 @@ import Charts
 import HealthKit
 
 extension HeartZones {
-    /// Farve pr. zone (se `rgb`). Zoner, der ikke tæller (× 0), er grå.
+    /// Colour per zone (see `rgb`). Zones that don't count (× 0) are grey.
     func color(_ i: Int) -> Color {
         let c = rgb(i)
         return Color(red: c[0], green: c[1], blue: c[2])
     }
 }
 
-/// Pulsgraf med AHA-zoner som baggrund, en prik pr. måling og zoom med to fingre.
-/// Standardvisning passer til målingerne. Man kan zoome ud til hele den valgte periode
-/// (tid) og 0…maks-puls (puls); y-aksen glider gradvist derud, mens man zoomer ud.
+/// Heart rate chart with the zones as background, a dot per measurement and two-finger zoom. The default view fits the
+/// measurements. You can zoom out to the whole selected period (time) and 0…max heart rate (heart rate); the y axis
+/// moves out gradually while zooming out.
 struct HeartChart: View {
     let samples: [HRSample]
     let zones: HeartZones
-    /// Den valgte periode (dagen eller træningen) = maks zoom ud på tidsaksen.
+    /// The selected period (the day or the workout) = maximum zoom out on the time axis.
     let period: ClosedRange<Date>
-    /// Sættes udefra (fx tryk på en workout) for at zoome ind på et tidsrum.
+    /// Set from outside (e.g. tapping a workout) to zoom in on a time range.
     var focus: FocusRequest? = nil
-    /// Heart Minutes optjent i et tidsrum – vises, når man har zoomet ind.
+    /// Heart Minutes earned in a time range – shown when zoomed in.
     var heartMinutes: ((Date, Date) -> Double)? = nil
 
-    /// Ønske om at zoome til et tidsrum; nyt id hver gang, så samme workout kan vælges igen.
+    /// Request to zoom to a time range; a new id each time, so the same workout can be selected again.
     struct FocusRequest: Equatable {
         let interval: DateInterval
         let id = UUID()
     }
 
-    @State private var visibleLength: TimeInterval?   // nil = tilpasset målingerne
+    @State private var visibleLength: TimeInterval?   // nil = fitted to the measurements
     @State private var pinchBase: TimeInterval?
     @State private var scrollX = Date.distantPast
     @State private var selectedDate: Date?
@@ -44,7 +44,7 @@ struct HeartChart: View {
     private var periodStart: Date { min(period.lowerBound, dataStart) }
     private var periodEnd: Date { max(period.upperBound, dataEnd, periodStart.addingTimeInterval(Self.minLength)) }
     private var periodLength: TimeInterval { periodEnd.timeIntervalSince(periodStart) }
-    /// Standard-zoom: lige netop alle målinger.
+    /// Default zoom: just all measurements.
     private var fitLength: TimeInterval {
         min(periodLength, max(Self.minLength, dataEnd.timeIntervalSince(dataStart)))
     }
@@ -53,14 +53,14 @@ struct HeartChart: View {
         max(periodStart, min(periodEnd.addingTimeInterval(-length), x))
     }
 
-    /// Målingerne i det synlige vindue (binær søgning, ikke filter over alle målinger).
+    /// The measurements in the visible window (binary search, not a filter over all measurements).
     private func visibleSamples(from: Date, length: TimeInterval) -> ArraySlice<HRSample> {
         let inside = samples.slice(from: from, to: from.addingTimeInterval(length))
         return inside.isEmpty ? samples[...] : inside
     }
 
-    /// Nøgle der ændrer sig, når der kommer nye målinger – billig at sammenligne
-    /// (at sammenligne hele arrayet ved hver opdatering var meget langsomt).
+    /// A key that changes when new measurements arrive – cheap to compare (comparing the whole array on every update
+    /// was very slow).
     private var samplesKey: [AnyHashable] {
         [samples.count, samples.first?.id, samples.last?.id, period.lowerBound, period.upperBound]
     }
@@ -70,7 +70,7 @@ struct HeartChart: View {
         let from = clampedScroll(scrollX, length: length)
         let to = from.addingTimeInterval(length)
         let visible = visibleSamples(from: from, length: length)
-        // 0 ved standard-zoom, 1 ved maks zoom ud.
+        // 0 at default zoom, 1 at maximum zoom out.
         let zoomOut = periodLength > fitLength
             ? max(0, min(1, (length - fitLength) / (periodLength - fitLength))) : 0
         let y = Self.yDomain(Self.sampledValues(visible), maxHR: zones.maxHR, zoomOut: zoomOut)
@@ -79,11 +79,11 @@ struct HeartChart: View {
         let motionStrips = Self.motionStrips(drawn)
         let exerciseStrips = Self.exerciseStrips(drawn)
         let bridgedStrips = Self.strips(drawn) { $0.bridgedActive }
-        // Prikker (og tryk på punkter) først når man er zoomet langt ind.
+        // Dots (and tapping points) only when zoomed in far.
         let showDots = thinning == 1 && visible.count <= Self.maxDotsVisible
         let selected = showDots ? selectedDate.flatMap { Self.nearest(to: $0, in: Array(visible)) } : nil
         VStack(alignment: .leading, spacing: 8) {
-            // Info om det valgte punkt vises over grafen (en annotation inde i grafen blev klippet væk).
+            // Info about the selected point is shown above the chart (an annotation inside the chart got clipped).
             if let selected {
                 HStack(spacing: 8) {
                     Text("\(Int(selected.bpm.rounded())) bpm").font(.headline)
@@ -109,15 +109,15 @@ struct HeartChart: View {
                         .foregroundStyle(.secondary)
                 }
                 .font(.subheadline)
-                // Altid én linje: skrump teksten hellere end at bryde ord over.
+                // Always one line: shrink the text rather than break words.
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .padding(8)
                 .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
             }
-            // Zoom-knappen står lige over grafens øverste højre hjørne.
+            // The zoom button sits just above the chart's top right corner.
             HStack {
-                // Hvor mange Heart Minutes der er optjent i det viste område (følger zoom og scroll).
+                // How many Heart Minutes were earned in the visible area (follows zoom and scrolling).
                 if let heartMinutes {
                     Text("\(heartMinutes(from, to), format: .number.precision(.fractionLength(1))) Heart Minutes in view")
                         .foregroundStyle(.secondary)
@@ -140,20 +140,20 @@ struct HeartChart: View {
                         yEnd: .value("To", min(range.upperBound, max(y.upperBound, zones.maxHR) + 50)))
                         .foregroundStyle(zones.color(i).opacity(0.12))
                 }
-                // Bånd i bunden: Apples vurdering af aktiv / i ro.
+                // Band at the bottom: Apple's judgement of active / resting.
                 let bandTop = y.lowerBound + (y.upperBound - y.lowerBound) * 0.04
                 ForEach(motionStrips) { strip in
                     RectangleMark(xStart: .value("From", strip.start), xEnd: .value("To", strip.end),
                                   yStart: .value("Bottom", y.lowerBound), yEnd: .value("Top", bandTop))
                         .foregroundStyle(strip.motion == .active ? Self.activeColor : Self.sedentaryColor)
                 }
-                // Udfyldte huller ("Udfyld korte huller") i samme bånd, lysere blå.
+                // Filled gaps ("Fill short gaps") in the same band, lighter blue.
                 ForEach(bridgedStrips) { strip in
                     RectangleMark(xStart: .value("From", strip.start), xEnd: .value("To", strip.end),
                                   yStart: .value("Bottom", y.lowerBound), yEnd: .value("Top", bandTop))
                         .foregroundStyle(Self.bridgedColor)
                 }
-                // Bånd lige over: hvor Apples grønne træningsring tæller minutter.
+                // Band just above: where Apple's green Exercise ring counts minutes.
                 let exerciseBottom = bandTop + (y.upperBound - y.lowerBound) * 0.01
                 let exerciseTop = exerciseBottom + (y.upperBound - y.lowerBound) * 0.04
                 ForEach(exerciseStrips) { strip in
@@ -181,11 +181,11 @@ struct HeartChart: View {
                         .symbolSize(90)
                 }
             }
-            // Kun det synlige vindue lægges ud. (Swift Charts' egen scroll lagde hele perioden ud
-            // – ved stor zoom på en lang periode blev det millioner af punkter bredt, og grafen frøs.)
+            // Only the visible window is laid out. (Swift Charts' own scrolling laid out the whole period – at high
+            // zoom on a long period that became millions of points wide and the chart froze.)
             .chartXScale(domain: from...to)
             .chartYScale(domain: y)
-            // Y-aksen: altid zonegrænserne; flere tal, når man er zoomet ind (lille pulsspænd).
+            // Y axis: always the zone limits; more numbers when zoomed in (small heart rate span).
             .chartYAxis {
                 AxisMarks(position: .trailing, values: Self.yTicks(zones: zones, in: y)) { value in
                     AxisGridLine()
@@ -217,13 +217,13 @@ struct HeartChart: View {
                 }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { chartWidth = $0 }
-            // Egen panorering: træk vandret for at flytte tidsvinduet.
+            // Own panning: drag horizontally to move the time window.
             .simultaneousGesture(
                 DragGesture(minimumDistance: 10)
                     .onChanged { g in
                         guard abs(g.translation.width) > abs(g.translation.height) else { return }
                         if dragStart == nil { dragStart = from }
-                        let plotWidth = max(Double(chartWidth) - 40, 1)   // minus y-aksens tekster
+                        let plotWidth = max(Double(chartWidth) - 40, 1)   // minus the y axis labels
                         let dt = -Double(g.translation.width) / plotWidth * length
                         scrollX = clampedScroll((dragStart ?? from).addingTimeInterval(dt), length: length)
                     }
@@ -240,7 +240,7 @@ struct HeartChart: View {
                     }
                     .onEnded { _ in pinchBase = nil })
 
-            // Forklaringen er foldet sammen, så grafen får ro: kurven, baggrunden og båndene i bunden.
+            // The legend is collapsed so the chart stays calm: the curve, the background and the bands at the bottom.
             DisclosureGroup(isExpanded: $showLegend) {
               VStack(alignment: .leading, spacing: 8) {
                 legendGroup("The curve") {
@@ -265,7 +265,7 @@ struct HeartChart: View {
                         legendBar(Self.bridgedColor, "Filled in")
                     }
                 }
-                // Målingerne: antal og sampling i visningen.
+                // The measurements: count and sampling in the view.
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Measurements").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
                     if let hz = visible.samplingRateHz {
@@ -291,10 +291,10 @@ struct HeartChart: View {
     static let backgroundColor = Color.red
     static let workoutColor = Color.purple
     static let maxDrawnPoints = 1500
-    /// Højst så mange synlige målinger, før prikkerne vises.
+    /// At most this many visible measurements before the dots are shown.
     static let maxDotsVisible = 120
 
-    /// Målingen tættest på et tidspunkt.
+    /// The measurement closest to a point in time.
     static func nearest(to date: Date, in samples: [HRSample]) -> HRSample? {
         samples.min { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) }
     }
@@ -310,12 +310,12 @@ struct HeartChart: View {
         let end: Date
     }
 
-    /// Slår målinger, hvor træningsringen tæller, sammen til bånd (samme regler som bevægelsesbåndet).
+    /// Merges measurements where the Exercise ring counts into bands (same rules as the motion band).
     static func exerciseStrips(_ samples: [HRSample]) -> [ExerciseStrip] {
         strips(samples) { $0.inExercise }
     }
 
-    /// Slår målinger, der opfylder `include`, sammen til bånd (samme regler som bevægelsesbåndet).
+    /// Merges measurements that match `include` into bands (same rules as the motion band).
     static func strips(_ samples: [HRSample], where include: (HRSample) -> Bool) -> [ExerciseStrip] {
         var strips: [ExerciseStrip] = []
         for (i, s) in samples.enumerated() where include(s) {
@@ -331,7 +331,7 @@ struct HeartChart: View {
         return strips
     }
 
-    /// En lille overskrift og forklaringerne under den.
+    /// A small heading with the legend items below it.
     private func legendGroup<Content: View>(_ title: LocalizedStringKey, @ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
@@ -341,7 +341,7 @@ struct HeartChart: View {
 
     private func legendBar(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
-            // Farvet kasse, ligesom båndene i bunden af grafen.
+            // Coloured box, like the bands at the bottom of the chart.
             RoundedRectangle(cornerRadius: 1.5).fill(color).frame(width: 14, height: 8)
             Text(title)
         }
@@ -354,8 +354,8 @@ struct HeartChart: View {
         let motion: MotionContext
     }
 
-    /// Slår målinger med samme bevægelseskontekst sammen til bånd. Ukendt kontekst vises ikke.
-    /// Et bånd strækker sig til næste måling (højst en time), ellers ét minut.
+    /// Merges measurements with the same motion context into bands. Unknown context isn't shown. A band extends to the
+    /// next measurement (at most an hour), otherwise one minute.
     static func motionStrips(_ samples: [HRSample]) -> [MotionStrip] {
         var strips: [MotionStrip] = []
         for (i, s) in samples.enumerated() where s.motion != .unknown {
@@ -373,26 +373,26 @@ struct HeartChart: View {
 
     private func legendDot(_ color: Color, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
-            // En streg, som kurven i grafen.
+            // A line, like the curve in the chart.
             Capsule().fill(color.opacity(0.8)).frame(width: 14, height: 3)
             Text(title)
         }
     }
 
-    /// Målingerne omkring det synlige vindue (lidt ekstra i begge sider, så man kan swipe).
+    /// The measurements around the visible window (a little extra on both sides so you can swipe).
     private func samplesNear(from: Date, length: TimeInterval) -> ArraySlice<HRSample> {
         samples.slice(from: from.addingTimeInterval(-length), to: from.addingTimeInterval(2 * length))
     }
 
-    /// Pulsværdier til y-aksen; ved mange målinger kun et udsnit (min/max er tæt nok).
+    /// Heart rate values for the y axis; with many measurements only a sample (min/max is close enough).
     static func sampledValues(_ samples: ArraySlice<HRSample>, max: Int = 3000) -> [Double] {
         guard samples.count > max else { return samples.map(\.bpm) }
         let step = samples.count / max + 1
         return stride(from: samples.startIndex, to: samples.endIndex, by: step).map { samples[$0].bpm }
     }
 
-    /// Tynder ud til højst `maxDrawnPoints`, så lange perioder stadig tegnes hurtigt.
-    /// Returnerer også hvor mange målinger hver tegnet prik står for.
+    /// Thins out to at most `maxDrawnPoints` so long periods still draw quickly. Also returns how many measurements
+    /// each drawn dot stands for.
     static func thinned<C: RandomAccessCollection>(_ samples: C, max: Int = maxDrawnPoints) -> ([HRSample], Int)
     where C.Element == HRSample, C.Index == Int {
         guard samples.count > max else { return (Array(samples), 1) }
@@ -400,7 +400,7 @@ struct HeartChart: View {
         return (stride(from: samples.startIndex, to: samples.endIndex, by: step).map { samples[$0] }, step)
     }
 
-    /// Zoomer ind, så tidsrummet (med lidt luft på hver side) fylder grafen.
+    /// Zooms in so the time range (with a little room on each side) fills the chart.
     private func zoom(to interval: DateInterval) {
         let margin = max(30, interval.duration * 0.05)
         let length = min(periodLength, max(Self.minLength, interval.duration + 2 * margin))
@@ -415,9 +415,9 @@ struct HeartChart: View {
         scrollX = clampedScroll(dataStart, length: fitLength)
     }
 
-    /// Y-akse: målingerne ± 5 ved zoomOut 0, glider lineært mod 0…maks-puls ved zoomOut 1.
-    /// Tal på y-aksen: zonegrænserne inden for visningen, plus runde tal (hver 10. eller 5. bpm),
-    /// når spændet er lille nok til, at der er plads. Tal tæt på en grænse udelades.
+    /// Y axis: the measurements ± 5 at zoomOut 0, moving linearly toward 0…max heart rate at zoomOut 1. Numbers on the
+    /// y axis: the zone limits within the view, plus round numbers (every 10 or 5 bpm) when the span is small enough
+    /// for them to fit. Numbers close to a limit are left out.
     static func yTicks(zones: HeartZones, in y: ClosedRange<Double>) -> [Double] {
         let bounds = zones.thresholds.map { $0.rounded() }.filter { y.contains($0) }
         let span = y.upperBound - y.lowerBound
@@ -465,7 +465,7 @@ struct StatsRow: View {
     }
 }
 
-/// Periodevælger øverst i Overblik.
+/// Period picker at the top of Overview.
 struct PeriodHeader: View {
     @Binding var interval: DateInterval
     @State private var showPicker = false
@@ -476,7 +476,7 @@ struct PeriodHeader: View {
                 Image(systemName: "chevron.left")
             }
             Spacer()
-            // Tydelig knap: kalenderikon + pil ned + baggrund, så det ses at perioden kan ændres.
+            // A clear button: calendar icon + chevron + background, so it's obvious the period can be changed.
             Button { showPicker = true } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar")
@@ -504,12 +504,12 @@ struct PeriodHeader: View {
     }
 }
 
-/// Overblik: Heart Minutes øverst, derefter pulsen og workouts i detaljer.
-/// (Widgets er de simple; appen har detaljerne.)
+/// Overview: Heart Minutes at the top, then heart rate and workouts in detail. (Widgets are the simple ones; the app
+/// has the details.)
 struct OverviewView: View {
     @Environment(HealthManager.self) private var health
     @Binding var interval: DateInterval
-    /// Øges, når appen åbnes fra en widget: rul op til minutgrafen.
+    /// Incremented when the app is opened from a widget: scroll up to the minutes chart.
     var showMinutes = 0
     @State private var focus: HeartChart.FocusRequest?
 
@@ -517,17 +517,18 @@ struct OverviewView: View {
         NavigationStack {
             ScrollViewReader { proxy in
             List {
-                // Tre "vinduer" (sektioner) oven på baggrunden: Heart Minutes, pulsmålinger og workouts.
+                // Three "windows" (sections) on top of the background: Heart Minutes, heart rate measurements and
+                // workouts.
                 let stats = HeartStats(health.shownSamples)
                 let result = ActiveMinutes(health.minuteSamples, config: health.minutesConfig)
                 let total = result.total
-                // Indtil den nye periodes data er hentet, vises den forrige periode samlet.
+                // Until the new period's data has been fetched, the previous period is shown as a whole.
                 let shown = health.loadedInterval ?? interval
                 let goal = ActiveMinutes.scaledGoal(weekly: Double(health.weeklyGoal), duration: shown.duration)
                 Section {
                     PeriodHeader(interval: $interval)
                         .id("top")
-                    // Hero: den store hjerte-ring med periodens tal.
+                    // Hero: the big heart ring with the period's number.
                     HeroRing(total: total, goal: goal, period: shown)
                         .listRowSeparator(.hidden)
                     if stats != nil {
@@ -556,7 +557,7 @@ struct OverviewView: View {
                             StatsRow(stats: stats)
                         }
                         .id("pulsechart")
-                        // Med pauser markeres de udfyldte målinger, så båndet i bunden kan vise dem.
+                        // With pauses, the filled-in measurements are marked so the band at the bottom can show them.
                         HeartChart(samples: ActiveMinutes.bridgingActive(health.shownSamples, config: health.minutesConfig),
                                    zones: health.zones,
                                    period: shown.start...shown.end,
@@ -584,7 +585,7 @@ struct OverviewView: View {
             .fontDesign(.rounded)
             .onChange(of: showMinutes) { withAnimation { proxy.scrollTo("top", anchor: .top) } }
             }
-            // Ingen stor titel: perioden starter helt oppe.
+            // No large title: the period starts right at the top.
             .toolbar(.hidden, for: .navigationBar)
             .onChange(of: interval) { focus = nil }
             .refreshable { await health.loadPeriod(interval) }
@@ -592,7 +593,7 @@ struct OverviewView: View {
     }
 }
 
-/// Når der ikke er noget at vise.
+/// When there is nothing to show.
 struct NoDataView: View {
     @Environment(HealthManager.self) private var health
 
@@ -607,8 +608,8 @@ struct NoDataView: View {
     }
 }
 
-/// Besked når "Kun når aktiv" sorterer mange baggrundsmålinger fra, fordi de ikke har
-/// Apple Watchs markering for aktiv/i ro (fx fra en ring eller en anden app).
+/// Message when "Only when active" filters out many background measurements because they lack Apple Watch's
+/// active/resting marking (e.g. from a ring or another app).
 struct UnmarkedHint: View {
     let info: HRSample.UnmarkedInfo
     let turnOff: () -> Void
@@ -638,7 +639,7 @@ struct UnmarkedHint: View {
     }
 }
 
-/// Menu hvor man frit vælger perioden (fra/til med dato og klokkeslæt).
+/// Menu where you freely pick the period (from/to with date and time).
 struct PeriodPicker: View {
     @Binding var interval: DateInterval
     @Environment(\.dismiss) private var dismiss
@@ -663,7 +664,7 @@ struct PeriodPicker: View {
                 Section {
                     quick("Today", Period.day())
                     quick("This week", Period.thisWeek())
-                    // Hele måneden, ligesom "Denne uge" er hele ugen.
+                    // The whole month, just like "This week" is the whole week.
                     quick("This month", Calendar.current.dateInterval(of: .month, for: .now) ?? Period.thisWeek())
                     quick("Last 24 hours", DateInterval(start: .now.addingTimeInterval(-86_400), end: .now))
                     quick("Last 7 days", DateInterval(start: .now.addingTimeInterval(-7 * 86_400), end: .now))

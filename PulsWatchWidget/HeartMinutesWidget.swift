@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-/// Rund ring i Aktivitet-stil, der fyldes mod ugens mål og fortsætter rundt over 100 %.
+/// Round ring in Activity style that fills toward the weekly goal and keeps going past 100 %.
 struct BigRingWidget {
     static func make(kind: String, center: CenterValue) -> some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: HeartMinutesProvider()) { entry in
@@ -17,7 +17,7 @@ struct BigRingWidget {
     }
 }
 
-/// Hjerte-ring: hjertets kant fyldes mod ugens mål.
+/// Heart ring: the outline of the heart fills toward the weekly goal.
 struct HeartRingWidget {
     static func make(kind: String, center: CenterValue) -> some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: HeartMinutesProvider()) { entry in
@@ -33,7 +33,7 @@ struct HeartRingWidget {
     }
 }
 
-// De eksisterende "kind"-navne beholdes, så komplikationer på urskiven bliver siddende.
+// The existing "kind" names are kept so complications on the watch face stay in place.
 struct BigRingPercentWidget: Widget {
     var body: some WidgetConfiguration { BigRingWidget.make(kind: "HeartMinutesBigRingPercent", center: .percent) }
 }
