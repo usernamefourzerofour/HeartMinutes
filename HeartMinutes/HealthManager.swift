@@ -458,6 +458,7 @@ final class HealthManager {
     }
 
     func requestAuthorization() async {
+        if DemoData.isOn { return }
         guard HKHealthStore.isHealthDataAvailable() else {
             errorMessage = String(localized: "Health data is not available on this device.")
             return
@@ -536,9 +537,20 @@ final class HealthManager {
     /// Fetches heart rate for the period and marks measurements that lie within a workout.
     func loadPeriod(_ interval: DateInterval) async {
         loadFailed = false
-        let samples = await heartRates(from: interval.start, to: interval.end)
-        let workoutIntervals = await workoutIntervals(from: interval.start, to: interval.end)
-        let exercise = await exerciseSamples(from: interval.start, to: interval.end)
+        let samples: [HRSample]
+        let workoutIntervals: [DateInterval]
+        let exercise: [(interval: DateInterval, end: Date, minutes: Double)]
+        if DemoData.isOn {
+            let demo = DemoData.period(interval)
+            samples = demo.samples
+            workoutIntervals = demo.workouts.map(\.interval)
+            for w in demo.workouts { workoutTypes[w.interval.start] = w.type }
+            exercise = demo.exercise.map { ($0, $0.end, $0.duration / 60) }
+        } else {
+            samples = await heartRates(from: interval.start, to: interval.end)
+            workoutIntervals = await self.workoutIntervals(from: interval.start, to: interval.end)
+            exercise = await exerciseSamples(from: interval.start, to: interval.end)
+        }
         // Interrupted (e.g. when iOS stops a background refresh, or a new period was selected): the data is incomplete
         // or stale, so it isn't shown.
         if Task.isCancelled { loadFailed = true; return }
