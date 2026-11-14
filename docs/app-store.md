@@ -75,4 +75,9 @@ All content questions: **None / No** (include `socialMedia`). Expected result: *
 
 ## Screenshots
 
-To do: 6.9" iPhone (1320 × 2868) and Apple Watch, with sample data.
+Made with the demo week (`-DemoData YES`) in the Simulators; how is described in `tools/screenshots/README.md`.
+
+- iPhone 6.9" (1320 × 2868), headline on a soft pink background above the app:
+  1. Your week, one number · 2. Every workout in detail · 3. Your zones, your rules · 4. On your wrist ·
+  5. Private by design (dark mode)
+- Apple Watch Ultra 3 (422 × 514): the watch app's heart ring, and the chart below it.

@@ -48,21 +48,30 @@ enum DemoData {
         func at(_ hour: Int, _ minute: Int) -> Date {
             calendar.date(bySettingHour: hour, minute: minute, second: 0, of: day) ?? day
         }
-        // Resting heart rate every 6 minutes from 7:00 to 22:30.
-        var t = at(7, 0)
-        while t < at(22, 30) {
-            result.samples.append(HRSample(date: t, bpm: 64 + random.next(in: 0...12), motion: .sedentary,
-                                           source: "Apple Watch"))
-            t += 360
-        }
-        // 1 = Sunday … 7 = Saturday.
+        // The day's activity first. 1 = Sunday … 7 = Saturday.
+        var activity = Content()
         switch calendar.component(.weekday, from: day) {
-        case 2: workout(.running, at(18, 5), minutes: 32, level: 140, warmUp: 6, &random, &result)
-        case 3, 5, 6: walk(at(12, 10 + Int(random.next(in: 0...15))), minutes: 13, &random, &result)
-        case 4: workout(.cycling, at(17, 35), minutes: 42, level: 118, warmUp: 5, &random, &result)
-        case 7: workout(.hiking, at(10, 20), minutes: 64, level: 106, warmUp: 4, &random, &result)
+        case 2: workout(.running, at(18, 5), minutes: 32, level: 140, warmUp: 6, &random, &activity)
+        case 3, 5, 6: walk(at(12, 10 + Int(random.next(in: 0...15))), minutes: 13, &random, &activity)
+        case 4: workout(.cycling, at(17, 35), minutes: 42, level: 118, warmUp: 5, &random, &activity)
+        case 7: workout(.hiking, at(10, 20), minutes: 64, level: 106, warmUp: 4, &random, &activity)
         default: break
         }
+        // Resting heart rate every 6 minutes from 7:00 to 22:30, but not during (or right around) the activity.
+        let busy = activity.samples.first.map { first in
+            DateInterval(start: first.date - 240, end: (activity.samples.last?.date ?? first.date) + 240)
+        }
+        var t = at(7, 0)
+        while t < at(22, 30) {
+            if busy?.contains(t) != true {
+                result.samples.append(HRSample(date: t, bpm: 64 + random.next(in: 0...12), motion: .sedentary,
+                                               source: "Apple Watch"))
+            }
+            t += 360
+        }
+        result.samples += activity.samples
+        result.workouts += activity.workouts
+        result.exercise += activity.exercise
     }
 
     /// A brisk walk outside a workout: one measurement a minute, marked active by the watch.
