@@ -293,12 +293,16 @@ struct ShapeProgressRing<S: Shape>: View {
                 RoundStartStroke(shape: shape, lineWidth: lw, miterLimit: miterLimit)
                     .fill(Self.start.opacity(renderingMode == .fullColor ? 0.28 : 0.12))
                 if f > 0 {
+                    // The canvas reaches half a stroke beyond the shape's frame: a canvas only draws inside its own
+                    // frame, which cut off the outside of the stroke where the heart touches the edge.
                     if renderingMode == .fullColor {
                         progress(f: f, laps: laps, pos: pos, lw: lw)
+                            .padding(-lw / 2)
                     } else {
                         // Tinted: the grey levels become the opacity of one colour.
                         Rectangle().fill(Self.start)
                             .mask(progress(f: f, laps: laps, pos: pos, lw: lw).luminanceToAlpha())
+                            .padding(-lw / 2)
                             .widgetAccentable()
                     }
                 }
@@ -324,7 +328,7 @@ struct ShapeProgressRing<S: Shape>: View {
     private func progress(f: Double, laps: Double, pos: Double, lw: CGFloat) -> some View {
         let darkEdge = renderingMode == .fullColor && colorScheme == .dark
         return Canvas { context, canvasSize in
-            let path = shape.path(in: CGRect(origin: .zero, size: canvasSize))
+            let path = shape.path(in: CGRect(origin: .zero, size: canvasSize).insetBy(dx: lw / 2, dy: lw / 2))
             // Miter joins: a round join where two arcs meet drew a whole circle in the piece's colour (a "ghost" circle).
             let style = StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .miter)
             func point(_ u: Double) -> CGPoint? {

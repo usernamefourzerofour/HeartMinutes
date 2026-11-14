@@ -29,6 +29,18 @@ struct HeartRingRenderTests {
         #expect(alpha(at: CGPoint(x: 195, y: 150), in: image) == 0)
     }
 
+    /// A frame wider than it is tall (like the overview): the heart then reaches the bottom edge, and the stroke there
+    /// must be drawn in full (the progress, not just the faint track behind it).
+    @Test func strokeNotCutOffAtTheBottom() throws {
+        let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: 1.5, value: "",
+                                     thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
+            .frame(width: 300, height: 200)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 1
+        let image = try #require(renderer.cgImage)
+        #expect(alpha(at: CGPoint(x: 150, y: 196), in: image) > 200)
+    }
+
     private func png(_ fraction: Double, scale: CGFloat, dark: Bool = false) -> Data? {
         let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: "\(Int(fraction * 150))",
                                      thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)

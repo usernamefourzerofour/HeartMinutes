@@ -73,7 +73,7 @@ struct HeartOutlineShape: Shape {
         let mid = box.midX                                        // 110
         let lobe = CGPoint(x: mid + 33, y: 89), lobeRadius: CGFloat = 33
         let sideRadius: CGFloat = 230
-        let tip = CGPoint(x: mid, y: box.maxY + 1 - corner)       // the lowest point (just below the box)
+        let tip = CGPoint(x: mid, y: box.maxY - corner)           // the lowest point is at the bottom of the box
         // The cleft: a circle above it that touches both lobes.
         let cleft = CGPoint(x: mid, y: lobe.y - sqrt(pow(lobeRadius + corner, 2) - pow(lobe.x - mid, 2)))
         // The side: a large circle that touches the lobe and the tip from the inside.
