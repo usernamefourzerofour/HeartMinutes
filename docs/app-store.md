@@ -1,7 +1,7 @@
 # App Store listing (draft)
 
-Working notes for the App Store Connect listing. English is the primary language; the texts are translated into the
-app's other languages when the listing is filled in.
+Working notes for the App Store Connect listing. English is the primary language; the translations for all app
+languages are in `Localization/app-store.json`.
 
 ## Basics
 

@@ -19,3 +19,13 @@ Norwegian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Slovak, 
 America), Swedish, Thai, Turkish, Ukrainian and Vietnamese.
 
 The translations were made with AI help (Claude). Corrections from native speakers are very welcome as pull requests.
+
+## App Store texts
+
+`app-store.json` holds the App Store listing for every app language: subtitle (30 characters), promotional text (170),
+keywords (100, comma-separated, no spaces after the commas) and description (4000). English is the source; it matches
+`docs/app-store.md`. The name stays "Heart Minutes" in every language.
+
+App Store Connect uses its own locale codes: `en` → `en-US`, `ar` → `ar-SA`, `de` → `de-DE`, `es` → `es-ES`,
+`es-419` → `es-MX`, `fr` → `fr-FR`, `nb` → `no`, `nl` → `nl-NL`, `sl` → `sl-SI`; the others are the same. If App Store
+Connect doesn't offer a language (possibly `bg` and `lt`), users there see the English text.

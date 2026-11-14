@@ -34,8 +34,8 @@
 - [x] Privatlivspolitik og supportside skrevet (`docs/privacy.md`, `docs/index.md`)
 - [x] Repo offentligt + GitHub Pages (`/docs`), så privatlivs- og support-URL virker
 - [x] Tekster på engelsk (`docs/app-store.md`): navn, undertitel, beskrivelse, nøgleord, review-noter
-- [ ] Tekster oversat til appens øvrige 37 sprog
-- [ ] Skærmbilleder: iPhone 6,9" og Apple Watch (kræver en demo-tilstand med eksempeldata)
+- [x] Tekster oversat til appens øvrige 37 sprog (`Localization/app-store.json`)
+- [ ] Skærmbilleder: iPhone 6,9" og Apple Watch (demo-tilstand `-DemoData YES` er klar)
 - [ ] App Store Connect: kategori, pris (gratis), alle lande, aldersgrænse, App Privacy, DSA (ikke-erhvervsdrivende)
 - [x] Ikke-medicinsk forbehold i beskrivelsen
 - [ ] Test på rigtigt ur og telefon af build 71 (Erik)
