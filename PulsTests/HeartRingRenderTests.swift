@@ -41,6 +41,19 @@ struct HeartRingRenderTests {
         #expect(alpha(at: CGPoint(x: 150, y: 196), in: image) > 200)
     }
 
+    /// The round ring touches all four edges of its frame; the stroke must be drawn in full there (it was cut off
+    /// into an octagon on the watch).
+    @Test func roundRingNotCutOffAtTheEdges() throws {
+        let view = ShapeProgressRing(shape: TopCircle(), fraction: 0.99, value: "")
+            .frame(width: 200, height: 200)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 1
+        let image = try #require(renderer.cgImage)
+        for point in [CGPoint(x: 100, y: 197), CGPoint(x: 3, y: 100), CGPoint(x: 197, y: 100)] {
+            #expect(alpha(at: point, in: image) > 200)
+        }
+    }
+
     private func png(_ fraction: Double, scale: CGFloat, dark: Bool = false) -> Data? {
         let view = ShapeProgressRing(shape: HeartOutlineShape(), fraction: fraction, value: "\(Int(fraction * 150))",
                                      thickness: 0.12, textY: 0.46, textWidth: 0.46, textSize: 0.3)
