@@ -32,7 +32,7 @@
 ## App Store (1.0)
 - [x] Privatlivs-manifest (PrivacyInfo.xcprivacy)
 - [x] Privatlivspolitik og supportside skrevet (`docs/privacy.md`, `docs/index.md`)
-- [ ] Repo offentligt + GitHub Pages (`/docs`), så privatlivs- og support-URL virker (Erik)
+- [x] Repo offentligt + GitHub Pages (`/docs`), så privatlivs- og support-URL virker
 - [x] Tekster på engelsk (`docs/app-store.md`): navn, undertitel, beskrivelse, nøgleord, review-noter
 - [ ] Tekster oversat til appens øvrige 37 sprog
 - [ ] Skærmbilleder: iPhone 6,9" og Apple Watch (kræver en demo-tilstand med eksempeldata)
