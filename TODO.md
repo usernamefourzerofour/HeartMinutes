@@ -30,13 +30,15 @@
       Mangler måske: test på rigtigt ur, evt. valg af procent/minutter i én komplikation.
 
 ## App Store (1.0)
-- [ ] Privatlivs-manifest (PrivacyInfo.xcprivacy) – appen bruger UserDefaults/App Group
-- [ ] Privatlivspolitik (URL) – kræves af Apple, især for HealthKit-apps
-- [ ] Support-URL
-- [ ] Tekster: navn, undertitel, beskrivelse, nøgleord (dansk, evt. engelsk)
-- [ ] Skærmbilleder: iPhone 6,9" og Apple Watch
-- [ ] Kategori (Sundhed og fitness), aldersgrænse, pris
-- [ ] Ikke-medicinsk forbehold i beskrivelsen ("ikke medicinsk udstyr")
+- [x] Privatlivs-manifest (PrivacyInfo.xcprivacy)
+- [x] Privatlivspolitik og supportside skrevet (`docs/privacy.md`, `docs/index.md`)
+- [ ] Repo offentligt + GitHub Pages (`/docs`), så privatlivs- og support-URL virker (Erik)
+- [x] Tekster på engelsk (`docs/app-store.md`): navn, undertitel, beskrivelse, nøgleord, review-noter
+- [ ] Tekster oversat til appens øvrige 37 sprog
+- [ ] Skærmbilleder: iPhone 6,9" og Apple Watch (kræver en demo-tilstand med eksempeldata)
+- [ ] App Store Connect: kategori, pris (gratis), alle lande, aldersgrænse, App Privacy, DSA (ikke-erhvervsdrivende)
+- [x] Ikke-medicinsk forbehold i beskrivelsen
+- [ ] Test på rigtigt ur og telefon af build 71 (Erik)
 
 ## Idéer til senere
 - Hurtigere opdatering af komplikationer (HKObserverQuery / skub fra telefonen)
