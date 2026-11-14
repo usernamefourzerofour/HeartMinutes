@@ -18,12 +18,3 @@ Heart Minutes is not a medical device and is not intended to diagnose, treat or 
 Heart Minutes is open source: <https://github.com/usernamefourzerofour/HeartMinutes>
 
 Questions: open an issue at <https://github.com/usernamefourzerofour/HeartMinutes/issues>.
-
----
-
-## Dansk
-
-Heart Minutes indsamler, gemmer og deler ingen personlige data. Appen læser puls, træninger og træningsminutter fra
-Sundhed for at beregne dine Heart Minutes, og alt beregnes kun på din iPhone og Apple Watch. Appen har ingen servere,
-konti, statistik, reklamer eller sporing. Indstillinger gemmes lokalt og synkroniseres direkte mellem iPhone og ur.
-Heart Minutes skriver aldrig data til Sundhed. Appen er ikke medicinsk udstyr.
