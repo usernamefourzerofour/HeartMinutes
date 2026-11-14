@@ -5,8 +5,9 @@ import HealthKit
 /// launched with `-DemoData YES`; Health is then neither asked nor read.
 ///
 /// A typical week (with the default settings: age 40, moderate from 90 bpm, vigorous from 126 bpm): resting heart rate
-/// during the day, a brisk walk on Tuesday, Thursday and Friday, a run on Monday, a bike ride on Wednesday and a long
-/// hike on Saturday – about 190 Heart Minutes for the whole week. The same day always gives the same values.
+/// during the day, a brisk walk at lunch every weekday (background measurements, no workout), a run on Monday and a long
+/// hike on Saturday – about 210 Heart Minutes for the whole week, almost half of them from everyday activity. The same
+/// day always gives the same values.
 enum DemoData {
     static var isOn: Bool { UserDefaults.standard.bool(forKey: "DemoData") }
 
@@ -51,19 +52,27 @@ enum DemoData {
         // The day's activity first. 1 = Sunday … 7 = Saturday.
         var activity = Content()
         switch calendar.component(.weekday, from: day) {
-        case 2: workout(.running, at(18, 5), minutes: 32, level: 140, warmUp: 6, &random, &activity)
-        case 3, 5, 6: walk(at(12, 10 + Int(random.next(in: 0...15))), minutes: 13, &random, &activity)
-        case 4: workout(.cycling, at(17, 35), minutes: 42, level: 118, warmUp: 5, &random, &activity)
+        case 2...6:
+            // Weekdays: a brisk walk at lunch – counted from the watch's background measurements, not a workout.
+            walk(at(12, 10 + Int(random.next(in: 0...15))), minutes: 18, &random, &activity)
+            if calendar.component(.weekday, from: day) == 2 {
+                workout(.running, at(18, 5), minutes: 32, level: 140, warmUp: 6, &random, &activity)
+            }
         case 7: workout(.hiking, at(10, 20), minutes: 64, level: 106, warmUp: 4, &random, &activity)
         default: break
         }
         // Resting heart rate every 6 minutes from 7:00 to 22:30, but not during (or right around) the activity.
-        let busy = activity.samples.first.map { first in
-            DateInterval(start: first.date - 240, end: (activity.samples.last?.date ?? first.date) + 240)
+        var busy: [DateInterval] = []   // one per walk/workout (a new one after a gap of more than 10 minutes)
+        for sample in activity.samples {
+            if let last = busy.last, sample.date.timeIntervalSince(last.end) <= 600 {
+                busy[busy.count - 1].end = sample.date
+            } else {
+                busy.append(DateInterval(start: sample.date, end: sample.date))
+            }
         }
         var t = at(7, 0)
         while t < at(22, 30) {
-            if busy?.contains(t) != true {
+            if !busy.contains(where: { t >= $0.start - 240 && t <= $0.end + 240 }) {
                 result.samples.append(HRSample(date: t, bpm: 64 + random.next(in: 0...12), motion: .sedentary,
                                                source: "Apple Watch"))
             }

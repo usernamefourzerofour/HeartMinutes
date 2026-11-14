@@ -20,7 +20,7 @@ struct DemoDataTests {
 
     @Test func aWholeWeekIsAboveTheGoal() {
         let demo = DemoData.period(week, now: week.end, calendar: calendar)
-        #expect(demo.workouts.count == 3)
+        #expect(demo.workouts.count == 2)
         #expect((160...240).contains(heartMinutes(demo)))
     }
 
@@ -29,7 +29,7 @@ struct DemoDataTests {
         let demo = DemoData.period(week, now: now, calendar: calendar)
         #expect(demo.samples.allSatisfy { $0.date <= now })
         #expect(demo.workouts.allSatisfy { $0.interval.end <= now })
-        // Monday's run and Tuesday's walk are done; Wednesday's ride too.
+        // Monday's run and the walks on Monday, Tuesday and Wednesday are done.
         #expect((80...160).contains(heartMinutes(demo)))
     }
 
