@@ -27,29 +27,29 @@ Requirements: Xcode 27 (iOS 27 / watchOS 11 SDK) and [XcodeGen](https://github.c
 
 ```sh
 xcodegen generate
-open Puls.xcodeproj
+open HeartMinutes.xcodeproj
 ```
 
 The project file is generated from `project.yml`. To run on your own devices, change
 `bundleIdPrefix`, the bundle identifiers and the App Group (`group.dk.erik.puls`) in `project.yml`,
-`Shared/ComplicationStore.swift` and `Puls/WidgetUpdater.swift` to ones in your own Apple developer account.
+`Shared/ComplicationStore.swift` and `HeartMinutes/WidgetUpdater.swift` to ones in your own Apple developer account.
 
 Run the tests:
 
 ```sh
-xcodebuild test -project Puls.xcodeproj -scheme Puls -destination 'platform=iOS Simulator,name=iPhone 17'
+xcodebuild test -project HeartMinutes.xcodeproj -scheme HeartMinutes -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ## Project layout
 
 | Folder | Contents |
 |---|---|
-| `Puls/` | iPhone app: calculation (`ActiveMinutes.swift`), HealthKit (`HealthManager.swift`), views |
-| `PulsWatch/` | Apple Watch app |
-| `PulsWatchWidget/` | Watch complications |
-| `PulsWidget/` | iPhone widgets |
+| `HeartMinutes/` | iPhone app: calculation (`ActiveMinutes.swift`), HealthKit (`HealthManager.swift`), views |
+| `HeartMinutesWatch/` | Apple Watch app |
+| `HeartMinutesWatchWidget/` | Watch complications |
+| `HeartMinutesWidget/` | iPhone widgets |
 | `Shared/` | Code shared between app, watch and widgets |
-| `PulsTests/` | Unit tests |
+| `HeartMinutesTests/` | Unit tests |
 | `Design/` | Scripts that draw the app icon |
 | `Localization/` | All translations (`translations.json`) and the script that builds the String Catalog |
 | `docs/` | Privacy policy, support page and App Store listing (GitHub Pages) |

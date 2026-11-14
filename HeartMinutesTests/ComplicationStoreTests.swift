@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Puls
+@testable import HeartMinutes
 
 /// A lower number from an interrupted background refresh must not overwrite the saved number.
 struct ComplicationStoreTests {

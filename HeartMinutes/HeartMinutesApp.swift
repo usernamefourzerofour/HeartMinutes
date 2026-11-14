@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct PulsApp: App {
+struct HeartMinutesApp: App {
     @State private var health = HealthManager()
     @Environment(\.scenePhase) private var scenePhase
 

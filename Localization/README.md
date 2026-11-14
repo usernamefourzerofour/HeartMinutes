@@ -3,7 +3,7 @@
 English is the source language. All UI texts live in String Catalogs:
 
 - `Shared/Localizable.xcstrings` – app, widgets, watch app and complications
-- `Puls/InfoPlist.xcstrings`, `PulsWatch/InfoPlist.xcstrings` – Health permission texts
+- `HeartMinutes/InfoPlist.xcstrings`, `HeartMinutesWatch/InfoPlist.xcstrings` – Health permission texts
 
 `translations.json` holds every English text (with `{0}`, `{1}` placeholders in English order) and its translations in
 37 languages. Count-dependent texts use plural dicts (`one`, `few`, `many`, `other`, …). `build_catalog.py` turns the

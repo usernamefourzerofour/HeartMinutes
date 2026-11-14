@@ -1,5 +1,5 @@
 import Testing
-@testable import Puls
+@testable import HeartMinutes
 
 @MainActor
 struct ChartZoomTests {

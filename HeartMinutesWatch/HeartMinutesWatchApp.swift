@@ -3,7 +3,7 @@ import WatchKit
 import WidgetKit
 
 @main
-struct PulsWatchApp: App {
+struct HeartMinutesWatchApp: App {
     @State private var model = WatchModel.shared
 
     var body: some Scene {

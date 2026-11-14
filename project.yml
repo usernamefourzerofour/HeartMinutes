@@ -1,4 +1,4 @@
-name: Puls
+name: HeartMinutes
 options:
   bundleIdPrefix: dk.erik
   developmentLanguage: en
@@ -12,18 +12,18 @@ settings:
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 targets:
-  Puls:
+  HeartMinutes:
     type: application
     platform: iOS
-    sources: [Puls, Shared]
+    sources: [HeartMinutes, Shared]
     entitlements:
-      path: Puls/Puls.entitlements
+      path: HeartMinutes/HeartMinutes.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
         com.apple.security.application-groups: [group.dk.erik.puls]
     info:
-      path: Puls/Info.plist
+      path: HeartMinutes/Info.plist
       properties:
         UILaunchScreen: {}
         CFBundleDevelopmentRegion: en
@@ -40,8 +40,8 @@ targets:
         UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [dk.erik.puls.refresh]
     dependencies:
-      - target: PulsWatch
-      - target: PulsWidget
+      - target: HeartMinutesWatch
+      - target: HeartMinutesWidget
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls
@@ -49,24 +49,24 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   # Apple Watch app: calculates this week's Heart Minutes on the watch and saves them for the complication.
-  PulsWatch:
+  HeartMinutesWatch:
     type: application
     platform: watchOS
     sources:
-      - PulsWatch
+      - HeartMinutesWatch
       - Shared
-      - Puls/ActiveMinutes.swift
-      - Puls/HealthManager.swift
-      - Puls/HeartZones.swift
-      - Puls/Period.swift
+      - HeartMinutes/ActiveMinutes.swift
+      - HeartMinutes/HealthManager.swift
+      - HeartMinutes/HeartZones.swift
+      - HeartMinutes/Period.swift
     entitlements:
-      path: PulsWatch/PulsWatch.entitlements
+      path: HeartMinutesWatch/HeartMinutesWatch.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
         com.apple.security.application-groups: [group.dk.erik.puls]
     info:
-      path: PulsWatch/Info.plist
+      path: HeartMinutesWatch/Info.plist
       properties:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
@@ -78,26 +78,26 @@ targets:
         NSHealthUpdateUsageDescription: "Heart Minutes doesn’t save data in Health – it only reads your heart rate measurements and workouts."
         NSHealthShareUsageDescription: "Heart Minutes reads your heart rate measurements and workouts to show this week’s Heart Minutes on your watch."
     dependencies:
-      - target: PulsWatchWidget
+      - target: HeartMinutesWatchWidget
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls.watchkitapp
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   # Complications (WidgetKit) on the watch face.
-  PulsWatchWidget:
+  HeartMinutesWatchWidget:
     type: app-extension
     platform: watchOS
     sources:
-      - PulsWatchWidget
+      - HeartMinutesWatchWidget
       - Shared
-      - Puls/Period.swift
+      - HeartMinutes/Period.swift
     entitlements:
-      path: PulsWatchWidget/PulsWatchWidget.entitlements
+      path: HeartMinutesWatchWidget/HeartMinutesWatchWidget.entitlements
       properties:
         com.apple.security.application-groups: [group.dk.erik.puls]
     info:
-      path: PulsWatchWidget/Info.plist
+      path: HeartMinutesWatchWidget/Info.plist
       properties:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
@@ -111,19 +111,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls.watchkitapp.widget
 
   # iPhone widgets: Home Screen (with chart), Lock Screen and StandBy.
-  PulsWidget:
+  HeartMinutesWidget:
     type: app-extension
     platform: iOS
     sources:
-      - PulsWidget
+      - HeartMinutesWidget
       - Shared
-      - Puls/Period.swift
+      - HeartMinutes/Period.swift
     entitlements:
-      path: PulsWidget/PulsWidget.entitlements
+      path: HeartMinutesWidget/HeartMinutesWidget.entitlements
       properties:
         com.apple.security.application-groups: [group.dk.erik.puls]
     info:
-      path: PulsWidget/Info.plist
+      path: HeartMinutesWidget/Info.plist
       properties:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ar, bg, ca, cs, da, de, el, es, es-419, fi, fr, he, hi, hr, hu, id, it, ja, ko, lt, ms, nb, nl, pl, pt-BR, pt-PT, ro, ru, sk, sl, sv, th, tr, uk, vi, zh-Hans, zh-Hant]
@@ -137,10 +137,10 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dk.erik.puls.widget
         TARGETED_DEVICE_FAMILY: "1"
 
-  PulsTests:
+  HeartMinutesTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [PulsTests]
-    dependencies: [{ target: Puls }]
+    sources: [HeartMinutesTests]
+    dependencies: [{ target: HeartMinutes }]
     settings:
       base: { GENERATE_INFOPLIST_FILE: YES }

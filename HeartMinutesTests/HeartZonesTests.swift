@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Puls
+@testable import HeartMinutes
 
 struct HeartZonesTests {
     @Test func maxHRIs220MinusAge() {

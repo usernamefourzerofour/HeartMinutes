@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Puls
+@testable import HeartMinutes
 
 struct HeartStatsTests {
     @Test func emptyGivesNil() { #expect(HeartStats([]) == nil) }

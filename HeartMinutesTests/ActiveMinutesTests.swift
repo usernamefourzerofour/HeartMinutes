@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Puls
+@testable import HeartMinutes
 
 /// Zones in the tests: moderate from 100, vigorous from 130 bpm. Heart rate is linear between measurements.
 @MainActor

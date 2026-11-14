@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import Puls
+@testable import HeartMinutes
 
 /// Draws the heart ring and checks that nothing is painted outside the heart (e.g. a square above the goal).
 @MainActor

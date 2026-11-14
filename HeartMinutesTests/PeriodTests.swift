@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Puls
+@testable import HeartMinutes
 
 struct PeriodTests {
     var cal: Calendar {

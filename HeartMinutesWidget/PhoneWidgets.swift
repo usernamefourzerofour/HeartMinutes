@@ -360,7 +360,7 @@ struct HeartMinutesLockWidget: Widget {
 }
 
 @main
-struct PulsWidgets: WidgetBundle {
+struct HeartMinutesPhoneWidgets: WidgetBundle {
     var body: some Widget {
         HeartMinutesHomeWidget()
         HeartMinutesLockWidget()

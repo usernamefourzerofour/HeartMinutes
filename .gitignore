@@ -63,5 +63,5 @@ fastlane/test_output
 
 # Genereres af XcodeGen
 *.xcodeproj
-Puls/Info.plist
-Puls/Puls.entitlements
+HeartMinutes/Info.plist
+HeartMinutes/HeartMinutes.entitlements
