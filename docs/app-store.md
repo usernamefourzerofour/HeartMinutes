@@ -1,7 +1,8 @@
 # App Store listing (draft)
 
-Working notes for the App Store Connect listing. English is the primary language; the translations for all app
-languages are in `Localization/app-store.json`.
+Working notes for the App Store Connect listing. English (en-US) is the primary language; the translations for all app
+languages are in `Localization/app-store.json`. All 36 languages App Store Connect supports were filled in on
+15 November 2026 (not `bg` and `lt`, which it doesn't offer).
 
 ## Basics
 

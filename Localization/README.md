@@ -27,5 +27,5 @@ keywords (100, comma-separated, no spaces after the commas) and description (400
 `docs/app-store.md`. The name stays "Heart Minutes" in every language.
 
 App Store Connect uses its own locale codes: `en` → `en-US`, `ar` → `ar-SA`, `de` → `de-DE`, `es` → `es-ES`,
-`es-419` → `es-MX`, `fr` → `fr-FR`, `nb` → `no`, `nl` → `nl-NL`, `sl` → `sl-SI`; the others are the same. If App Store
-Connect doesn't offer a language (possibly `bg` and `lt`), users there see the English text.
+`es-419` → `es-MX`, `fr` → `fr-FR`, `nb` → `no`, `nl` → `nl-NL`, `sl` → `sl-SI`; the others are the same. App Store
+Connect doesn't offer `bg` and `lt` (checked November 2026), so users there see the English text (the primary language).
