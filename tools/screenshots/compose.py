@@ -80,7 +80,7 @@ def compose(shot, out, title, sub, dark=False, shot_width=1040, top=170):
 if __name__ == "__main__":
     src, dst = sys.argv[1], sys.argv[2]
     compose(f"{src}/raw-1.png", f"{dst}/1-week.png", "Your week, one number",
-            "Workouts and everyday activity both count")
+            "Everyday activity counts automatically")
     compose(f"{src}/raw-2c.png", f"{dst}/2-workouts.png", "Every workout in detail",
             "Heart rate and zones for each workout")
     compose(f"{src}/raw-3.png", f"{dst}/3-zones.png", "Your zones, your rules",

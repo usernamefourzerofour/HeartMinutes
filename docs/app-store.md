@@ -17,7 +17,7 @@ languages are in `Localization/app-store.json`.
 
 ## Promotional text (170 characters)
 
-> Your Apple Watch heart rate as one weekly number: minutes in your zones from workouts and everyday activity alike. Free, open source, no ads, no tracking.
+> Your Apple Watch heart rate as one weekly number. Workouts count, and everyday activity is counted automatically – nothing to start. Free, open source, no ads.
 
 ## Keywords (100 characters, comma-separated, no spaces)
 
@@ -29,8 +29,8 @@ heart rate,zones,cardio,AHA,150 minutes,weekly goal,fitness,activity,pulse,worko
 
 > Heart Minutes turns the heart rate from your Apple Watch into one simple number: the minutes you spend in your heart rate zones, weighted the way the American Heart Association recommends. Moderate minutes count once, vigorous minutes count twice, and the goal is 150 a week.
 >
-> YOUR WHOLE DAY COUNTS, NOT JUST WORKOUTS
-> Your Apple Watch measures your heart rate all day. Heart Minutes counts those background measurements too, so a brisk walk, cycling to work or taking the stairs adds to your week – no need to start a workout.
+> EVERYDAY ACTIVITY COUNTS – AUTOMATICALLY
+> You don't have to start a workout. Your Apple Watch measures your heart rate in the background all day, and Heart Minutes counts it automatically: a brisk walk, cycling to work or taking the stairs adds to your week by itself.
 >
 > SEE YOUR WEEK AT A GLANCE
 > • An animated heart ring that fills toward your goal and keeps going past 100 %
