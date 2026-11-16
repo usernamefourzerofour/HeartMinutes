@@ -36,9 +36,16 @@
 - [x] Tekster på engelsk (`docs/app-store.md`): navn, undertitel, beskrivelse, nøgleord, review-noter
 - [x] Tekster oversat til appens øvrige 37 sprog (`Localization/app-store.json`)
 - [x] Skærmbilleder: iPhone 6,9" og Apple Watch (`tools/screenshots/`)
-- [ ] App Store Connect: kategori, pris (gratis), alle lande, aldersgrænse, App Privacy, DSA (ikke-erhvervsdrivende)
+- [x] App Store Connect: kategori, pris (gratis), alle lande, aldersgrænse, App Privacy, DSA (ikke-erhvervsdrivende)
 - [x] Ikke-medicinsk forbehold i beskrivelsen
-- [ ] Test på rigtigt ur og telefon af build 71 (Erik)
+- [x] Test på rigtigt ur og telefon (Erik)
+- [x] **Udgivet 16. nov. 2026** – build 72 godkendt efter én runde Guideline 2.1 (skærmoptagelse + noter om
+      formål, brug, ingen eksterne tjenester, ingen regionale forskelle). App Store: https://apps.apple.com/app/id6831784976
+
+## Næste version (1.0.1 / 1.1)
+- [ ] Tilføj watch-billede 2 (kun ét kom med; Apple-kategorien er `APP_WATCH_ULTRA` for 422 × 514)
+- [ ] Review-noter: "Settings tab" i stedet for "Settings (gear icon)"
+- [ ] Hver ny version kræver "What's New"-tekst på alle sprog
 
 ## Idéer til senere
 - Hurtigere opdatering af komplikationer (HKObserverQuery / skub fra telefonen)
