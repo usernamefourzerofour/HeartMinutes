@@ -2,8 +2,8 @@
 
 Heart Minutes turns the heart rate from your Apple Watch into one simple number: minutes in your heart rate zones,
 weighted like the American Heart Association recommends (moderate × 1, vigorous × 2), measured against a weekly goal of 150.
-Everyday activity counts automatically: your Apple Watch measures your heart rate in the background all day, and Heart
-Minutes includes it without you starting a workout – a brisk walk or cycling to work adds to your week by itself.
+Workouts count, and so does everything in between: your Apple Watch measures your heart rate in the background all day,
+and Heart Minutes logs it automatically – a brisk walk or cycling to work counts without you starting a workout.
 
 - [Privacy Policy](privacy.md)
 - [Source code](https://github.com/usernamefourzerofour/HeartMinutes)

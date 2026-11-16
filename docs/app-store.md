@@ -18,7 +18,7 @@ languages are in `Localization/app-store.json`. All 36 languages App Store Conne
 
 ## Promotional text (170 characters)
 
-> Your Apple Watch heart rate as one weekly number. Workouts count, and everyday activity is counted automatically – nothing to start. Free, open source, no ads.
+> Workouts count – and so does everything in between: Apple Watch measures your heart rate in the background, so brisk walks and bike rides are logged automatically.
 
 ## Keywords (100 characters, comma-separated, no spaces)
 
@@ -30,8 +30,14 @@ heart rate,zones,cardio,AHA,150 minutes,weekly goal,fitness,activity,pulse,worko
 
 > Heart Minutes turns the heart rate from your Apple Watch into one simple number: the minutes you spend in your heart rate zones, weighted the way the American Heart Association recommends. Moderate minutes count once, vigorous minutes count twice, and the goal is 150 a week.
 >
-> EVERYDAY ACTIVITY COUNTS – AUTOMATICALLY
-> You don't have to start a workout. Your Apple Watch measures your heart rate in the background all day, and Heart Minutes counts it automatically: a brisk walk, cycling to work or taking the stairs adds to your week by itself.
+> WORKOUTS + EVERYDAY ACTIVITY
+> • Workouts: every workout counts, with its heart rate and zones in detail.
+> • Everyday activity: your Apple Watch measures your heart rate in the background all day, and Heart Minutes logs it automatically. A brisk walk, cycling to work or taking the stairs counts – without starting a workout.
+>
+> ON YOUR WRIST AND HOME SCREEN
+> • Apple Watch app with heart ring and ring complications
+> • Home Screen, Lock Screen and StandBy widgets
+> • Today, this week, this month or a rolling period
 >
 > SEE YOUR WEEK AT A GLANCE
 > • An animated heart ring that fills toward your goal and keeps going past 100 %
@@ -44,11 +50,6 @@ heart rate,zones,cardio,AHA,150 minutes,weekly goal,fitness,activity,pulse,worko
 > • Max heart rate from your age or entered by hand
 > • Adjustable zone limits and how much each zone counts
 > • Choose whether everyday heart rate only counts when you're active
->
-> ON YOUR WRIST AND HOME SCREEN
-> • Apple Watch app with heart ring and ring complications
-> • Home Screen, Lock Screen and StandBy widgets
-> • Today, this week, this month or a rolling period
 >
 > PRIVATE BY DESIGN
 > Heart Minutes only reads from Apple Health. It never writes to Health, has no servers, no accounts, no analytics and no tracking. Everything is calculated on your iPhone and Apple Watch.
