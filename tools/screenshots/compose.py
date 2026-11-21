@@ -82,7 +82,7 @@ if __name__ == "__main__":
     src, dst = sys.argv[1], sys.argv[2]
     # Widgets and complications first: they are the app's main interface.
     compose(f"{src}/raw-home.png", f"{dst}/1-home.png", "Always in view",
-            "Home Screen widgets with your heart ring and week")
+            "Your heart ring and week on the Home Screen")
     compose(f"{src}/raw-1.png", f"{dst}/4-week.png", "Workouts + everyday activity",
             "Brisk walks and bike rides are logged automatically in the background")
     compose(f"{src}/raw-2c.png", f"{dst}/5-workouts.png", "Every workout in detail",
