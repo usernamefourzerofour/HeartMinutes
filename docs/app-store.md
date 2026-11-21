@@ -80,9 +80,11 @@ All content questions: **None / No** (include `socialMedia`). Expected result: *
 
 ## Screenshots
 
-Made with the demo week (`-DemoData YES`) in the Simulators; how is described in `tools/screenshots/README.md`.
+Made with the demo week (`-DemoData YES`) in the Simulators; how is described in `tools/screenshots/README.md` and
+`tools/screenshots/compose.py`.
 
-- iPhone 6.9" (1320 × 2868), headline on a soft pink background above the app:
-  1. Your week, one number · 2. Every workout in detail · 3. Your zones, your rules · 4. On your wrist ·
-  5. Private by design (dark mode)
-- Apple Watch Ultra 3 (422 × 514): the watch app's heart ring, and the chart below it.
+- iPhone 6.9" (1320 × 2868), headline on a soft pink background (version 1.0.1):
+  1. Always in view (the widget page with the large, medium and small widget) · 2. On your watch face (heart and ring
+  complications) · 3. Workouts + everyday activity · 4. Every workout in detail · 5. Your zones, your rules ·
+  6. On your wrist (watch app) · 7. Private by design (dark mode)
+- Apple Watch Ultra (`APP_WATCH_ULTRA`, 422 × 514): the watch app's heart ring.

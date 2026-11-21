@@ -42,9 +42,17 @@
 - [x] **Udgivet 16. nov. 2026** – build 72 godkendt efter én runde Guideline 2.1 (skærmoptagelse + noter om
       formål, brug, ingen eksterne tjenester, ingen regionale forskelle). App Store: https://apps.apple.com/app/id6831784976
 
-## Næste version (1.0.1 / 1.1)
-- [ ] Tilføj watch-billede 2 (kun ét kom med; Apple-kategorien er `APP_WATCH_ULTRA` for 422 × 514)
-- [ ] Review-noter: "Settings tab" i stedet for "Settings (gear icon)"
+## 1.0.1 (sendt til review 21. nov. 2026, build 73)
+- [x] Promo-tekst: træning tæller, og baggrundsaktivitet logges automatisk (live på 1.0 på alle sprog)
+- [x] Beskrivelse: afsnittet "Workouts + everyday activity" og widgets/ur rykket op
+- [x] Nye billeder: widgets (lille, mellem, stor) først, så urskiven med komplikationer
+- [x] "What's New" på alle sprog (`Localization/whats_new_101.py`)
+- [x] Review-noter: "Settings tab"
+- [x] Udgives automatisk efter godkendelse
+
+## Senere
+- [ ] Watch-billede 2 og urskiven som watch-billede (Apple-kategorien er `APP_WATCH_ULTRA` for 422 × 514)
+- [ ] Låseskærm-billede (låseskærmens editor virker ikke i simulatoren – tag det evt. på en rigtig iPhone)
 - [ ] Hver ny version kræver "What's New"-tekst på alle sprog
 
 ## Idéer til senere
