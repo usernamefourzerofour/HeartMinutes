@@ -2,7 +2,7 @@
 
 Usage: python compose.py SHOTS_DIR OUT_DIR (needs Pillow and the SF Pro Rounded font from macOS).
 SHOTS_DIR holds raw Simulator screenshots (iPhone 17 Pro Max, 1320 × 2868) of the app launched with `-DemoData YES`:
-raw-home.png the Home Screen with the widgets (medium and large), raw-1.png Overview,
+raw-home.png the widget page left of the Home Screen (Today View) with the large, medium and small widget, raw-1.png Overview,
 raw-2c.png a workout in the heart rate chart, raw-3.png Settings, raw-4.png Overview in dark mode.
 """
 import sys
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     src, dst = sys.argv[1], sys.argv[2]
     # Widgets and complications first: they are the app's main interface.
     compose(f"{src}/raw-home.png", f"{dst}/1-home.png", "Always in view",
-            "Your heart ring and week on the Home Screen")
+            "Your heart ring and week in widgets")
     compose(f"{src}/raw-1.png", f"{dst}/4-week.png", "Workouts + everyday activity",
             "Brisk walks and bike rides are logged automatically in the background")
     compose(f"{src}/raw-2c.png", f"{dst}/5-workouts.png", "Every workout in detail",
