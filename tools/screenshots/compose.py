@@ -2,7 +2,8 @@
 
 Usage: python compose.py SHOTS_DIR OUT_DIR (needs Pillow and the SF Pro Rounded font from macOS).
 SHOTS_DIR holds raw Simulator screenshots (iPhone 17 Pro Max, 1320 × 2868) of the app launched with `-DemoData YES`:
-raw-1.png Overview, raw-2c.png a workout in the heart rate chart, raw-3.png Settings, raw-4.png Overview in dark mode.
+raw-home.png the Home Screen with the widgets, raw-lock.png the Lock Screen with its widgets, raw-1.png Overview,
+raw-2c.png a workout in the heart rate chart, raw-3.png Settings, raw-4.png Overview in dark mode.
 """
 import sys
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -79,11 +80,16 @@ def compose(shot, out, title, sub, dark=False, shot_width=1040, top=170):
 
 if __name__ == "__main__":
     src, dst = sys.argv[1], sys.argv[2]
-    compose(f"{src}/raw-1.png", f"{dst}/1-week.png", "Your week, one number",
-            "Everyday activity counts automatically")
-    compose(f"{src}/raw-2c.png", f"{dst}/2-workouts.png", "Every workout in detail",
+    # Widgets and complications first: they are the app's main interface.
+    compose(f"{src}/raw-home.png", f"{dst}/1-home.png", "Always in view",
+            "Home Screen widgets with your heart ring and week")
+    compose(f"{src}/raw-lock.png", f"{dst}/2-lock.png", "On your Lock Screen",
+            "Your Heart Minutes at a glance")
+    compose(f"{src}/raw-1.png", f"{dst}/4-week.png", "Workouts + everyday activity",
+            "Brisk walks and bike rides are logged automatically in the background")
+    compose(f"{src}/raw-2c.png", f"{dst}/5-workouts.png", "Every workout in detail",
             "Heart rate and zones for each workout")
-    compose(f"{src}/raw-3.png", f"{dst}/3-zones.png", "Your zones, your rules",
+    compose(f"{src}/raw-3.png", f"{dst}/6-zones.png", "Your zones, your rules",
             "2 or 5 zones, from your age or max heart rate")
-    compose(f"{src}/raw-4.png", f"{dst}/5-private.png", "Private by design",
+    compose(f"{src}/raw-4.png", f"{dst}/8-private.png", "Private by design",
             "No servers, no accounts, no tracking", dark=True)

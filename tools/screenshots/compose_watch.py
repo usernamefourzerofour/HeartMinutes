@@ -1,6 +1,7 @@
-"""The "On your wrist" App Store screenshot: headline above the watch app in a simple watch frame.
+"""The watch App Store screenshots: headline above the watch app in a simple watch frame.
 
-Usage: python compose_watch.py SHOTS_DIR OUT_DIR, with watch-1.png from the Apple Watch Ultra 3 Simulator (422 × 514).
+Usage: python compose_watch.py SHOTS_DIR OUT_DIR, with watch-face.png (the watch face with
+the complications) and watch-1.png (the watch app) from the Apple Watch Ultra 3 Simulator (422 × 514).
 """
 import sys
 from PIL import Image, ImageDraw, ImageFilter
@@ -42,5 +43,7 @@ def compose_watch(shot, out, title, sub):
 
 
 if __name__ == "__main__":
-    compose_watch(f"{sys.argv[1]}/watch-1.png", f"{sys.argv[2]}/4-watch.png", "On your wrist",
-                  "Heart ring and chart on Apple Watch")
+    compose_watch(f"{sys.argv[1]}/watch-face.png", f"{sys.argv[2]}/3-face.png", "On your watch face",
+                  "Heart and ring complications")
+    compose_watch(f"{sys.argv[1]}/watch-1.png", f"{sys.argv[2]}/7-watch.png", "On your wrist",
+                  "Heart ring and chart in the watch app")
