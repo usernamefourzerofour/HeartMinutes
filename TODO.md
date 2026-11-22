@@ -50,6 +50,9 @@
 - [x] Review-noter: "Settings tab"
 - [x] Udgives automatisk efter godkendelse
 
+## 1.0.2 (sendt til review 22. nov. 2026, build 74)
+- [x] Ét samlet ur-billede: urskiven med komplikationer + ur-appen (`tools/screenshots/compose_watch.py`); 6 billeder i alt
+
 ## Senere
 - [ ] Watch-billede 2 og urskiven som watch-billede (Apple-kategorien er `APP_WATCH_ULTRA` for 422 × 514)
 - [ ] Låseskærm-billede (låseskærmens editor virker ikke i simulatoren – tag det evt. på en rigtig iPhone)
