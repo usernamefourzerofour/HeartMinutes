@@ -68,4 +68,4 @@ def compose_watches(face, app, out, title, sub):
 
 if __name__ == "__main__":
     compose_watches(f"{sys.argv[1]}/watch-face.png", f"{sys.argv[1]}/watch-1.png", f"{sys.argv[2]}/3-watch.png",
-                    "On your wrist", "Complications on the watch face and the watch app")
+                    "On your wrist", "Complications and the watch app")
